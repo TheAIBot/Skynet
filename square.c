@@ -23,6 +23,7 @@
 #define WHEEL_DIAMETER   0.067	/* m */
 #define WHEEL_SEPARATION 0.256	/* m */
 #define DELTA_M (M_PI * WHEEL_DIAMETER / 2000)
+#define MAX_ACCELERATION 0.5
 
 /********************************************
  * Motion control
@@ -66,8 +67,9 @@ enum
 };
 
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+#define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
 
-void update_motcon(motiontype *p)
+void update_motcon(motiontype *p, int tickTime)
 {
 
 	if (p->cmd != 0)
@@ -93,14 +95,14 @@ void update_motcon(motiontype *p)
 		p->cmd = 0;
 	}
 
-	double movedDist = (p->right_pos + p->left_pos) / 2 - p->startpos;
+	double distLeft = p->dist - (((p->right_pos + p->left_pos) / 2) - p->startpos);
 	switch (p->curcmd) {
 	case mot_stop:
 		p->motorspeed_l = 0;
 		p->motorspeed_r = 0;
 		break;
 	case mot_move:
-		if (movedDist > p->dist)
+		if ( distLeft <= 0)
 		{
 			p->finished = 1;
 			p->motorspeed_l = 0;
@@ -108,14 +110,12 @@ void update_motcon(motiontype *p)
 		}
 		else
 		{
-			p->motorspeed_l = p->speedcmd;
-			p->motorspeed_r = p->speedcmd;
-
-			//p->motorspeed_l = MIN(p->speedcmd, sqrt(2 * 0.5 * movedDist));
-			//p->motorspeed_r = MIN(p->speedcmd, sqrt(2 * 0.5 * movedDist));
-
-			//p->motorspeed_l  =  MIN(MIN(p->speedcmd, sqrt(2*0.5*movedDist)),  sqrt(2*0.5*(p->dist - movedDist)));
-			//p->motorspeed_r  =  MIN(MIN(p->speedcmd, sqrt(2*0.5*movedDist)),  sqrt(2*0.5*(p->dist - movedDist)));
+			double stdSpeed = p->speedcmd;
+			double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distLeft);
+			double accFunc = (MAX_ACCELERATION / 100) * tickTime;
+			p->motorspeed_l = MIN(MIN(stdSpeed, speedFunc), accFunc);
+			p->motorspeed_r = p->motorspeed_l;
+			printf("%f %f %f %d %f\n", stdSpeed, speedFunc, accFunc, tickTime, p->motorspeed_l);
 		}
 		break;
 
@@ -124,11 +124,18 @@ void update_motcon(motiontype *p)
 		{
 			if (p->right_pos - p->startpos < (p->angle * p->w) / 2)
 			{
-				p->motorspeed_r = p->speedcmd / 8;
-				p->motorspeed_l = -p->speedcmd / 8;
+				//printf("less than side=%f, greater than side=%f \n",p->right_pos - p->startpos,  (p->angle * p->w) / 2);
+				distLeft = (p->angle * p->w) / 2 - (p->right_pos - p->startpos);
+				double stdSpeed = p->speedcmd;
+				double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distLeft);
+				double accFunc = (MAX_ACCELERATION / 100) * tickTime;
+				p->motorspeed_r = MAX(MIN(MIN(stdSpeed, speedFunc), accFunc)/2,0.01);		
+				p->motorspeed_l = -p->motorspeed_r;
+				//printf("distLeft=%f, stdSpeed=%f,speedFunc=%f,accFunc=%f,motorspeed_r=%f",distLeft,stdSpeed,speedFunc,accFunc,p->motorspeed_r);
 			}
 			else
 			{
+				printf("Done turning");
 				p->motorspeed_r = 0;
 				p->motorspeed_l = 0;
 				p->finished = 1;
@@ -138,11 +145,16 @@ void update_motcon(motiontype *p)
 		{
 			if (p->left_pos - p->startpos < (fabs(p->angle) * p->w) / 2)
 			{
-				p->motorspeed_r = -p->speedcmd / 8;
-				p->motorspeed_l = p->speedcmd / 8;
+				distLeft = (fabs(p->angle) * p->w) / 2 - (p->left_pos - p->startpos);
+				double stdSpeed = p->speedcmd;
+				double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distLeft);
+				double accFunc = (MAX_ACCELERATION / 100) * tickTime;
+				p->motorspeed_l = MAX(MIN(MIN(stdSpeed, speedFunc), accFunc)/2,0.01);				
+				p->motorspeed_r = -p->motorspeed_l;
 			}
 			else
 			{
+				p->motorspeed_r = 0;
 				p->motorspeed_l = 0;
 				p->finished = 1;
 			}
@@ -250,12 +262,10 @@ int main()
 			angle = 90.0 / 180 * M_PI;
 			mission.state = ms_fwd;
 			break;
-
 		case ms_fwd:
 			if (fwd(dist, 0.3, mission.time))
 				mission.state = ms_turn;
 			break;
-
 		case ms_turn:
 			if (turn(angle, 0.3, mission.time))
 			{
@@ -263,7 +273,6 @@ int main()
 				mission.state = (n == 0) ? ms_end : ms_fwd;
 			}
 			break;
-
 		case ms_end:
 			mot.cmd = mot_stop;
 			running = 0;
@@ -273,7 +282,7 @@ int main()
 
 		mot.left_pos = odo.left_pos;
 		mot.right_pos = odo.right_pos;
-		update_motcon(&mot);
+		update_motcon(&mot, mission.time);
 		speedl->data[0] = 100 * mot.motorspeed_l;
 		speedl->updated = 1;
 		speedr->data[0] = 100 * mot.motorspeed_r;
@@ -291,7 +300,6 @@ int main()
 		{
 			running = 0;
 		}
-
 	}/* end of main control loop */
 	speedl->data[0] = 0;
 	speedl->updated = 1;

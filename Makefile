@@ -13,7 +13,7 @@ LDFLAGS = -L${SMR}/lib
 PROG   = square
 HDRS   =
 OBJS   = square.o serverif.o robotconnector.o odometry.o log.o
-LIBS   = -lm /home/smr/k385_local/k385/programs/Skynet/librhd.a -lrobot
+LIBS   = -lm librhd.a -lrobot
 
 all:	${PROG}
 
