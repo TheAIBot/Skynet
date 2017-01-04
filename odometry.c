@@ -1,3 +1,5 @@
+#include <math.h>
+#include <stdio.h>
 #include "includes/odometry.h"
 #include "includes/log.h"
 
@@ -50,5 +52,6 @@ void update_odo(odotype *p)
 	//	p->angle -= 2 * M_PI;
 	p->xpos += deltaU * cos(p->angle);
 	p->ypos += deltaU * sin(p->angle);
+	//printf("%f %f %f\n", p->xpos, p->ypos, p->angle);
 	logOdo(p);
 }
