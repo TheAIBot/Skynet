@@ -94,7 +94,7 @@ void update_motcon(motiontype *p, int tickTime)
 		p->cmd = 0;
 	}
 
-	double distLeft = p->dist - (p->right_pos + p->left_pos) / 2 - p->startpos;
+	double distLeft = p->dist - (((p->right_pos + p->left_pos) / 2) - p->startpos);
 	switch (p->curcmd) {
 	case mot_stop:
 		p->motorspeed_l = 0;
@@ -245,7 +245,7 @@ int main()
 		switch (mission.state) {
 		case ms_init:
 			n = 4;
-			dist = 3;
+			dist = 1;
 			angle = 90.0 / 180 * M_PI;
 			mission.state = ms_fwd;
 			break;
