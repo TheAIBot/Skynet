@@ -24,6 +24,7 @@
 #define WHEEL_SEPARATION 0.256	/* m */
 #define DELTA_M (M_PI * WHEEL_DIAMETER / 2000)
 #define MAX_ACCELERATION 0.5
+#define MIN_SPEED 0.01
 
 /********************************************
  * Motion control
@@ -69,6 +70,15 @@ enum
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 #define MAX(X, Y) (((X) > (Y)) ? (X) : (Y))
 
+double getAcceleratedSpeed(double stdSpeed, double distanceLeft, int tickTime)
+{
+	double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distanceLeft);
+	double accFunc = (MAX_ACCELERATION / 100) * tickTime;
+	double speed = MIN(MIN(stdSpeed, speedFunc), accFunc);
+	//printf("%f %f %f %d %f\n", stdSpeed, speedFunc, accFunc, tickTime, speed);
+	return speed;
+}
+
 void update_motcon(motiontype *p, int tickTime)
 {
 
@@ -86,7 +96,7 @@ void update_motcon(motiontype *p, int tickTime)
 			break;
 
 		case mot_turn:
-			p->startpos = (p->angle > 0) ? p->right_pos :  p->left_pos;
+			p->startpos = (p->angle > 0) ? p->right_pos : p->left_pos;
 			p->curcmd = mot_turn;
 			break;
 
@@ -102,7 +112,7 @@ void update_motcon(motiontype *p, int tickTime)
 		p->motorspeed_r = 0;
 		break;
 	case mot_move:
-		if ( distLeft <= 0)
+		if (distLeft <= 0)
 		{
 			p->finished = 1;
 			p->motorspeed_l = 0;
@@ -110,12 +120,8 @@ void update_motcon(motiontype *p, int tickTime)
 		}
 		else
 		{
-			double stdSpeed = p->speedcmd;
-			double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distLeft);
-			double accFunc = (MAX_ACCELERATION / 100) * tickTime;
-			p->motorspeed_l = MIN(MIN(stdSpeed, speedFunc), accFunc);
+			p->motorspeed_l = MAX(getAcceleratedSpeed(p->speedcmd, distLeft, tickTime), MIN_SPEED);
 			p->motorspeed_r = p->motorspeed_l;
-			printf("%f %f %f %d %f\n", stdSpeed, speedFunc, accFunc, tickTime, p->motorspeed_l);
 		}
 		break;
 
@@ -124,18 +130,12 @@ void update_motcon(motiontype *p, int tickTime)
 		{
 			if (p->right_pos - p->startpos < (p->angle * p->w) / 2)
 			{
-				//printf("less than side=%f, greater than side=%f \n",p->right_pos - p->startpos,  (p->angle * p->w) / 2);
 				distLeft = (p->angle * p->w) / 2 - (p->right_pos - p->startpos);
-				double stdSpeed = p->speedcmd;
-				double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distLeft);
-				double accFunc = (MAX_ACCELERATION / 100) * tickTime;
-				p->motorspeed_r = MAX(MIN(MIN(stdSpeed, speedFunc), accFunc)/2,0.01);		
+				p->motorspeed_r = MAX(getAcceleratedSpeed(p->speedcmd, distLeft, tickTime) / 2, MIN_SPEED);
 				p->motorspeed_l = -p->motorspeed_r;
-				//printf("distLeft=%f, stdSpeed=%f,speedFunc=%f,accFunc=%f,motorspeed_r=%f",distLeft,stdSpeed,speedFunc,accFunc,p->motorspeed_r);
 			}
 			else
 			{
-				printf("Done turning");
 				p->motorspeed_r = 0;
 				p->motorspeed_l = 0;
 				p->finished = 1;
@@ -146,10 +146,7 @@ void update_motcon(motiontype *p, int tickTime)
 			if (p->left_pos - p->startpos < (fabs(p->angle) * p->w) / 2)
 			{
 				distLeft = (fabs(p->angle) * p->w) / 2 - (p->left_pos - p->startpos);
-				double stdSpeed = p->speedcmd;
-				double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distLeft);
-				double accFunc = (MAX_ACCELERATION / 100) * tickTime;
-				p->motorspeed_l = MAX(MIN(MIN(stdSpeed, speedFunc), accFunc)/2,0.01);				
+				p->motorspeed_l = MAX(getAcceleratedSpeed(p->speedcmd, distLeft, tickTime) / 2, MIN_SPEED);
 				p->motorspeed_r = -p->motorspeed_l;
 			}
 			else
