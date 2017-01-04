@@ -250,7 +250,7 @@ int main()
 			mission.state = ms_fwd;
 			break;
 		case ms_fwd:
-			if (fwd(dist, 0.3, mission.time))
+			if (fwd(dist, 0.6, mission.time))
 				mission.state = ms_turn;
 			break;
 		case ms_turn:
