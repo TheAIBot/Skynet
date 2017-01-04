@@ -14,8 +14,8 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include "includes/robotconnector.h"
-
-FILE* writeFile;
+#include "includes/odometry.h"
+#include "includes/log.h"
 
 /*****************************************
  * odometry
@@ -23,19 +23,6 @@ FILE* writeFile;
 #define WHEEL_DIAMETER   0.067	/* m */
 #define WHEEL_SEPARATION 0.256	/* m */
 #define DELTA_M (M_PI * WHEEL_DIAMETER / 2000)
-
-typedef struct
-{ //input signals
-	int left_enc, right_enc; // encoderticks
-	// parameters
-	double w;	// wheel separation
-	double cr, cl;   // meters per encodertick
-	//output signals
-	double right_pos, left_pos;
-	// internal variables
-	int left_enc_old, right_enc_old;
-	double xpos, ypos, angle;
-} odotype;
 
 /********************************************
  * Motion control
@@ -77,66 +64,6 @@ enum
 {
 	ms_init, ms_fwd, ms_turn, ms_end
 };
-
-
-/*
- * Routines to convert encoder values to positions.
- * Encoder steps have to be converted to meters, and
- * roll-over has to be detected and corrected.
- */
-
-void reset_odo(odotype * p)
-{
-	p->right_pos = p->left_pos = 0.0;
-	p->right_enc_old = p->right_enc;
-	p->left_enc_old = p->left_enc;
-	p->xpos = 0;
-	p->ypos = 0;
-	p->angle = 0;
-}
-
-int preventOverflow(int delta)
-{
-	if (delta > 0x8000)
-	{
-		delta -= 0x10000;
-	}
-	else if (delta < -0x8000)
-	{
-		delta += 0x10000;
-	}
-	return delta;
-}
-
-void update_odo(odotype *p)
-{
-	int delta;
-
-	delta = p->right_enc - p->right_enc_old;
-	delta = preventOverflow(delta);
-
-	p->right_enc_old = p->right_enc;
-	p->right_pos += delta * p->cr;
-	double incR = delta * p->cr;
-
-	delta = p->left_enc - p->left_enc_old;
-	delta = preventOverflow(delta);
-
-	p->left_enc_old = p->left_enc;
-	p->left_pos += delta * p->cl;
-	double incL = delta * p->cl;
-
-	double deltaU = (incR + incL) / 2;
-	double deltaTheta = (incR - incL) / p->w;
-
-	p->angle += deltaTheta;
-	//while (p->angle > 2 * M_PI)
-	//	p->angle -= 2 * M_PI;
-	p->xpos += deltaU * cos(p->angle);
-	p->ypos += deltaU * sin(p->angle);
-	printf("%f %f %f\n", p->xpos, p->ypos, p->angle);
-	fprintf(writeFile, "%f %f %f\n", p->xpos, p->ypos, p->angle);
-}
 
 #define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
 
@@ -266,8 +193,6 @@ void sm_update(smtype *p)
 
 int main()
 {
-	writeFile = fopen("logging.txt", "w");
-
 	int running;
 	int n = 0;
 	int arg;
@@ -374,7 +299,7 @@ int main()
 	speedr->updated = 1;
 	rhdSync();
 	rhdDisconnect();
-	fclose(writeFile);
+	writeLogs("logging.txt");
 	exit(0);
 }
 
