@@ -66,7 +66,7 @@ enum
 	ms_init, ms_fwd, ms_turn, ms_end
 };
 
-#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
+#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))//hej
 
 void update_motcon(motiontype *p, int tickTime)
 {
