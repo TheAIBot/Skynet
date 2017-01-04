@@ -84,7 +84,6 @@ void update_motcon(motiontype *p, int tickTime)
 
 	if (p->cmd != 0)
 	{
-
 		p->finished = 0;
 		switch (p->cmd) {
 		case mot_stop:
@@ -94,14 +93,11 @@ void update_motcon(motiontype *p, int tickTime)
 			p->startpos = (p->left_pos + p->right_pos) / 2;
 			p->curcmd = mot_move;
 			break;
-
 		case mot_turn:
 			p->startpos = (p->angle > 0) ? p->right_pos : p->left_pos;
 			p->curcmd = mot_turn;
 			break;
-
 		}
-
 		p->cmd = 0;
 	}
 
@@ -156,7 +152,6 @@ void update_motcon(motiontype *p, int tickTime)
 				p->finished = 1;
 			}
 		}
-
 		break;
 	}
 }
@@ -171,7 +166,9 @@ int fwd(double dist, double speed, int time)
 		return 0;
 	}
 	else
+	{
 		return mot.finished;
+	}
 }
 
 int turn(double angle, double speed, int time)
@@ -184,7 +181,9 @@ int turn(double angle, double speed, int time)
 		return 0;
 	}
 	else
+	{
 		return mot.finished;
+	}
 }
 
 void sm_update(smtype *p)
