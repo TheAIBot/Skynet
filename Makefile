@@ -4,7 +4,7 @@
 CC      = gcc
 LD      = ${CC}
 SMR     = /usr/local/smr
-CFLAGS  = -Wall -O2 -I${SMR}/include 
+CFLAGS  = -Wall -O2 -I${SMR}/include
 LDFLAGS = -L${SMR}/lib 
 
 #
@@ -12,9 +12,8 @@ LDFLAGS = -L${SMR}/lib
 #
 PROG   = square
 HDRS   =
-OBJS   = square.o serverif.o
-LIBS   = -lm /usr/local/smr/lib/librhd.a -lrobot
-#LIBS   = -lm /usr/local/smr/k385_local/k385/square/librhd.a -lrobot
+OBJS   = square.o serverif.o robotconnector.o
+LIBS   = -lm /home/smr/k385_local/k385/programs/Skynet/librhd.a -lrobot
 
 all:	${PROG}
 
