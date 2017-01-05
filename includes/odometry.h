@@ -29,8 +29,6 @@ typedef struct
 
 void reset_odo(odotype * p);
 
-int preventOverflow(int delta);
-
 void update_odo(odotype *p);
 
 

@@ -27,6 +27,8 @@
 #define MIN_SPEED 0.01
 #define TICKS_PER_SECOND 100
 
+#define ANGLE(x) ((double)x / 180.0 * M_PI)
+
 /********************************************
  * Motion control
  */
@@ -199,6 +201,14 @@ static void sm_update(smtype *p)
 	}
 }
 
+static void setMotorSpeeds(double leftSpeed, double rightSpeed)
+{
+	speedl->data[0] = 100 * leftSpeed;
+	speedl->updated = 1;
+	speedr->data[0] = 100 * rightSpeed;
+	speedr->updated = 1;
+}
+
 int main()
 {
 	int running;
@@ -259,7 +269,7 @@ int main()
 		case ms_init:
 			n = 4;
 			dist = 1;
-			angle = 90.0 / 180 * M_PI;
+			angle = ANGLE(90);
 			mission.state = ms_fwd;
 			break;
 		case ms_fwd:
@@ -285,10 +295,7 @@ int main()
 		mot.left_pos = odo.left_pos;
 		mot.right_pos = odo.right_pos;
 		update_motcon(&mot, mission.time);
-		speedl->data[0] = 100 * mot.motorspeed_l;
-		speedl->updated = 1;
-		speedr->data[0] = 100 * mot.motorspeed_r;
-		speedr->updated = 1;
+		setMotorSpeeds(mot.motorspeed_l, mot.motorspeed_r);
 		if (time % 100 == 0)
 		{
 			//    printf(" laser %f \n",laserpar[3]);
@@ -303,10 +310,7 @@ int main()
 			running = 0;
 		}
 	}/* end of main control loop */
-	speedl->data[0] = 0;
-	speedl->updated = 1;
-	speedr->data[0] = 0;
-	speedr->updated = 1;
+	setMotorSpeeds(0, 0);
 	rhdSync();
 	rhdDisconnect();
 	writeLogs("logging.txt");
