@@ -27,6 +27,8 @@
 #define MIN_SPEED 0.01
 #define TICKS_PER_SECOND 100
 
+#define ANGLE(x) ((double)x / 180.0 * M_PI)
+
 /********************************************
  * Motion control
  */
@@ -51,7 +53,7 @@ typedef struct
 
 enum
 {
-	mot_stop = 1, mot_move, mot_turn
+	mot_stop = 1, mot_move, mot_turn, mot_follow_line
 };
 
 typedef struct
@@ -63,7 +65,7 @@ typedef struct
 
 enum
 {
-	ms_init, ms_fwd, ms_turn, ms_end
+	ms_init, ms_fwd, ms_turn, ms_end, ms_follow_line
 };
 
 static inline double min(double x, double y)
@@ -85,7 +87,7 @@ static double getAcceleratedSpeed(double stdSpeed, double distanceLeft, int tick
 	return speed;
 }
 
-static void update_motcon(motiontype *p, int tickTime)
+static void update_motcon(motiontype *p, odotype *odo, int tickTime)
 {
 	double distLeft = 0;
 	if (p->cmd != 0)
@@ -103,6 +105,9 @@ static void update_motcon(motiontype *p, int tickTime)
 			p->startpos = (p->angle > 0) ? p->right_pos : p->left_pos;
 			p->curcmd = mot_turn;
 			break;
+		case mot_follow_line:
+			p->startpos = odo->totalDistance;
+			p->curcmd = mot_follow_line;
 		}
 		p->cmd = 0;
 	}
@@ -153,6 +158,8 @@ static void update_motcon(motiontype *p, int tickTime)
 		}
 		break;
 	}
+	case mot_follow_line:
+		break;
 	}
 }
 
@@ -186,6 +193,21 @@ static int turn(motiontype *mot, double angle, double speed, int time)
 	}
 }
 
+static int follow_line(motiontype *mot, double dist, double speed, int time)
+{
+	if (time == 0)
+	{
+		mot->cmd = mot_follow_line;
+		mot->speedcmd = speed;
+		mot->dist = dist;
+		return 0;
+	}
+	else
+	{
+		return mot->finished;
+	}
+}
+
 static void sm_update(smtype *p)
 {
 	if (p->state != p->oldstate)
@@ -197,6 +219,14 @@ static void sm_update(smtype *p)
 	{
 		p->time++;
 	}
+}
+
+static void setMotorSpeeds(double leftSpeed, double rightSpeed)
+{
+	speedl->data[0] = 100 * leftSpeed;
+	speedl->updated = 1;
+	speedr->data[0] = 100 * rightSpeed;
+	speedr->updated = 1;
 }
 
 int main()
@@ -259,7 +289,7 @@ int main()
 		case ms_init:
 			n = 4;
 			dist = 1;
-			angle = 90.0 / 180 * M_PI;
+			angle = ANGLE(90);
 			mission.state = ms_fwd;
 			break;
 		case ms_fwd:
@@ -275,6 +305,11 @@ int main()
 				mission.state = (n == 0) ? ms_end : ms_fwd;
 			}
 			break;
+		case ms_follow_line:
+			if (follow_line(&mot, dist, 0.3, mission.time))
+			{
+				mission.state = ms_end;
+			}
 		case ms_end:
 			mot.cmd = mot_stop;
 			running = 0;
@@ -285,10 +320,7 @@ int main()
 		mot.left_pos = odo.left_pos;
 		mot.right_pos = odo.right_pos;
 		update_motcon(&mot, mission.time);
-		speedl->data[0] = 100 * mot.motorspeed_l;
-		speedl->updated = 1;
-		speedr->data[0] = 100 * mot.motorspeed_r;
-		speedr->updated = 1;
+		setMotorSpeeds(mot.motorspeed_l, mot.motorspeed_r);
 		if (time % 100 == 0)
 		{
 			//    printf(" laser %f \n",laserpar[3]);
@@ -303,10 +335,7 @@ int main()
 			running = 0;
 		}
 	}/* end of main control loop */
-	speedl->data[0] = 0;
-	speedl->updated = 1;
-	speedr->data[0] = 0;
-	speedr->updated = 1;
+	setMotorSpeeds(0, 0);
 	rhdSync();
 	rhdDisconnect();
 	writeLogs("logging.txt");
