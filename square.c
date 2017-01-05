@@ -58,10 +58,6 @@ typedef struct
 	int time;
 } smtype;
 
-odotype odo;
-smtype mission;
-motiontype mot;
-
 enum
 {
 	ms_init, ms_fwd, ms_turn, ms_end
@@ -156,33 +152,33 @@ void update_motcon(motiontype *p, int tickTime)
 	}
 }
 
-int fwd(double dist, double speed, int time)
+int fwd(motiontype *mot, double dist, double speed, int time)
 {
 	if (time == 0)
 	{
-		mot.cmd = mot_move;
-		mot.speedcmd = speed;
-		mot.dist = dist;
+		mot->cmd = mot_move;
+		mot->speedcmd = speed;
+		mot->dist = dist;
 		return 0;
 	}
 	else
 	{
-		return mot.finished;
+		return mot->finished;
 	}
 }
 
-int turn(double angle, double speed, int time)
+int turn(motiontype *mot, double angle, double speed, int time)
 {
 	if (time == 0)
 	{
-		mot.cmd = mot_turn;
-		mot.speedcmd = speed;
-		mot.angle = angle;
+		mot->cmd = mot_turn;
+		mot->speedcmd = speed;
+		mot->angle = angle;
 		return 0;
 	}
 	else
 	{
-		return mot.finished;
+		return mot->finished;
 	}
 }
 
@@ -207,6 +203,10 @@ int main()
 	int time = 0;
 	double dist = 0;
 	double angle = 0;
+
+	odotype odo;
+	smtype mission;
+	motiontype mot;
 
 	if (!connectRobot())
 	{
@@ -259,11 +259,11 @@ int main()
 			mission.state = ms_fwd;
 			break;
 		case ms_fwd:
-			if (fwd(dist, 0.6, mission.time))
+			if (fwd(&mot, dist, 0.6, mission.time))
 				mission.state = ms_turn;
 			break;
 		case ms_turn:
-			if (turn(angle, 0.3, mission.time))
+			if (turn(&mot, angle, 0.3, mission.time))
 			{
 				n--;
 				mission.state = (n == 0) ? ms_end : ms_fwd;
