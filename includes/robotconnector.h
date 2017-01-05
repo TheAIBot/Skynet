@@ -16,7 +16,15 @@ struct xml_in *xmldata;
 struct xml_in *xmllaser;
 struct
 {
-	double x, y, z, omega, phi, kappa, code, id, crc;
+	double x;
+	double y;
+	double z;
+	double omega;
+	double phi;
+	double kappa;
+	double code;
+	double id;
+	double crc;
 } gmk;
 
 extern double visionpar[10];
