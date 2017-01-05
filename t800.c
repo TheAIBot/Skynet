@@ -53,7 +53,7 @@ typedef struct
 
 enum
 {
-	mot_stop = 1, mot_move, mot_turn
+	mot_stop = 1, mot_move, mot_turn, mot_follow_line
 };
 
 typedef struct
@@ -65,7 +65,7 @@ typedef struct
 
 enum
 {
-	ms_init, ms_fwd, ms_turn, ms_end
+	ms_init, ms_fwd, ms_turn, ms_end, ms_follow_line
 };
 
 static inline double min(double x, double y)
@@ -87,7 +87,7 @@ static double getAcceleratedSpeed(double stdSpeed, double distanceLeft, int tick
 	return speed;
 }
 
-static void update_motcon(motiontype *p, int tickTime)
+static void update_motcon(motiontype *p, odotype *odo, int tickTime)
 {
 	double distLeft = 0;
 	if (p->cmd != 0)
@@ -105,6 +105,9 @@ static void update_motcon(motiontype *p, int tickTime)
 			p->startpos = (p->angle > 0) ? p->right_pos : p->left_pos;
 			p->curcmd = mot_turn;
 			break;
+		case mot_follow_line:
+			p->startpos = odo->totalDistance;
+			p->curcmd = mot_follow_line;
 		}
 		p->cmd = 0;
 	}
@@ -155,6 +158,8 @@ static void update_motcon(motiontype *p, int tickTime)
 		}
 		break;
 	}
+	case mot_follow_line:
+		break;
 	}
 }
 
@@ -180,6 +185,21 @@ static int turn(motiontype *mot, double angle, double speed, int time)
 		mot->cmd = mot_turn;
 		mot->speedcmd = speed;
 		mot->angle = angle;
+		return 0;
+	}
+	else
+	{
+		return mot->finished;
+	}
+}
+
+static int follow_line(motiontype *mot, double dist, double speed, int time)
+{
+	if (time == 0)
+	{
+		mot->cmd = mot_follow_line;
+		mot->speedcmd = speed;
+		mot->dist = dist;
 		return 0;
 	}
 	else
@@ -285,6 +305,11 @@ int main()
 				mission.state = (n == 0) ? ms_end : ms_fwd;
 			}
 			break;
+		case ms_follow_line:
+			if (follow_line(&mot, dist, 0.3, mission.time))
+			{
+				mission.state = ms_end;
+			}
 		case ms_end:
 			mot.cmd = mot_stop;
 			running = 0;

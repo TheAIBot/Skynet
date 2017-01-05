@@ -52,6 +52,7 @@ void update_odo(odotype *p)
 	double incR = updateRightencPos(p);
 	double incL = updateLeftEncPos(p);
 
+	p->totalDistance += fabs(incR + incL) / 2;
 	p->angle += (incR - incL) / p->w; // deltaTheta
 
 	double deltaU = (incR + incL) / 2;

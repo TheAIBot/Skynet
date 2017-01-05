@@ -25,6 +25,7 @@ typedef struct
 	double xpos;
 	double ypos;
 	double angle;
+	double totalDistance;
 } odotype;
 
 void reset_odo(odotype * p);
