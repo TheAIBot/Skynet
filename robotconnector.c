@@ -17,7 +17,6 @@
 
 #define ROBOTPORT	24902
 
-
 double visionpar[10];
 double laserpar[10];
 
@@ -51,8 +50,12 @@ symTableElement * getoutputref(const char *sym_name, symTableElement * tab)
 {
 	int i;
 	for (i = 0; i < getSymbolTableSize('w'); i++)
+	{
 		if (strcmp(tab[i].name, sym_name) == 0)
+		{
 			return &tab[i];
+		}
+	}
 	return 0;
 }
 
@@ -143,7 +146,8 @@ int connectRobot()
 		{
 			xmllaser = xml_in_init(4096, 32);
 			printf(" laserserver xml initialized \n");
-			len = sprintf(buf, "push  t=0.2 cmd='mrcobst width=0.4'\n");
+			//len = sprintf(buf, "push  t=0.2 cmd='mrcobst width=0.4'\n");
+			len = sprintf(buf, "scanpush cmd='zoneobst'\n");
 			send(lmssrv.sockfd, buf, len, 0);
 		}
 	}

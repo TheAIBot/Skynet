@@ -24,6 +24,10 @@
 #define WHEEL_SEPARATION 0.256	/* m */
 #define DELTA_M (M_PI * WHEEL_DIAMETER / 2000)
 #define MAX_ACCELERATION 0.5
+#define MIN_SPEED 0.01
+#define TICKS_PER_SECOND 100
+
+#define ANGLE(x) ((double)x / 180.0 * M_PI)
 
 /********************************************
  * Motion control
@@ -36,7 +40,8 @@ typedef struct
 	double speedcmd;
 	double dist;
 	double angle;
-	double left_pos, right_pos;
+	double left_pos;
+	double right_pos;
 	// parameters
 	double w;
 	//output
@@ -48,32 +53,45 @@ typedef struct
 
 enum
 {
-	mot_stop = 1, mot_move, mot_turn
+	mot_stop = 1, mot_move, mot_turn, mot_follow_line
 };
 
 typedef struct
 {
-	int state, oldstate;
+	int state;
+	int oldstate;
 	int time;
 } smtype;
 
-odotype odo;
-smtype mission;
-motiontype mot;
-
 enum
 {
-	ms_init, ms_fwd, ms_turn, ms_end
+	ms_init, ms_fwd, ms_turn, ms_end, ms_follow_line
 };
 
-#define MIN(X, Y) (((X) < (Y)) ? (X) : (Y))
-
-void update_motcon(motiontype *p, int tickTime)
+static inline double min(double x, double y)
 {
+	return ((x) < (y)) ? (x) : (y);
+}
 
+static inline double max(double x, double y)
+{
+	return ((x) > (y)) ? (x) : (y);
+}
+
+static double getAcceleratedSpeed(double stdSpeed, double distanceLeft, int tickTime)
+{
+	double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distanceLeft);
+	double accFunc = (MAX_ACCELERATION / TICKS_PER_SECOND) * tickTime;
+	double speed = min(min(stdSpeed, speedFunc), accFunc);
+	printf("%f %f %f %d %f\n", stdSpeed, speedFunc, accFunc, tickTime, speed);
+	return speed;
+}
+
+static void update_motcon(motiontype *p, odotype *odo, int tickTime)
+{
+	double distLeft = 0;
 	if (p->cmd != 0)
 	{
-
 		p->finished = 0;
 		switch (p->cmd) {
 		case mot_stop:
@@ -83,25 +101,26 @@ void update_motcon(motiontype *p, int tickTime)
 			p->startpos = (p->left_pos + p->right_pos) / 2;
 			p->curcmd = mot_move;
 			break;
-
 		case mot_turn:
-			p->startpos = (p->angle > 0) ? p->right_pos :  p->left_pos;
+			p->startpos = (p->angle > 0) ? p->right_pos : p->left_pos;
 			p->curcmd = mot_turn;
 			break;
-
+		case mot_follow_line:
+			p->startpos = odo->totalDistance;
+			p->curcmd = mot_follow_line;
 		}
-
 		p->cmd = 0;
 	}
 
-	double distLeft = p->dist - (p->right_pos + p->left_pos) / 2 - p->startpos;
 	switch (p->curcmd) {
 	case mot_stop:
 		p->motorspeed_l = 0;
 		p->motorspeed_r = 0;
 		break;
 	case mot_move:
-		if ( distLeft <= 0)
+	{
+		distLeft = p->dist - (((p->right_pos + p->left_pos) / 2) - p->startpos);
+		if (distLeft <= 0)
 		{
 			p->finished = 1;
 			p->motorspeed_l = 0;
@@ -109,75 +128,87 @@ void update_motcon(motiontype *p, int tickTime)
 		}
 		else
 		{
-			double stdSpeed = p->speedcmd;
-			double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distLeft);
-			double accFunc = (MAX_ACCELERATION / 100) * tickTime;
-			p->motorspeed_l = MIN(MIN(stdSpeed, speedFunc), accFunc);
+			p->motorspeed_l = max(getAcceleratedSpeed(p->speedcmd, distLeft, tickTime), MIN_SPEED);
 			p->motorspeed_r = p->motorspeed_l;
-			printf("%f %f %f %d %f\n", stdSpeed, speedFunc, accFunc, tickTime, p->motorspeed_l);
 		}
 		break;
-
+	}
 	case mot_turn:
-		if (p->angle > 0)
+	{
+		distLeft = (fabs(p->angle) * p->w) / 2 - (((p->angle > 0) ? p->right_pos : p->left_pos) - p->startpos);
+		if (distLeft <= 0)
 		{
-			if (p->right_pos - p->startpos < (p->angle * p->w) / 2)
-			{
-				p->motorspeed_r = p->speedcmd / 8;
-				p->motorspeed_l = -p->speedcmd / 8;
-			}
-			else
-			{
-				p->motorspeed_r = 0;
-				p->motorspeed_l = 0;
-				p->finished = 1;
-			}
+			p->finished = 1;
+			p->motorspeed_r = 0;
+			p->motorspeed_l = 0;
 		}
 		else
 		{
-			if (p->left_pos - p->startpos < (fabs(p->angle) * p->w) / 2)
+			double speed = max(getAcceleratedSpeed(p->speedcmd, distLeft, tickTime) / 2, MIN_SPEED);
+			if (p->angle > 0)
 			{
-				p->motorspeed_r = -p->speedcmd / 8;
-				p->motorspeed_l = p->speedcmd / 8;
+				p->motorspeed_r = speed;
+				p->motorspeed_l = -speed;
 			}
 			else
 			{
-				p->motorspeed_l = 0;
-				p->finished = 1;
+				p->motorspeed_r = -speed;
+				p->motorspeed_l = speed;
 			}
 		}
-
+		break;
+	}
+	case mot_follow_line:
 		break;
 	}
 }
 
-int fwd(double dist, double speed, int time)
+static int fwd(motiontype *mot, double dist, double speed, int time)
 {
 	if (time == 0)
 	{
-		mot.cmd = mot_move;
-		mot.speedcmd = speed;
-		mot.dist = dist;
+		mot->cmd = mot_move;
+		mot->speedcmd = speed;
+		mot->dist = dist;
 		return 0;
 	}
 	else
-		return mot.finished;
+	{
+		return mot->finished;
+	}
 }
 
-int turn(double angle, double speed, int time)
+static int turn(motiontype *mot, double angle, double speed, int time)
 {
 	if (time == 0)
 	{
-		mot.cmd = mot_turn;
-		mot.speedcmd = speed;
-		mot.angle = angle;
+		mot->cmd = mot_turn;
+		mot->speedcmd = speed;
+		mot->angle = angle;
 		return 0;
 	}
 	else
-		return mot.finished;
+	{
+		return mot->finished;
+	}
 }
 
-void sm_update(smtype *p)
+static int follow_line(motiontype *mot, double dist, double speed, int time)
+{
+	if (time == 0)
+	{
+		mot->cmd = mot_follow_line;
+		mot->speedcmd = speed;
+		mot->dist = dist;
+		return 0;
+	}
+	else
+	{
+		return mot->finished;
+	}
+}
+
+static void sm_update(smtype *p)
 {
 	if (p->state != p->oldstate)
 	{
@@ -190,6 +221,14 @@ void sm_update(smtype *p)
 	}
 }
 
+static void setMotorSpeeds(double leftSpeed, double rightSpeed)
+{
+	speedl->data[0] = 100 * leftSpeed;
+	speedl->updated = 1;
+	speedr->data[0] = 100 * rightSpeed;
+	speedr->updated = 1;
+}
+
 int main()
 {
 	int running;
@@ -198,6 +237,10 @@ int main()
 	int time = 0;
 	double dist = 0;
 	double angle = 0;
+
+	odotype odo = { 0 };
+	smtype mission = { 0 };
+	motiontype mot = { 0 };
 
 	if (!connectRobot())
 	{
@@ -245,21 +288,28 @@ int main()
 		switch (mission.state) {
 		case ms_init:
 			n = 4;
-			dist = 3;
-			angle = 90.0 / 180 * M_PI;
+			dist = 1;
+			angle = ANGLE(90);
 			mission.state = ms_fwd;
 			break;
 		case ms_fwd:
-			if (fwd(dist, 0.3, mission.time))
+			if (fwd(&mot, dist, 0.6, mission.time))
+			{
 				mission.state = ms_turn;
+			}
 			break;
 		case ms_turn:
-			if (turn(angle, 0.3, mission.time))
+			if (turn(&mot, angle, 0.3, mission.time))
 			{
 				n--;
 				mission.state = (n == 0) ? ms_end : ms_fwd;
 			}
 			break;
+		case ms_follow_line:
+			if (follow_line(&mot, dist, 0.3, mission.time))
+			{
+				mission.state = ms_end;
+			}
 		case ms_end:
 			mot.cmd = mot_stop;
 			running = 0;
@@ -270,10 +320,7 @@ int main()
 		mot.left_pos = odo.left_pos;
 		mot.right_pos = odo.right_pos;
 		update_motcon(&mot, mission.time);
-		speedl->data[0] = 100 * mot.motorspeed_l;
-		speedl->updated = 1;
-		speedr->data[0] = 100 * mot.motorspeed_r;
-		speedr->updated = 1;
+		setMotorSpeeds(mot.motorspeed_l, mot.motorspeed_r);
 		if (time % 100 == 0)
 		{
 			//    printf(" laser %f \n",laserpar[3]);
@@ -288,10 +335,7 @@ int main()
 			running = 0;
 		}
 	}/* end of main control loop */
-	speedl->data[0] = 0;
-	speedl->updated = 1;
-	speedr->data[0] = 0;
-	speedr->updated = 1;
+	setMotorSpeeds(0, 0);
 	rhdSync();
 	rhdDisconnect();
 	writeLogs("logging.txt");
