@@ -50,8 +50,12 @@ symTableElement * getoutputref(const char *sym_name, symTableElement * tab)
 {
 	int i;
 	for (i = 0; i < getSymbolTableSize('w'); i++)
+	{
 		if (strcmp(tab[i].name, sym_name) == 0)
+		{
 			return &tab[i];
+		}
+	}
 	return 0;
 }
 

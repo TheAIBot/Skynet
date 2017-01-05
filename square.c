@@ -25,6 +25,7 @@
 #define DELTA_M (M_PI * WHEEL_DIAMETER / 2000)
 #define MAX_ACCELERATION 0.5
 #define MIN_SPEED 0.01
+#define TICKS_PER_SECOND 100
 
 /********************************************
  * Motion control
@@ -69,7 +70,7 @@ enum
 double getAcceleratedSpeed(double stdSpeed, double distanceLeft, int tickTime)
 {
 	double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distanceLeft);
-	double accFunc = (MAX_ACCELERATION / 100) * tickTime;
+	double accFunc = (MAX_ACCELERATION / TICKS_PER_SECOND) * tickTime;
 	double speed = MIN(MIN(stdSpeed, speedFunc), accFunc);
 	//printf("%f %f %f %d %f\n", stdSpeed, speedFunc, accFunc, tickTime, speed);
 	return speed;
@@ -116,7 +117,6 @@ void update_motcon(motiontype *p, int tickTime)
 			p->motorspeed_r = p->motorspeed_l;
 		}
 		break;
-
 	case mot_turn:
 		if (p->angle > 0)
 		{
@@ -260,7 +260,9 @@ int main()
 			break;
 		case ms_fwd:
 			if (fwd(&mot, dist, 0.6, mission.time))
+			{
 				mission.state = ms_turn;
+			}
 			break;
 		case ms_turn:
 			if (turn(&mot, angle, 0.3, mission.time))
