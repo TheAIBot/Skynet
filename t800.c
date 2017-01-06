@@ -28,8 +28,8 @@
 #define TICKS_PER_SECOND 100
 
 //Line sensor information
-#define LINE_SENSOR_WIDTH 13
-#define LINE_SENSORS_COUNT 8
+#define LINE_SENSOR_WIDTH 13.0
+#define LINE_SENSORS_COUNT 8.0
 
 #define ANGLE(x) ((double)x / 180.0 * M_PI)
 
@@ -52,20 +52,19 @@ static double getAcceleratedSpeed(double stdSpeed, double distanceLeft, int tick
 	return speed;
 }
 
-/*static double getLineOffSetDistance()
-{
-	int smallestSensorValueIndex = linesensor->data[0];
+static double getLineOffSetDistance()
+{	double c_m;
+	double sum_m;
+	double sum_i;
 	int i;
-	for (i = 1; i < LINE_SENSORS_COUNT; ++i)
+	for (i = 0; i < LINE_SENSORS_COUNT; i++)
 	{
-		if (smallestSensorValueIndex > linesensor->data[i])
-		{
-			smallestSensorValueIndex = i;
-		}
+		sum_m+=(1-data[i])*i);
+		sum_i+=(1-data[i]);
 	}
-	smallestSensorValueIndex++; // make it 1 indexed
-	return ((smallestSensorValueIndex - (LINE_SENSORS_COUNT / 2)) * (LINE_SENSOR_WIDTH * LINE_SENSORS_COUNT));
-}*/
+	c_m=sum_m/sum_i;
+	return (( LINE_SENSOR_WIDTH/LINE_SENSORS_COUNT)*c_m-6.5);
+}
 
 static void syncAndUpdateOdo(odotype *odo)
 {
