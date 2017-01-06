@@ -87,6 +87,24 @@ static double getAcceleratedSpeed(double stdSpeed, double distanceLeft, int tick
 	return speed;
 }
 
+#define LINE_SENSOR_WIDTH 13
+#define LINE_SENSORS_COUNT 8
+
+static double getLineOffSetDistance()
+{
+	int smallestSensorValueIndex = linesensor->data[0];
+	int i;
+	for (i = 1; i < LINE_SENSORS_COUNT; ++i)
+	{
+		if (smallestSensorValueIndex > linesensor->data[i])
+		{
+			smallestSensorValueIndex = i;
+		}
+	}
+	smallestSensorValueIndex++; // make it 1 indexed
+	return ((smallestSensorValueIndex - (LINE_SENSORS_COUNT / 2)) * (LINE_SENSOR_WIDTH * LINE_SENSORS_COUNT));
+}
+
 static void update_motcon(motiontype *p, odotype *odo, int tickTime)
 {
 	double distLeft = 0;
@@ -106,7 +124,7 @@ static void update_motcon(motiontype *p, odotype *odo, int tickTime)
 			p->curcmd = mot_turn;
 			break;
 		case mot_follow_line:
-			p->startpos = odo->totalDistance;
+			p->startpos = odo->totalDistance + p->dist;
 			p->curcmd = mot_follow_line;
 		}
 		p->cmd = 0;
@@ -159,7 +177,29 @@ static void update_motcon(motiontype *p, odotype *odo, int tickTime)
 		break;
 	}
 	case mot_follow_line:
+	{
+		distLeft = p->startpos - odo->totalDistance;
+		printf("%f\n", distLeft);
+		if (distLeft <= 0)
+		{
+			p->finished = 1;
+			p->motorspeed_r = 0;
+			p->motorspeed_l = 0;
+		}
+		else
+		{
+			double speed = max(getAcceleratedSpeed(p->speedcmd, distLeft, tickTime), MIN_SPEED);
+			double lineOffDist = getLineOffSetDistance();
+			const double CENTER_TO_LINE_SENSOR_DISTANCE = 22;
+			const double K = 0.01;
+			double thetaRef = atan(lineOffDist / CENTER_TO_LINE_SENSOR_DISTANCE) + odo->angle;
+			double speedDiffForLeft = (K * (thetaRef - odo->angle)) / 2;
+			p->motorspeed_l = speed - speedDiffForLeft;
+			p->motorspeed_r = speed + speedDiffForLeft;
+
+		}
 		break;
+	}
 	}
 }
 
@@ -288,9 +328,9 @@ int main()
 		switch (mission.state) {
 		case ms_init:
 			n = 4;
-			dist = 1;
+			dist = 4;
 			angle = ANGLE(90);
-			mission.state = ms_fwd;
+			mission.state = ms_follow_line;
 			break;
 		case ms_fwd:
 			if (fwd(&mot, dist, 0.6, mission.time))
@@ -310,6 +350,7 @@ int main()
 			{
 				mission.state = ms_end;
 			}
+			break;
 		case ms_end:
 			mot.cmd = mot_stop;
 			running = 0;
@@ -319,7 +360,7 @@ int main()
 
 		mot.left_pos = odo.left_pos;
 		mot.right_pos = odo.right_pos;
-		update_motcon(&mot, mission.time);
+		update_motcon(&mot, &odo, mission.time);
 		setMotorSpeeds(mot.motorspeed_l, mot.motorspeed_r);
 		if (time % 100 == 0)
 		{
