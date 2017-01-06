@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include "includes/linesensor.h"
 
-static linesensorCalibratedData linesensorCalibData[LINE_SENSORS_COUNT];
+static lineSensorCalibratedData lineSensorCalibData[LINE_SENSORS_COUNT];
 
 int readLineSensorValues(const char* fileLoc)
 {
@@ -27,8 +27,8 @@ int readLineSensorValues(const char* fileLoc)
 			printf("Error occured when reading linesensor calibration file. %d numbers expected, but %d was found.", 2, scanStatus);
 			return 0;
 		}
-		linesensorCalibData[i].a = a;
-		linesensorCalibData[i].b = b;
+		lineSensorCalibData[i].a = a;
+		lineSensorCalibData[i].b = b;
 	}
 
 	fclose(file);
@@ -37,8 +37,8 @@ int readLineSensorValues(const char* fileLoc)
 
 double calibrateLineSensorValue(const double sensorValue, const int sensorID)
 {
-	const double a = linesensorCalibData[sensorID].a;
-	const double b = linesensorCalibData[sensorID].b;
+	const double a = lineSensorCalibData[sensorID].a;
+	const double b = lineSensorCalibData[sensorID].b;
 
 	double calibValue = a * sensorValue + b;
 	if (calibValue == 0 || calibValue > 1)

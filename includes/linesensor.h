@@ -10,7 +10,7 @@ typedef struct
 	double a;
 	double b;
 }
-linesensorCalibratedData;
+lineSensorCalibratedData;
 
 
 //Read calibration values from the calibation file and inserts the data in the given array

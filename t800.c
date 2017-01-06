@@ -107,7 +107,7 @@ static void exitOnButtonPress()
 	}
 }
 
-static void setMotorSpeeds(double leftSpeed, double rightSpeed)
+static void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
 {
 	//printf("%f %f\n", leftSpeed, rightSpeed);
 
@@ -117,7 +117,7 @@ static void setMotorSpeeds(double leftSpeed, double rightSpeed)
 	speedr->updated = 1;
 }
 
-static void fwd(odotype *odo, double dist, double speed)
+static void fwd(odotype *odo, const double dist, const double speed)
 {
 	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
 	int time = 0;
@@ -142,7 +142,7 @@ static void fwd(odotype *odo, double dist, double speed)
 	setMotorSpeeds(0, 0);
 }
 
-static void turn(odotype *odo, double angle, double speed)
+static void turn(odotype *odo, const double angle, const double speed)
 {
 	const double startpos = (angle > 0) ? odo->rightWheelPos : odo->leftWheelPos;
 	int time = 0;
@@ -173,9 +173,9 @@ static void turn(odotype *odo, double angle, double speed)
 	setMotorSpeeds(0, 0);
 }
 
-static void follow_line(odotype *odo, double dist, double speed)
+static void follow_line(odotype *odo, const double dist, const double speed)
 {
-	const double startpos = odo->totalDistance + dist;
+	const double endPosition = odo->totalDistance + dist;
 	int time = 0;
 
 	double distLeft;
@@ -183,7 +183,7 @@ static void follow_line(odotype *odo, double dist, double speed)
 	{
 		syncAndUpdateOdo(odo);
 
-		distLeft = startpos - odo->totalDistance;
+		distLeft = endPosition - odo->totalDistance;
 
 		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
 		const double lineOffDist = getLineOffSetDistance();
