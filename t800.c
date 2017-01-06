@@ -28,6 +28,9 @@
 #define MIN_SPEED 0.01
 #define TICKS_PER_SECOND 100
 
+//Line sensor information
+#define LINE_SENSOR_WIDTH 13.0
+#define LINE_SENSORS_COUNT 8.0
 
 #define ANGLE(x) ((double)x / 180.0 * M_PI)
 
@@ -50,20 +53,22 @@ static double getAcceleratedSpeed(double stdSpeed, double distanceLeft, int tick
 	return speed;
 }
 
-/*static double getLineOffSetDistance()
+static double getLineOffSetDistance()
 {
-	int smallestSensorValueIndex = linesensor->data[0];
+	double c_m;
+	double sum_m;
+	double sum_i;
 	int i;
-	for (i = 1; i < LINE_SENSORS_COUNT; ++i)
+	for (i = 0; i < LINE_SENSORS_COUNT; i++)
 	{
-		if (smallestSensorValueIndex > linesensor->data[i])
-		{
-			smallestSensorValueIndex = i;
-		}
+		int sensorValue = linesensor->data[i];
+		double calibValue = calibrateLineSensorValue(sensorValue, i);
+		sum_m += (1 - calibValue) * i;
+		sum_i += (1 - calibValue);
 	}
-	smallestSensorValueIndex++; // make it 1 indexed
-	return ((smallestSensorValueIndex - (LINE_SENSORS_COUNT / 2)) * (LINE_SENSOR_WIDTH * LINE_SENSORS_COUNT));
-}*/
+	c_m = sum_m / sum_i;
+	return (( LINE_SENSOR_WIDTH / LINE_SENSORS_COUNT) * c_m - 6.5);
+}
 
 static void syncAndUpdateOdo(odotype *odo)
 {
@@ -162,35 +167,35 @@ static void turn(odotype *odo, double angle, double speed)
 }
 
 /*static void follow_line(odotype *odo, double dist, double speed)
-{
-	double startpos = odo->totalDistance + dist;
-	int time = 0;
+ {
+ double startpos = odo->totalDistance + dist;
+ int time = 0;
 
-	double distLeft;
-	do
-	{
-		syncAndUpdateOdo(odo);
+ double distLeft;
+ do
+ {
+ syncAndUpdateOdo(odo);
 
-		distLeft = startpos - odo->totalDistance;
+ distLeft = startpos - odo->totalDistance;
 
-		double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
+ double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
 
-		double lineOffDist = getLineOffSetDistance();
-		const double CENTER_TO_LINE_SENSOR_DISTANCE = 22;
-		const double K = 0.01;
-		double thetaRef = atan(lineOffDist / CENTER_TO_LINE_SENSOR_DISTANCE) + odo->angle;
-		double speedDiffForLeft = (K * (thetaRef - odo->angle)) / 2;
+ double lineOffDist = getLineOffSetDistance();
+ const double CENTER_TO_LINE_SENSOR_DISTANCE = 22;
+ const double K = 0.01;
+ double thetaRef = atan(lineOffDist / CENTER_TO_LINE_SENSOR_DISTANCE) + odo->angle;
+ double speedDiffForLeft = (K * (thetaRef - odo->angle)) / 2;
 
-		setMotorSpeeds(motorSpeed - speedDiffForLeft, motorSpeed + speedDiffForLeft);
+ setMotorSpeeds(motorSpeed - speedDiffForLeft, motorSpeed + speedDiffForLeft);
 
-		time++;
+ time++;
 
-		exitOnButtonPress();
+ exitOnButtonPress();
 
-	} while (distLeft > 0);
+ } while (distLeft > 0);
 
-	setMotorSpeeds(0, 0);
-}*/
+ setMotorSpeeds(0, 0);
+ }*/
 
 int main()
 {
