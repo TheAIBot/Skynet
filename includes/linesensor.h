@@ -21,4 +21,5 @@ int readLineSensorValues(char* fileLoc);
 
 //Compute the calibrated sensor value by linear transformation of the raw sensor value.
 double calibrateLineSensorValue(double sensor_value, int sensor_id);
+
 #endif
