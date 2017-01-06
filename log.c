@@ -6,18 +6,18 @@
 static odotype logs[MAX_LOGS];
 static int logCount = 0;
 
-
-void logOdo(odotype * odo)
+void logOdo(const odotype * odo)
 {
 	logs[logCount] = *odo;
 	logCount = (logCount + 1) % MAX_LOGS;
 }
 
-void writeLogs(char* filename)
+void writeLogs(const char* filename)
 {
 	FILE* writeFile = fopen(filename, "w");
 	int x;
-	for (x = 0; x < logCount; ++x) {
+	for (x = 0; x < logCount; ++x)
+	{
 		fprintf(writeFile, "%f %f %f\n", logs[x].xpos, logs[x].ypos, logs[x].angle);
 	}
 	fclose(writeFile);

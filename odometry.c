@@ -49,13 +49,13 @@ static double updateLeftEncPos(odotype* p)
 
 void updateOdo(odotype *p)
 {
-	double incR = updateRightencPos(p);
-	double incL = updateLeftEncPos(p);
+	const double incR = updateRightencPos(p);
+	const double incL = updateLeftEncPos(p);
 
 	p->totalDistance += fabs(incR + incL) / 2;
 	p->angle += (incR - incL) / p->w; // deltaTheta
 
-	double deltaU = (incR + incL) / 2;
+	const double deltaU = (incR + incL) / 2;
 	p->xpos += deltaU * cos(p->angle);
 	p->ypos += deltaU * sin(p->angle);
 	//printf("%f %f %f\n", p->xpos, p->ypos, p->angle);

@@ -32,21 +32,21 @@
 
 #define ANGLE(x) ((double)x / 180.0 * M_PI)
 
-static inline double min(double x, double y)
+static inline double min(const double x, const double y)
 {
 	return ((x) < (y)) ? (x) : (y);
 }
 
-static inline double max(double x, double y)
+static inline double max(const double x, const double y)
 {
 	return ((x) > (y)) ? (x) : (y);
 }
 
-static double getAcceleratedSpeed(double stdSpeed, double distanceLeft, int tickTime)
+static double getAcceleratedSpeed(const double stdSpeed, const double distanceLeft, const int tickTime)
 {
-	double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distanceLeft);
-	double accFunc = (MAX_ACCELERATION / TICKS_PER_SECOND) * tickTime;
-	double speed = min(min(stdSpeed, speedFunc), accFunc);
+	const double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distanceLeft);
+	const double accFunc = (MAX_ACCELERATION / TICKS_PER_SECOND) * tickTime;
+	const double speed = min(min(stdSpeed, speedFunc), accFunc);
 	//printf("%f %f %f %d %f\n", stdSpeed, speedFunc, accFunc, tickTime, speed);
 	return speed;
 }
@@ -59,7 +59,7 @@ static double getLineOffSetDistance()
 	int i;
 	for (i = 0; i < LINE_SENSORS_COUNT; i++)
 	{
-		double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
+		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
 
 		sum_m += (1 - calibValue) * sensorPlacments[i];
 		sum_i += (1 - calibValue);
@@ -119,7 +119,7 @@ static void setMotorSpeeds(double leftSpeed, double rightSpeed)
 
 static void fwd(odotype *odo, double dist, double speed)
 {
-	double startpos = (odo->right_pos + odo->left_pos) / 2;
+	const double startpos = (odo->right_pos + odo->left_pos) / 2;
 	int time = 0;
 
 	double distLeft;
@@ -129,7 +129,7 @@ static void fwd(odotype *odo, double dist, double speed)
 
 		distLeft = dist - (((odo->right_pos + odo->left_pos) / 2) - startpos);
 
-		double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
+		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
 
 		setMotorSpeeds(motorSpeed, motorSpeed);
 
@@ -144,7 +144,7 @@ static void fwd(odotype *odo, double dist, double speed)
 
 static void turn(odotype *odo, double angle, double speed)
 {
-	double startpos = (angle > 0) ? odo->right_pos : odo->left_pos;
+	const double startpos = (angle > 0) ? odo->right_pos : odo->left_pos;
 	int time = 0;
 
 	double distLeft;
@@ -154,7 +154,7 @@ static void turn(odotype *odo, double angle, double speed)
 
 		distLeft = (fabs(angle) * odo->w) / 2 - (((angle > 0) ? odo->right_pos : odo->left_pos) - startpos);
 
-		double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time) / 2, MIN_SPEED);
+		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time) / 2, MIN_SPEED);
 		if (angle > 0)
 		{
 			setMotorSpeeds(-motorSpeed, motorSpeed);
@@ -175,7 +175,7 @@ static void turn(odotype *odo, double angle, double speed)
 
 static void follow_line(odotype *odo, double dist, double speed)
 {
-	double startpos = odo->totalDistance + dist;
+	const double startpos = odo->totalDistance + dist;
 	int time = 0;
 
 	double distLeft;
@@ -185,11 +185,11 @@ static void follow_line(odotype *odo, double dist, double speed)
 
 		distLeft = startpos - odo->totalDistance;
 
-		double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
-		double lineOffDist = getLineOffSetDistance();
+		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
+		const double lineOffDist = getLineOffSetDistance();
 		const double K = 2;
-		double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE) + odo->angle;
-		double speedDiffPerMotor = (K * (thetaRef - odo->angle)) / 2;
+		const double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE) + odo->angle;
+		const double speedDiffPerMotor = (K * (thetaRef - odo->angle)) / 2;
 
 		setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
 
