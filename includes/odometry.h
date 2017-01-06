@@ -28,9 +28,9 @@ typedef struct
 	double totalDistance;
 } odotype;
 
-void reset_odo(odotype * p);
+void resetOdo(odotype * p);
 
-void update_odo(odotype *p);
+void updateOdo(odotype *p);
 
 
 

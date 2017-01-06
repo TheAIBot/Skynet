@@ -48,7 +48,7 @@ static double getAcceleratedSpeed(double stdSpeed, double distanceLeft, int tick
 	double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distanceLeft);
 	double accFunc = (MAX_ACCELERATION / TICKS_PER_SECOND) * tickTime;
 	double speed = min(min(stdSpeed, speedFunc), accFunc);
-	printf("%f %f %f %d %f\n", stdSpeed, speedFunc, accFunc, tickTime, speed);
+	//printf("%f %f %f %d %f\n", stdSpeed, speedFunc, accFunc, tickTime, speed);
 	return speed;
 }
 
@@ -85,7 +85,7 @@ static void syncAndUpdateOdo(odotype *odo)
 	rhdSync();
 	odo->left_enc = lenc->data[0];
 	odo->right_enc = renc->data[0];
-	update_odo(odo);
+	updateOdo(odo);
 }
 
 static void exitOnButtonPress()
@@ -213,7 +213,7 @@ int main()
 	odo.cl = odo.cr;
 	odo.left_enc = lenc->data[0];
 	odo.right_enc = renc->data[0];
-	reset_odo(&odo);
+	resetOdo(&odo);
 	printf("position: %f, %f\n", odo.left_pos, odo.right_pos);
 
 	/*

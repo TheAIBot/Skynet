@@ -5,7 +5,7 @@
 #include <stdio.h>
 #include <math.h>
 
-void reset_odo(odotype * p)
+void resetOdo(odotype * p)
 {
 	p->right_pos = 0;
 	p->left_pos = 0;
@@ -47,7 +47,7 @@ static double updateLeftEncPos(odotype* p)
 	return delta * p->cl;
 }
 
-void update_odo(odotype *p)
+void updateOdo(odotype *p)
 {
 	double incR = updateRightencPos(p);
 	double incL = updateLeftEncPos(p);
