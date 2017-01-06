@@ -52,20 +52,21 @@ static double getAcceleratedSpeed(double stdSpeed, double distanceLeft, int tick
 	return speed;
 }
 
-/*static double getLineOffSetDistance()
+static double getLineOffSetDistance()
 {
-	int smallestSensorValueIndex = linesensor->data[0];
+	int smallestSensorValueIndex = 0;
 	int i;
 	for (i = 1; i < LINE_SENSORS_COUNT; ++i)
 	{
-		if (smallestSensorValueIndex > linesensor->data[i])
+		if (linesensor->data[smallestSensorValueIndex] > linesensor->data[i])
 		{
 			smallestSensorValueIndex = i;
 		}
 	}
+
 	smallestSensorValueIndex++; // make it 1 indexed
-	return ((smallestSensorValueIndex - (LINE_SENSORS_COUNT / 2)) * (LINE_SENSOR_WIDTH * LINE_SENSORS_COUNT));
-}*/
+	return ((smallestSensorValueIndex - (LINE_SENSORS_COUNT / 2)) * (LINE_SENSOR_WIDTH / LINE_SENSORS_COUNT));
+}
 
 static void syncAndUpdateOdo(odotype *odo)
 {
@@ -163,7 +164,7 @@ static void turn(odotype *odo, double angle, double speed)
 	setMotorSpeeds(0, 0);
 }
 
-/*static void follow_line(odotype *odo, double dist, double speed)
+static void follow_line(odotype *odo, double dist, double speed)
 {
 	double startpos = odo->totalDistance + dist;
 	int time = 0;
@@ -179,7 +180,7 @@ static void turn(odotype *odo, double angle, double speed)
 
 		double lineOffDist = getLineOffSetDistance();
 		const double CENTER_TO_LINE_SENSOR_DISTANCE = 22;
-		const double K = 0.01;
+		const double K = 4;
 		double thetaRef = atan(lineOffDist / CENTER_TO_LINE_SENSOR_DISTANCE) + odo->angle;
 		double speedDiffForLeft = (K * (thetaRef - odo->angle)) / 2;
 
@@ -192,7 +193,7 @@ static void turn(odotype *odo, double angle, double speed)
 	} while (distLeft > 0);
 
 	setMotorSpeeds(0, 0);
-}*/
+}
 
 int main()
 {
@@ -215,6 +216,7 @@ int main()
 	reset_odo(&odo);
 	printf("position: %f, %f\n", odo.left_pos, odo.right_pos);
 
+	/*
 	fwd(&odo, 1, 0.6);
 	turn(&odo, ANGLE(90), 0.3);
 
@@ -226,6 +228,9 @@ int main()
 
 	fwd(&odo, 1, 0.6);
 	turn(&odo, ANGLE(90), 0.3);
+	*/
+
+	follow_line(&odo, 10, 0.6);
 
 	setMotorSpeeds(0, 0);
 	rhdSync();
