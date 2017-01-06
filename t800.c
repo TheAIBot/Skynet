@@ -73,13 +73,17 @@ static void syncAndUpdateOdo(odotype *odo)
 	if (lmssrv.config && lmssrv.status && lmssrv.connected)
 	{
 		while ((xml_in_fd(xmllaser, lmssrv.sockfd) > 0))
+		{
 			xml_proca(xmllaser);
+		}
 	}
 
 	if (camsrv.config && camsrv.status && camsrv.connected)
 	{
 		while ((xml_in_fd(xmldata, camsrv.sockfd) > 0))
+		{
 			xml_proc(xmldata);
+		}
 	}
 
 	rhdSync();
