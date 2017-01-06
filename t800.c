@@ -16,6 +16,7 @@
 #include "includes/robotconnector.h"
 #include "includes/odometry.h"
 #include "includes/log.h"
+#include "includes/linesensor.h"
 
 /*****************************************
  * odometry
@@ -27,9 +28,6 @@
 #define MIN_SPEED 0.01
 #define TICKS_PER_SECOND 100
 
-//Line sensor information
-#define LINE_SENSOR_WIDTH 13
-#define LINE_SENSORS_COUNT 8
 
 #define ANGLE(x) ((double)x / 180.0 * M_PI)
 
