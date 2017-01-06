@@ -52,6 +52,7 @@ static double getAcceleratedSpeed(double stdSpeed, double distanceLeft, int tick
 
 static double getLineOffSetDistance()
 {
+	static double sensorPlacments[LINE_SENSORS_COUNT] = {-6.5, -4.875, -3.25, -1.625, 1.625, 3.25, 4.875, 6.5};
 	double sum_m = 0;
 	double sum_i = 0;
 	int i;
@@ -61,12 +62,12 @@ static double getLineOffSetDistance()
 		printf("%d\n", sensorValue);
 		double calibValue = calibrateLineSensorValue(sensorValue, i);
 		printf("%f\n", calibValue);
-		sum_m += (1 - calibValue) * i;
+		sum_m += (1 - calibValue) * sensorPlacments[i];
 		sum_i += (1 - calibValue);
 	}
 	double c_m = sum_m / sum_i;
 	printf("%f\n", c_m);
-	return ((LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - (LINE_SENSOR_WIDTH / 2));
+	return (LINE_SENSOR_WIDTH / LINE_SENSORS_COUNT) * c_m;
 }
 
 static void syncAndUpdateOdo(odotype *odo)
