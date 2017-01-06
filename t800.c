@@ -26,6 +26,7 @@
 #define MAX_ACCELERATION 0.5
 #define MIN_SPEED 0.01
 #define TICKS_PER_SECOND 100
+#define MIN_ACCELERATION (MAX_ACCELERATION / TICKS_PER_SECOND)
 
 //Line sensor information
 #define LINE_SENSOR_WIDTH 13
@@ -106,9 +107,39 @@ static void exitOnButtonPress()
 
 static void setMotorSpeeds(double leftSpeed, double rightSpeed)
 {
-	speedl->data[0] = 100 * leftSpeed;
+	static double currentSpeedLeft = 0;
+	static double currentSpeedRight = 0;
+
+	double diffLeft = leftSpeed - currentSpeedLeft;
+	double correctSpeedLeft;
+	if (diffLeft != 0)
+	{
+		correctSpeedLeft = (diffLeft > 0) ? min(leftSpeed, currentSpeedLeft + MIN_ACCELERATION) : max(leftSpeed, currentSpeedLeft - MIN_ACCELERATION);
+	}
+	else
+	{
+		correctSpeedLeft = leftSpeed;
+	}
+
+	double diffRight = rightSpeed - currentSpeedRight;
+	double correctSpeedRight;
+	if (diffRight != 0)
+	{
+		correctSpeedRight = (diffRight > 0) ? min(rightSpeed, currentSpeedRight + MIN_ACCELERATION) : max(rightSpeed, currentSpeedRight - MIN_ACCELERATION);
+	}
+	else
+	{
+		correctSpeedRight = rightSpeed;
+	}
+
+	currentSpeedLeft = correctSpeedLeft;
+	currentSpeedRight = correctSpeedRight;
+
+	printf("%f %f\n", currentSpeedLeft, currentSpeedRight);
+
+	speedl->data[0] = 100 * correctSpeedLeft;
 	speedl->updated = 1;
-	speedr->data[0] = 100 * rightSpeed;
+	speedr->data[0] = 100 * correctSpeedLeft;
 	speedr->updated = 1;
 }
 
@@ -181,17 +212,16 @@ static void follow_line(odotype *odo, double dist, double speed)
 		distLeft = startpos - odo->totalDistance;
 
 		double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
-
+		//double motorSpeedr =max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
 		double lineOffDist = getLineOffSetDistance();
 		const double CENTER_TO_LINE_SENSOR_DISTANCE = 22;
 		const double K = 4;
 		double thetaRef = atan(lineOffDist / CENTER_TO_LINE_SENSOR_DISTANCE) + odo->angle;
-		double speedDiffForLeft = (K * (thetaRef - odo->angle)) / 2;
+		double speedDiffPerMotor = (K * (thetaRef - odo->angle)) / 2;
 
-		setMotorSpeeds(motorSpeed - speedDiffForLeft, motorSpeed + speedDiffForLeft);
+		setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
 
 		time++;
-
 		exitOnButtonPress();
 
 	} while (distLeft > 0);
@@ -221,18 +251,18 @@ int main()
 	printf("position: %f, %f\n", odo.left_pos, odo.right_pos);
 
 	/*
-	fwd(&odo, 1, 0.6);
-	turn(&odo, ANGLE(90), 0.3);
+	 fwd(&odo, 1, 0.6);
+	 turn(&odo, ANGLE(90), 0.3);
 
-	fwd(&odo, 1, 0.6);
-	turn(&odo, ANGLE(90), 0.3);
+	 fwd(&odo, 1, 0.6);
+	 turn(&odo, ANGLE(90), 0.3);
 
-	fwd(&odo, 1, 0.6);
-	turn(&odo, ANGLE(90), 0.3);
+	 fwd(&odo, 1, 0.6);
+	 turn(&odo, ANGLE(90), 0.3);
 
-	fwd(&odo, 1, 0.6);
-	turn(&odo, ANGLE(90), 0.3);
-	*/
+	 fwd(&odo, 1, 0.6);
+	 turn(&odo, ANGLE(90), 0.3);
+	 */
 
 	follow_line(&odo, 10, 0.6);
 
