@@ -12,10 +12,13 @@ typedef struct
 }
 linesensor_data_pair;
 
+
+
 extern linesensor_data_pair linesensor_calib_data[LINE_SENSORS_COUNT];
 
 //Read calibration values from the calibation file and inserts the data in the given array
 int readLineSensorValues(char* fileLoc);
 
-
+//Compute the calibrated sensor value by linear transformation of the raw sensor value.
+double calibrateLineSensorValue(double sensor_value, int sensor_id);
 #endif

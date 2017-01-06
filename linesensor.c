@@ -36,3 +36,13 @@ int readLineSensorValues(char* fileLoc)
 	fclose(file);
 	return 1;
 }
+
+double calibrateLineSensorValue(double sensor_value, int sensor_id)
+{
+	double a = linesensor_calib_data[sensor_id].a;
+	double b = linesensor_calib_data[sensor_id].b;
+
+	double calib_value = a * sensor_value + b; 
+
+	return calib_value;
+}
