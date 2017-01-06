@@ -24,7 +24,7 @@
 #define WHEEL_DIAMETER   0.067	/* m */
 #define WHEEL_SEPARATION 0.256	/* m */
 #define DELTA_M (M_PI * WHEEL_DIAMETER / 2000)
-#define MAX_ACCELERATION 1.0
+#define MAX_ACCELERATION 2.5
 #define MIN_SPEED 0.01
 #define TICKS_PER_SECOND 100
 #define MIN_ACCELERATION (MAX_ACCELERATION / TICKS_PER_SECOND)
@@ -66,7 +66,7 @@ static double getLineOffSetDistance()
 	}
 	double c_m = sum_m / sum_i;
 	printf("%f\n", c_m);
-	return (( LINE_SENSOR_WIDTH / LINE_SENSORS_COUNT) * c_m - 6.5);
+	return ((LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - (LINE_SENSOR_WIDTH / 2));
 }
 
 static void syncAndUpdateOdo(odotype *odo)
@@ -107,39 +107,11 @@ static void exitOnButtonPress()
 
 static void setMotorSpeeds(double leftSpeed, double rightSpeed)
 {
-	static double currentSpeedLeft = 0;
-	static double currentSpeedRight = 0;
-
-	double diffLeft = leftSpeed - currentSpeedLeft;
-	double correctSpeedLeft;
-	if (diffLeft != 0)
-	{
-		correctSpeedLeft = (diffLeft > 0) ? min(leftSpeed, currentSpeedLeft + MIN_ACCELERATION) : max(leftSpeed, currentSpeedLeft - MIN_ACCELERATION);
-	}
-	else
-	{
-		correctSpeedLeft = leftSpeed;
-	}
-
-	double diffRight = rightSpeed - currentSpeedRight;
-	double correctSpeedRight;
-	if (diffRight != 0)
-	{
-		correctSpeedRight = (diffRight > 0) ? min(rightSpeed, currentSpeedRight + MIN_ACCELERATION) : max(rightSpeed, currentSpeedRight - MIN_ACCELERATION);
-	}
-	else
-	{
-		correctSpeedRight = rightSpeed;
-	}
-
-	currentSpeedLeft = correctSpeedLeft;
-	currentSpeedRight = correctSpeedRight;
-
 	//printf("%f %f\n", currentSpeedLeft, currentSpeedRight);
 
-	speedl->data[0] = 100 * correctSpeedLeft;
+	speedl->data[0] = 100 * leftSpeed;
 	speedl->updated = 1;
-	speedr->data[0] = 100 * correctSpeedRight;
+	speedr->data[0] = 100 * rightSpeed;
 	speedr->updated = 1;
 }
 
@@ -233,7 +205,7 @@ int main()
 {
 	odotype odo = { 0 };
 
-	if (!readLineSensorValues("calibvalues.txt"))
+	if (!readLineSensorValues("linesensor_calib_script/linesensor_calib.txt"))
 	{
 		exit(EXIT_FAILURE);
 	}
