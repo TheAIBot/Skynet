@@ -28,6 +28,7 @@
 #define MIN_SPEED 0.01
 #define TICKS_PER_SECOND 100
 #define MIN_ACCELERATION (MAX_ACCELERATION / TICKS_PER_SECOND)
+#define WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE 22
 
 #define ANGLE(x) ((double)x / 180.0 * M_PI)
 
@@ -52,21 +53,22 @@ static double getAcceleratedSpeed(double stdSpeed, double distanceLeft, int tick
 
 static double getLineOffSetDistance()
 {
+	static double sensorPlacments[LINE_SENSORS_COUNT] = { -6.5, -4.875, -3.25, -1.625, 1.625, 3.25, 4.875, 6.5 };
 	double sum_m = 0;
 	double sum_i = 0;
 	int i;
 	for (i = 0; i < LINE_SENSORS_COUNT; i++)
 	{
-		int sensorValue = linesensor->data[i];
-		printf("%d\n", sensorValue);
-		double calibValue = calibrateLineSensorValue(sensorValue, i);
-		printf("%f\n", calibValue);
-		sum_m += (1 - calibValue) * i;
+		double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
+
+		sum_m += (1 - calibValue) * sensorPlacments[i];
 		sum_i += (1 - calibValue);
 	}
-	double c_m = sum_m / sum_i;
-	printf("%f\n", c_m);
-	return ((LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - (LINE_SENSOR_WIDTH / 2));
+	if (sum_i == 0)
+	{
+		return 0;
+	}
+	return sum_m / sum_i;
 }
 
 static void syncAndUpdateOdo(odotype *odo)
@@ -184,11 +186,9 @@ static void follow_line(odotype *odo, double dist, double speed)
 		distLeft = startpos - odo->totalDistance;
 
 		double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
-		//double motorSpeedr =max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
 		double lineOffDist = getLineOffSetDistance();
-		const double CENTER_TO_LINE_SENSOR_DISTANCE = 22;
-		const double K = 4;
-		double thetaRef = atan(lineOffDist / CENTER_TO_LINE_SENSOR_DISTANCE) + odo->angle;
+		const double K = 2;
+		double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE) + odo->angle;
 		double speedDiffPerMotor = (K * (thetaRef - odo->angle)) / 2;
 
 		setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
