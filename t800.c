@@ -16,6 +16,7 @@
 #include "includes/robotconnector.h"
 #include "includes/odometry.h"
 #include "includes/log.h"
+#include "includes/linesensor.h"
 
 /*****************************************
  * odometry
@@ -27,10 +28,6 @@
 #define MIN_SPEED 0.01
 #define TICKS_PER_SECOND 100
 #define MIN_ACCELERATION (MAX_ACCELERATION / TICKS_PER_SECOND)
-
-//Line sensor information
-#define LINE_SENSOR_WIDTH 13
-#define LINE_SENSORS_COUNT 8
 
 #define ANGLE(x) ((double)x / 180.0 * M_PI)
 
@@ -55,18 +52,21 @@ static double getAcceleratedSpeed(double stdSpeed, double distanceLeft, int tick
 
 static double getLineOffSetDistance()
 {
-	int smallestSensorValueIndex = 0;
+	double sum_m = 0;
+	double sum_i = 0;
 	int i;
-	for (i = 1; i < LINE_SENSORS_COUNT; ++i)
+	for (i = 0; i < LINE_SENSORS_COUNT; i++)
 	{
-		if (linesensor->data[smallestSensorValueIndex] > linesensor->data[i])
-		{
-			smallestSensorValueIndex = i;
-		}
+		int sensorValue = linesensor->data[i];
+		printf("%d\n", sensorValue);
+		double calibValue = calibrateLineSensorValue(sensorValue, i);
+		printf("%f\n", calibValue);
+		sum_m += (1 - calibValue) * i;
+		sum_i += (1 - calibValue);
 	}
-
-	smallestSensorValueIndex++; // make it 1 indexed
-	return ((smallestSensorValueIndex - (LINE_SENSORS_COUNT / 2)) * (LINE_SENSOR_WIDTH / LINE_SENSORS_COUNT));
+	double c_m = sum_m / sum_i;
+	printf("%f\n", c_m);
+	return (( LINE_SENSOR_WIDTH / LINE_SENSORS_COUNT) * c_m - 6.5);
 }
 
 static void syncAndUpdateOdo(odotype *odo)
@@ -135,7 +135,7 @@ static void setMotorSpeeds(double leftSpeed, double rightSpeed)
 	currentSpeedLeft = correctSpeedLeft;
 	currentSpeedRight = correctSpeedRight;
 
-	printf("%f %f\n", currentSpeedLeft, currentSpeedRight);
+	//printf("%f %f\n", currentSpeedLeft, currentSpeedRight);
 
 	speedl->data[0] = 100 * correctSpeedLeft;
 	speedl->updated = 1;
@@ -232,6 +232,11 @@ static void follow_line(odotype *odo, double dist, double speed)
 int main()
 {
 	odotype odo = { 0 };
+
+	if (!readLineSensorValues("calibvalues.txt"))
+	{
+		exit(EXIT_FAILURE);
+	}
 
 	if (!connectRobot())
 	{
