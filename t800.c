@@ -27,46 +27,11 @@
 #define MIN_SPEED 0.01
 #define TICKS_PER_SECOND 100
 
+//Line sensor information
+#define LINE_SENSOR_WIDTH 13
+#define LINE_SENSORS_COUNT 8
+
 #define ANGLE(x) ((double)x / 180.0 * M_PI)
-
-/********************************************
- * Motion control
- */
-
-typedef struct
-{	        //input
-	int cmd;
-	int curcmd;
-	double speedcmd;
-	double dist;
-	double angle;
-	double left_pos;
-	double right_pos;
-	// parameters
-	double w;
-	//output
-	double motorspeed_l, motorspeed_r;
-	int finished;
-	// internal variables
-	double startpos;
-} motiontype;
-
-enum
-{
-	mot_stop = 1, mot_move, mot_turn, mot_follow_line
-};
-
-typedef struct
-{
-	int state;
-	int oldstate;
-	int time;
-} smtype;
-
-enum
-{
-	ms_init, ms_fwd, ms_turn, ms_end, ms_follow_line
-};
 
 static inline double min(double x, double y)
 {
@@ -87,137 +52,50 @@ static double getAcceleratedSpeed(double stdSpeed, double distanceLeft, int tick
 	return speed;
 }
 
-static void update_motcon(motiontype *p, odotype *odo, int tickTime)
+/*static double getLineOffSetDistance()
 {
-	double distLeft = 0;
-	if (p->cmd != 0)
+	int smallestSensorValueIndex = linesensor->data[0];
+	int i;
+	for (i = 1; i < LINE_SENSORS_COUNT; ++i)
 	{
-		p->finished = 0;
-		switch (p->cmd) {
-		case mot_stop:
-			p->curcmd = mot_stop;
-			break;
-		case mot_move:
-			p->startpos = (p->left_pos + p->right_pos) / 2;
-			p->curcmd = mot_move;
-			break;
-		case mot_turn:
-			p->startpos = (p->angle > 0) ? p->right_pos : p->left_pos;
-			p->curcmd = mot_turn;
-			break;
-		case mot_follow_line:
-			p->startpos = odo->totalDistance;
-			p->curcmd = mot_follow_line;
+		if (smallestSensorValueIndex > linesensor->data[i])
+		{
+			smallestSensorValueIndex = i;
 		}
-		p->cmd = 0;
+	}
+	smallestSensorValueIndex++; // make it 1 indexed
+	return ((smallestSensorValueIndex - (LINE_SENSORS_COUNT / 2)) * (LINE_SENSOR_WIDTH * LINE_SENSORS_COUNT));
+}*/
+
+static void syncAndUpdateOdo(odotype *odo)
+{
+	if (lmssrv.config && lmssrv.status && lmssrv.connected)
+	{
+		while ((xml_in_fd(xmllaser, lmssrv.sockfd) > 0))
+			xml_proca(xmllaser);
 	}
 
-	switch (p->curcmd) {
-	case mot_stop:
-		p->motorspeed_l = 0;
-		p->motorspeed_r = 0;
-		break;
-	case mot_move:
+	if (camsrv.config && camsrv.status && camsrv.connected)
 	{
-		distLeft = p->dist - (((p->right_pos + p->left_pos) / 2) - p->startpos);
-		if (distLeft <= 0)
-		{
-			p->finished = 1;
-			p->motorspeed_l = 0;
-			p->motorspeed_r = 0;
-		}
-		else
-		{
-			p->motorspeed_l = max(getAcceleratedSpeed(p->speedcmd, distLeft, tickTime), MIN_SPEED);
-			p->motorspeed_r = p->motorspeed_l;
-		}
-		break;
+		while ((xml_in_fd(xmldata, camsrv.sockfd) > 0))
+			xml_proc(xmldata);
 	}
-	case mot_turn:
-	{
-		distLeft = (fabs(p->angle) * p->w) / 2 - (((p->angle > 0) ? p->right_pos : p->left_pos) - p->startpos);
-		if (distLeft <= 0)
-		{
-			p->finished = 1;
-			p->motorspeed_r = 0;
-			p->motorspeed_l = 0;
-		}
-		else
-		{
-			double speed = max(getAcceleratedSpeed(p->speedcmd, distLeft, tickTime) / 2, MIN_SPEED);
-			if (p->angle > 0)
-			{
-				p->motorspeed_r = speed;
-				p->motorspeed_l = -speed;
-			}
-			else
-			{
-				p->motorspeed_r = -speed;
-				p->motorspeed_l = speed;
-			}
-		}
-		break;
-	}
-	case mot_follow_line:
-		break;
-	}
+
+	rhdSync();
+	odo->left_enc = lenc->data[0];
+	odo->right_enc = renc->data[0];
+	update_odo(odo);
 }
 
-static int fwd(motiontype *mot, double dist, double speed, int time)
+static void exitOnButtonPress()
 {
-	if (time == 0)
+	int arg;
+	ioctl(0, FIONREAD, &arg);
+	if (arg != 0)
 	{
-		mot->cmd = mot_move;
-		mot->speedcmd = speed;
-		mot->dist = dist;
-		return 0;
-	}
-	else
-	{
-		return mot->finished;
-	}
-}
-
-static int turn(motiontype *mot, double angle, double speed, int time)
-{
-	if (time == 0)
-	{
-		mot->cmd = mot_turn;
-		mot->speedcmd = speed;
-		mot->angle = angle;
-		return 0;
-	}
-	else
-	{
-		return mot->finished;
-	}
-}
-
-static int follow_line(motiontype *mot, double dist, double speed, int time)
-{
-	if (time == 0)
-	{
-		mot->cmd = mot_follow_line;
-		mot->speedcmd = speed;
-		mot->dist = dist;
-		return 0;
-	}
-	else
-	{
-		return mot->finished;
-	}
-}
-
-static void sm_update(smtype *p)
-{
-	if (p->state != p->oldstate)
-	{
-		p->time = 0;
-		p->oldstate = p->state;
-	}
-	else
-	{
-		p->time++;
+		rhdSync();
+		rhdDisconnect();
+		exit(0);
 	}
 }
 
@@ -229,18 +107,96 @@ static void setMotorSpeeds(double leftSpeed, double rightSpeed)
 	speedr->updated = 1;
 }
 
+static void fwd(odotype *odo, double dist, double speed)
+{
+	double startpos = (odo->right_pos + odo->left_pos) / 2;
+	int time = 0;
+
+	double distLeft;
+	do
+	{
+		syncAndUpdateOdo(odo);
+
+		distLeft = dist - (((odo->right_pos + odo->left_pos) / 2) - startpos);
+
+		double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
+
+		setMotorSpeeds(motorSpeed, motorSpeed);
+
+		time++;
+
+		exitOnButtonPress();
+
+	} while (distLeft > 0);
+
+	setMotorSpeeds(0, 0);
+}
+
+static void turn(odotype *odo, double angle, double speed)
+{
+	double startpos = (angle > 0) ? odo->right_pos : odo->left_pos;
+	int time = 0;
+
+	double distLeft;
+	do
+	{
+		syncAndUpdateOdo(odo);
+
+		distLeft = (fabs(angle) * odo->w) / 2 - (((angle > 0) ? odo->right_pos : odo->left_pos) - startpos);
+
+		double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time) / 2, MIN_SPEED);
+		if (angle > 0)
+		{
+			setMotorSpeeds(-motorSpeed, motorSpeed);
+		}
+		else
+		{
+			setMotorSpeeds(motorSpeed, -motorSpeed);
+		}
+
+		time++;
+
+		exitOnButtonPress();
+
+	} while (distLeft > 0);
+
+	setMotorSpeeds(0, 0);
+}
+
+/*static void follow_line(odotype *odo, double dist, double speed)
+{
+	double startpos = odo->totalDistance + dist;
+	int time = 0;
+
+	double distLeft;
+	do
+	{
+		syncAndUpdateOdo(odo);
+
+		distLeft = startpos - odo->totalDistance;
+
+		double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
+
+		double lineOffDist = getLineOffSetDistance();
+		const double CENTER_TO_LINE_SENSOR_DISTANCE = 22;
+		const double K = 0.01;
+		double thetaRef = atan(lineOffDist / CENTER_TO_LINE_SENSOR_DISTANCE) + odo->angle;
+		double speedDiffForLeft = (K * (thetaRef - odo->angle)) / 2;
+
+		setMotorSpeeds(motorSpeed - speedDiffForLeft, motorSpeed + speedDiffForLeft);
+
+		time++;
+
+		exitOnButtonPress();
+
+	} while (distLeft > 0);
+
+	setMotorSpeeds(0, 0);
+}*/
+
 int main()
 {
-	int running;
-	int n = 0;
-	int arg;
-	int time = 0;
-	double dist = 0;
-	double angle = 0;
-
 	odotype odo = { 0 };
-	smtype mission = { 0 };
-	motiontype mot = { 0 };
 
 	if (!connectRobot())
 	{
@@ -258,83 +214,19 @@ int main()
 	odo.right_enc = renc->data[0];
 	reset_odo(&odo);
 	printf("position: %f, %f\n", odo.left_pos, odo.right_pos);
-	mot.w = odo.w;
-	running = 1;
-	mission.state = ms_init;
-	mission.oldstate = -1;
-	while (running)
-	{
-		if (lmssrv.config && lmssrv.status && lmssrv.connected)
-		{
-			while ((xml_in_fd(xmllaser, lmssrv.sockfd) > 0))
-				xml_proca(xmllaser);
-		}
 
-		if (camsrv.config && camsrv.status && camsrv.connected)
-		{
-			while ((xml_in_fd(xmldata, camsrv.sockfd) > 0))
-				xml_proc(xmldata);
-		}
+	fwd(&odo, 1, 0.6);
+	turn(&odo, ANGLE(90), 0.3);
 
-		rhdSync();
-		odo.left_enc = lenc->data[0];
-		odo.right_enc = renc->data[0];
-		update_odo(&odo);
+	fwd(&odo, 1, 0.6);
+	turn(&odo, ANGLE(90), 0.3);
 
-		/****************************************
-		 / mission statemachine
-		 */
-		sm_update(&mission);
-		switch (mission.state) {
-		case ms_init:
-			n = 4;
-			dist = 1;
-			angle = ANGLE(90);
-			mission.state = ms_fwd;
-			break;
-		case ms_fwd:
-			if (fwd(&mot, dist, 0.6, mission.time))
-			{
-				mission.state = ms_turn;
-			}
-			break;
-		case ms_turn:
-			if (turn(&mot, angle, 0.3, mission.time))
-			{
-				n--;
-				mission.state = (n == 0) ? ms_end : ms_fwd;
-			}
-			break;
-		case ms_follow_line:
-			if (follow_line(&mot, dist, 0.3, mission.time))
-			{
-				mission.state = ms_end;
-			}
-		case ms_end:
-			mot.cmd = mot_stop;
-			running = 0;
-			break;
-		}
-		/*  end of mission  */
+	fwd(&odo, 1, 0.6);
+	turn(&odo, ANGLE(90), 0.3);
 
-		mot.left_pos = odo.left_pos;
-		mot.right_pos = odo.right_pos;
-		update_motcon(&mot, mission.time);
-		setMotorSpeeds(mot.motorspeed_l, mot.motorspeed_r);
-		if (time % 100 == 0)
-		{
-			//    printf(" laser %f \n",laserpar[3]);
-			time++;
-		}
-		/* stop if keyboard is activated
-		 *
-		 */
-		ioctl(0, FIONREAD, &arg);
-		if (arg != 0)
-		{
-			running = 0;
-		}
-	}/* end of main control loop */
+	fwd(&odo, 1, 0.6);
+	turn(&odo, ANGLE(90), 0.3);
+
 	setMotorSpeeds(0, 0);
 	rhdSync();
 	rhdDisconnect();
