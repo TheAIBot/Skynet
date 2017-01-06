@@ -109,7 +109,7 @@ static void exitOnButtonPress()
 
 static void setMotorSpeeds(double leftSpeed, double rightSpeed)
 {
-	//printf("%f %f\n", currentSpeedLeft, currentSpeedRight);
+	//printf("%f %f\n", leftSpeed, rightSpeed);
 
 	speedl->data[0] = 100 * leftSpeed;
 	speedl->updated = 1;
