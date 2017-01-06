@@ -23,7 +23,7 @@
 #define WHEEL_DIAMETER   0.067	/* m */
 #define WHEEL_SEPARATION 0.256	/* m */
 #define DELTA_M (M_PI * WHEEL_DIAMETER / 2000)
-#define MAX_ACCELERATION 0.5
+#define MAX_ACCELERATION 1.0
 #define MIN_SPEED 0.01
 #define TICKS_PER_SECOND 100
 #define MIN_ACCELERATION (MAX_ACCELERATION / TICKS_PER_SECOND)
@@ -139,7 +139,7 @@ static void setMotorSpeeds(double leftSpeed, double rightSpeed)
 
 	speedl->data[0] = 100 * correctSpeedLeft;
 	speedl->updated = 1;
-	speedr->data[0] = 100 * correctSpeedLeft;
+	speedr->data[0] = 100 * correctSpeedRight;
 	speedr->updated = 1;
 }
 
@@ -264,7 +264,7 @@ int main()
 	 turn(&odo, ANGLE(90), 0.3);
 	 */
 
-	follow_line(&odo, 10, 0.6);
+	follow_line(&odo, 3000, 0.6);
 
 	setMotorSpeeds(0, 0);
 	rhdSync();
