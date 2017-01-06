@@ -11,26 +11,23 @@
 typedef struct
 {
 	// parameters
-	double w;	// wheel separation
-	double cr;
-	double cl;   // meters per encodertick
+	double wheelSeparation;
+	double metersPerEncoderTick;
 	//output signals
-	double right_pos;
-	double left_pos;
+	double rightWheelPos;
+	double leftWheelPos;
 
 	double xpos;
 	double ypos;
 	double angle;
 	double totalDistance;
 	//input signals
-	int left_enc;
-	int right_enc; // encoderticks
+	int leftWheelEncoderTicks;
+	int rightWheelEncoderTicks; // encoderticks
 	// internal variables
-	int left_enc_old;
-	int right_enc_old;
+	int oldLeftWheelEncoderTicks;
+	int oldRightWheelEncoderTicks;
 } odotype;
-
-void resetOdo(odotype * p);
 
 void updateOdo(odotype *p);
 

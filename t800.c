@@ -24,7 +24,7 @@
 #define WHEEL_DIAMETER   0.067	/* m */
 #define WHEEL_SEPARATION 0.256	/* m */
 #define DELTA_M (M_PI * WHEEL_DIAMETER / 2000)
-#define MAX_ACCELERATION 2.5
+#define MAX_ACCELERATION 0.5
 #define MIN_SPEED 0.01
 #define TICKS_PER_SECOND 100
 #define MIN_ACCELERATION (MAX_ACCELERATION / TICKS_PER_SECOND)
@@ -90,8 +90,8 @@ static void syncAndUpdateOdo(odotype *odo)
 	}
 
 	rhdSync();
-	odo->left_enc = lenc->data[0];
-	odo->right_enc = renc->data[0];
+	odo->leftWheelEncoderTicks = lenc->data[0];
+	odo->rightWheelEncoderTicks = renc->data[0];
 	updateOdo(odo);
 }
 
@@ -119,7 +119,7 @@ static void setMotorSpeeds(double leftSpeed, double rightSpeed)
 
 static void fwd(odotype *odo, double dist, double speed)
 {
-	const double startpos = (odo->right_pos + odo->left_pos) / 2;
+	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
 	int time = 0;
 
 	double distLeft;
@@ -127,7 +127,7 @@ static void fwd(odotype *odo, double dist, double speed)
 	{
 		syncAndUpdateOdo(odo);
 
-		distLeft = dist - (((odo->right_pos + odo->left_pos) / 2) - startpos);
+		distLeft = dist - (((odo->rightWheelPos + odo->leftWheelPos) / 2) - startpos);
 
 		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
 
@@ -144,7 +144,7 @@ static void fwd(odotype *odo, double dist, double speed)
 
 static void turn(odotype *odo, double angle, double speed)
 {
-	const double startpos = (angle > 0) ? odo->right_pos : odo->left_pos;
+	const double startpos = (angle > 0) ? odo->rightWheelPos : odo->leftWheelPos;
 	int time = 0;
 
 	double distLeft;
@@ -152,7 +152,7 @@ static void turn(odotype *odo, double angle, double speed)
 	{
 		syncAndUpdateOdo(odo);
 
-		distLeft = (fabs(angle) * odo->w) / 2 - (((angle > 0) ? odo->right_pos : odo->left_pos) - startpos);
+		distLeft = (fabs(angle) * odo->wheelSeparation) / 2 - (((angle > 0) ? odo->rightWheelPos : odo->leftWheelPos) - startpos);
 
 		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time) / 2, MIN_SPEED);
 		if (angle > 0)
@@ -187,8 +187,8 @@ static void follow_line(odotype *odo, double dist, double speed)
 
 		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
 		const double lineOffDist = getLineOffSetDistance();
-		const double K = 2;
 		const double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE) + odo->angle;
+		const double K = 2;
 		const double speedDiffPerMotor = (K * (thetaRef - odo->angle)) / 2;
 
 		setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
@@ -219,13 +219,13 @@ int main()
 	 */
 	rhdSync();
 
-	odo.w = 0.256;
-	odo.cr = DELTA_M;
-	odo.cl = odo.cr;
-	odo.left_enc = lenc->data[0];
-	odo.right_enc = renc->data[0];
-	resetOdo(&odo);
-	printf("position: %f, %f\n", odo.left_pos, odo.right_pos);
+	odo.wheelSeparation = 0.256;
+	odo.metersPerEncoderTick = DELTA_M;
+	odo.leftWheelEncoderTicks = lenc->data[0];
+	odo.rightWheelEncoderTicks = renc->data[0];
+	odo.oldLeftWheelEncoderTicks = odo.leftWheelEncoderTicks;
+	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
+	printf("position: %f, %f\n", odo.leftWheelPos, odo.rightWheelPos);
 
 	/*
 	 fwd(&odo, 1, 0.6);
