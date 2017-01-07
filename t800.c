@@ -152,11 +152,12 @@ static void fwdTurn(odotype *odo, const double angle, const double speed){
 	double angleDifference;
 	do
 	{
+		printf("%f, %f\n", angleDifference, ANGLE(0.5));
 		syncAndUpdateOdo(odo);
 		angleDifference = angle - odo->angle;
-		double deltaV = K_MOVE_TURN*(angleDifference); //Check this for general case.(*)
-		const double motorSpeed = max(getAcceleratedSpeed(speed, 10, time) / 2, MIN_SPEED); //Modify to use this (*)
-		
+		double deltaV = max(K_MOVE_TURN*(angleDifference),MIN_SPEED); //Check this for general case.(*)
+		printf("deltaV = %f\n", deltaV);
+		const double motorSpeed = max(getAcceleratedSpeed(speed, deltaV, time)/2,MIN_SPEED); //Modify to use this (*)		
 		setMotorSpeeds(motorSpeed - deltaV/2, motorSpeed + deltaV/2);
 		time++;
 		exitOnButtonPress();
@@ -266,7 +267,8 @@ int main()
 	turn(&odo, ANGLE(90), 0.3);
 	//follow_line(&odo, 3000, 0.6);
 	*/
-	turn(&odo, ANGLE(360), 0.6);
+	//turn(&odo, ANGLE(360), 0.6);
+
 	fwdTurn(&odo, ANGLE(90) + odo.angle,0.6);
 
 	setMotorSpeeds(0, 0);
