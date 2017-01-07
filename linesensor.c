@@ -1,9 +1,9 @@
-#include "includes/linesensor.h"
 #include <stdio.h>
+#include "includes/linesensor.h"
 
-linesensorCalibratedData linesensorCalibData[LINE_SENSORS_COUNT];
+static lineSensorCalibratedData lineSensorCalibData[LINE_SENSORS_COUNT];
 
-int readLineSensorValues(char* fileLoc)
+int readLineSensorValues(const char* fileLoc)
 {
 
 	FILE* file = fopen(fileLoc, "r");
@@ -21,24 +21,24 @@ int readLineSensorValues(char* fileLoc)
 	{
 		double a;
 		double b;
-		int scanStatus = fscanf(file, "%lf %lf\n", &a, &b);
+		const int scanStatus = fscanf(file, "%lf %lf\n", &a, &b);
 		if (scanStatus != 2) //Check if the correct number of items was read
 		{
 			printf("Error occured when reading linesensor calibration file. %d numbers expected, but %d was found.", 2, scanStatus);
 			return 0;
 		}
-		linesensorCalibData[i].a = a;
-		linesensorCalibData[i].b = b;
+		lineSensorCalibData[i].a = a;
+		lineSensorCalibData[i].b = b;
 	}
 
 	fclose(file);
 	return 1;
 }
 
-double calibrateLineSensorValue(double sensorValue, int sensorID)
+double calibrateLineSensorValue(const double sensorValue, const int sensorID)
 {
-	double a = linesensorCalibData[sensorID].a;
-	double b = linesensorCalibData[sensorID].b;
+	const double a = lineSensorCalibData[sensorID].a;
+	const double b = lineSensorCalibData[sensorID].b;
 
 	double calibValue = a * sensorValue + b;
 	if (calibValue == 0 || calibValue > 1)

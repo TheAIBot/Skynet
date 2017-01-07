@@ -10,13 +10,12 @@ typedef struct
 	double a;
 	double b;
 }
-linesensorCalibratedData;
+lineSensorCalibratedData;
 
 
 //Read calibration values from the calibation file and inserts the data in the given array
-int readLineSensorValues(char* fileLoc);
+int readLineSensorValues(const char* fileLoc);
 
-//Compute the calibrated sensor value by linear transformation of the raw sensor value.
-double calibrateLineSensorValue(double sensorValue, int sensorID);
+double calibrateLineSensorValue(const double sensorValue, const int sensorID);
 
 #endif

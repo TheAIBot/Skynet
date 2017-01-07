@@ -8,8 +8,8 @@
 #ifndef LOG_H_
 #define LOG_H_
 
-void logOdo(odotype * odo);
+void logOdo(const odotype * odo);
 
-void writeLogs(char* fileName);
+void writeLogs(const char* fileName);
 
 #endif /* LOG_H_ */
