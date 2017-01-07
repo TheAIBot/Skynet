@@ -23,6 +23,7 @@
 #define WHEEL_DIAMETER   0.067	/* m */
 #define WHEEL_SEPARATION 0.256	/* m */
 #define DELTA_M (M_PI * WHEEL_DIAMETER / 2000)
+#define K_MOVE_TURN 0.2
 #define MAX_ACCELERATION 0.5
 #define MIN_SPEED 0.01
 #define TICKS_PER_SECOND 100
@@ -49,11 +50,12 @@ typedef struct
 	int finished;
 	// internal variables
 	double startpos;
+	double angleRef;
 } motiontype;
 
 enum
 {
-	mot_stop = 1, mot_move, mot_turn, mot_follow_line
+	mot_stop = 1, mot_move, mot_turn, mot_follow_line, mot_move_turn
 };
 
 typedef struct
@@ -65,7 +67,7 @@ typedef struct
 
 enum
 {
-	ms_init, ms_fwd, ms_turn, ms_end, ms_follow_line
+	ms_init, ms_fwd, ms_turn, ms_end, ms_follow_line, ms_move_turn
 };
 
 static inline double min(double x, double y)
@@ -101,6 +103,10 @@ static void update_motcon(motiontype *p, odotype *odo, int tickTime)
 			p->startpos = (p->left_pos + p->right_pos) / 2;
 			p->curcmd = mot_move;
 			break;
+		case mot_move_turn:
+			p->startpos = (p->left_pos + p->right_pos) / 2;
+			p->curcmd = mot_move_turn;
+			break;
 		case mot_turn:
 			p->startpos = (p->angle > 0) ? p->right_pos : p->left_pos;
 			p->curcmd = mot_turn;
@@ -130,6 +136,26 @@ static void update_motcon(motiontype *p, odotype *odo, int tickTime)
 		{
 			p->motorspeed_l = max(getAcceleratedSpeed(p->speedcmd, distLeft, tickTime), MIN_SPEED);
 			p->motorspeed_r = p->motorspeed_l;
+		}
+		break;
+	}
+	case mot_move_turn:
+	{
+		printf("Difference angle %f, accepted = %f\n",(p->angleRef-odo->angle),ANGLE(0.5));
+		//distLeft = p->dist - (((p->right_pos + p->left_pos) / 2) - p->startpos);
+		if (p->angleRef-odo->angle <= ANGLE(0.5) || p->angleRef-odo->angle <= -ANGLE(0.5))
+		{
+			printf("Finished at angel differnce : %f\n", (p->angleRef-odo->angle));//
+			p->finished = 1;
+			p->motorspeed_l = 0;
+			p->motorspeed_r = 0;
+		}
+		else
+		{
+			double deltaV = K_MOVE_TURN*(p->angleRef-odo->angle);
+			printf("detlaV = %f\n",deltaV);
+			p->motorspeed_l = max(getAcceleratedSpeed(p->speedcmd, 10, tickTime), MIN_SPEED) - deltaV/2;
+			p->motorspeed_r = p->motorspeed_l + deltaV; //gives -deltaV/2
 		}
 		break;
 	}
@@ -177,6 +203,23 @@ static int fwd(motiontype *mot, double dist, double speed, int time)
 		return mot->finished;
 	}
 }
+
+
+static int fwdturn(motiontype *mot, double angleTurn, double speed, int time)
+{
+	if (time == 0)
+	{
+		mot->angleRef = angleTurn;
+		mot->cmd = mot_move_turn;
+		mot->speedcmd = speed;
+		return 0;
+	}
+	else
+	{
+		return mot->finished;
+	}
+}
+
 
 static int turn(motiontype *mot, double angle, double speed, int time)
 {
@@ -290,7 +333,8 @@ int main()
 			n = 4;
 			dist = 1;
 			angle = ANGLE(90);
-			mission.state = ms_fwd;
+			//mission.state = ms_fwd;
+			mission.state = ms_move_turn;
 			break;
 		case ms_fwd:
 			if (fwd(&mot, dist, 0.6, mission.time))
@@ -310,6 +354,11 @@ int main()
 			{
 				mission.state = ms_end;
 			}
+		case ms_move_turn:
+			if(fwdturn(&mot,angle + odo.angle ,0.3,mission.time)){
+				mission.state = ms_end;
+			}
+			break;
 		case ms_end:
 			mot.cmd = mot_stop;
 			running = 0;
@@ -319,7 +368,7 @@ int main()
 
 		mot.left_pos = odo.left_pos;
 		mot.right_pos = odo.right_pos;
-		update_motcon(&mot, mission.time);
+		update_motcon(&mot,&odo, mission.time);
 		setMotorSpeeds(mot.motorspeed_l, mot.motorspeed_r);
 		if (time % 100 == 0)
 		{
