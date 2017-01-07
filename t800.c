@@ -29,7 +29,6 @@
 #define TICKS_PER_SECOND 100
 #define MIN_ACCELERATION (MAX_ACCELERATION / TICKS_PER_SECOND)
 #define WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE 22
-#define K_MOVE_TURN 0.2
 
 #define ANGLE(x) ((double)x / 180.0 * M_PI)
 
@@ -143,25 +142,25 @@ static void fwd(odotype *odo, const double dist, const double speed)
 	setMotorSpeeds(0, 0);
 }
 
-static void fwdTurn(odotype *odo, const double angle, const double speed){
-	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
+static void fwdTurn(odotype *odo, const double angle, const double speed)
+{
 	int time = 0;
 	//angle %= 2*M_PI; //Setting it in the range of 0 to 2 Pi.
-	printf("Starting with angle = %f, odo angle = %f\n", angle, odo->angle);
-	double distLeft; //Modify to use this (*)
+	//printf("Starting with angle = %f, odo angle = %f\n", angle, odo->angle);
 	double angleDifference;
 	do
 	{
-		printf("%f, %f\n", angleDifference, ANGLE(0.5));
+		//printf("%f, %f\n", angleDifference, ANGLE(0.5));
 		syncAndUpdateOdo(odo);
 		angleDifference = angle - odo->angle;
-		double deltaV = max(K_MOVE_TURN*(angleDifference),MIN_SPEED); //Check this for general case.(*)
-		printf("deltaV = %f\n", deltaV);
-		const double motorSpeed = max(getAcceleratedSpeed(speed, deltaV, time)/2,MIN_SPEED); //Modify to use this (*)		
-		setMotorSpeeds(motorSpeed - deltaV/2, motorSpeed + deltaV/2);
+#define K_MOVE_TURN 0.2
+		double deltaV = max(K_MOVE_TURN * (angleDifference), MIN_SPEED); //Check this for general case.(*)
+		//printf("deltaV = %f\n", deltaV);
+		const double motorSpeed = max(getAcceleratedSpeed(speed, deltaV / 4, time) / 2, MIN_SPEED); //Modify to use this (*)
+		setMotorSpeeds(motorSpeed - deltaV / 2, motorSpeed + deltaV / 2);
 		time++;
 		exitOnButtonPress();
-	} while (fabs(angleDifference) > ANGLE(0.5));
+	} while (fabs(angleDifference) > ANGLE(0.1));
 	//printf("%f\n", angleDifference);
 
 	setMotorSpeeds(0, 0);
@@ -254,22 +253,21 @@ int main()
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
 	printf("position: %f, %f\n", odo.leftWheelPos, odo.rightWheelPos);
 	/*
-	fwd(&odo, 1, 0.6);
-	turn(&odo, ANGLE(90), 0.3);
+	 fwd(&odo, 1, 0.6);
+	 turn(&odo, ANGLE(90), 0.3);
 
-	fwd(&odo, 1, 0.6);
-	turn(&odo, ANGLE(90), 0.3);
+	 fwd(&odo, 1, 0.6);
+	 turn(&odo, ANGLE(90), 0.3);
 
-	fwd(&odo, 1, 0.6);
-	turn(&odo, ANGLE(90), 0.3);
+	 fwd(&odo, 1, 0.6);
+	 turn(&odo, ANGLE(90), 0.3);
 
-	fwd(&odo, 1, 0.6);
-	turn(&odo, ANGLE(90), 0.3);
-	//follow_line(&odo, 3000, 0.6);
-	*/
+	 fwd(&odo, 1, 0.6);
+	 turn(&odo, ANGLE(90), 0.3);
+	 //follow_line(&odo, 3000, 0.6);
+	 */
 	//turn(&odo, ANGLE(360), 0.6);
-
-	fwdTurn(&odo, ANGLE(90) + odo.angle,0.6);
+	fwdTurn(&odo, ANGLE(90) + odo.angle, 0.6);
 
 	setMotorSpeeds(0, 0);
 	rhdSync();
