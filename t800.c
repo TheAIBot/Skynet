@@ -17,6 +17,7 @@
 #include "includes/odometry.h"
 #include "includes/log.h"
 #include "includes/linesensor.h"
+#include "irsensor.h"
 
 /*****************************************
  * odometry
@@ -31,6 +32,10 @@
 #define WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE 22
 
 #define ANGLE(x) ((double)x / 180.0 * M_PI)
+
+
+
+
 
 static inline double min(const double x, const double y)
 {
@@ -246,7 +251,7 @@ int main()
 	odo.rightWheelEncoderTicks = renc->data[0];
 	odo.oldLeftWheelEncoderTicks = odo.leftWheelEncoderTicks;
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
-	printf("position: %f, %f\n", odo.leftWheelPos, odo.rightWheelPos);
+	//printf("position: %f, %f\n", odo.leftWheelPos, odo.rightWheelPos);
 	/*
 	 fwd(&odo, 1, 0.6);
 	 turn(&odo, ANGLE(90), 0.3);
@@ -262,7 +267,8 @@ int main()
 	 //follow_line(&odo, 3000, 0.6);
 	 */
 
-	followLine(&odo, 3000, 0.6, left);
+	//followLine(&odo, 3000, 0.6, left);
+	testIRDistance();
 
 	setMotorSpeeds(0, 0);
 	rhdSync();
