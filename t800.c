@@ -112,7 +112,7 @@ static void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
 	speedr->updated = 1;
 }
 
-static void fwd(odotype *odo, const double dist, const double speed)
+static void fwd(odotype *odo, const double dist, const double speed, int (*stopCondition)())
 {
 	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
 	int time = 0;
@@ -132,12 +132,17 @@ static void fwd(odotype *odo, const double dist, const double speed)
 
 		exitOnButtonPress();
 
+		if ((*stopCondition)())
+		{
+			break;
+		}
+
 	} while (distLeft > 0);
 
 	setMotorSpeeds(0, 0);
 }
 
-static void turn(odotype *odo, const double angle, const double speed)
+static void turn(odotype *odo, const double angle, const double speed, int (*stopCondition)())
 {
 	const double startpos = (angle > 0) ? odo->rightWheelPos : odo->leftWheelPos;
 	int time = 0;
@@ -163,12 +168,17 @@ static void turn(odotype *odo, const double angle, const double speed)
 
 		exitOnButtonPress();
 
+		if ((*stopCondition)())
+		{
+			break;
+		}
+
 	} while (distLeft > 0);
 
 	setMotorSpeeds(0, 0);
 }
 
-static void followLine(odotype *odo, const double dist, const double speed, const enum lineCentering centering)
+static void followLine(odotype *odo, const double dist, const double speed, const enum lineCentering centering, int (*stopCondition)())
 {
 	const double endPosition = odo->totalDistance + dist;
 	int time = 0;
@@ -191,9 +201,19 @@ static void followLine(odotype *odo, const double dist, const double speed, cons
 		time++;
 		exitOnButtonPress();
 
+		if ((*stopCondition)())
+		{
+			break;
+		}
+
 	} while (distLeft > 0);
 
 	setMotorSpeeds(0, 0);
+}
+
+static int noStopCondition()
+{
+	return 0;
 }
 
 int main()
@@ -223,20 +243,20 @@ int main()
 	printf("position: %f, %f\n", odo.leftWheelPos, odo.rightWheelPos);
 
 	/*
-	 fwd(&odo, 1, 0.6);
-	 turn(&odo, ANGLE(90), 0.3);
+	 fwd(&odo, 1, 0.6, &noStopCondition);
+	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 
-	 fwd(&odo, 1, 0.6);
-	 turn(&odo, ANGLE(90), 0.3);
+	 fwd(&odo, 1, 0.6, &noStopCondition);
+	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 
-	 fwd(&odo, 1, 0.6);
-	 turn(&odo, ANGLE(90), 0.3);
+	 fwd(&odo, 1, 0.6, &noStopCondition);
+	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 
-	 fwd(&odo, 1, 0.6);
-	 turn(&odo, ANGLE(90), 0.3);
+	 fwd(&odo, 1, 0.6, &noStopCondition);
+	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 	 */
 
-	followLine(&odo, 3000, 0.6, left);
+	followLine(&odo, 3000, 0.6, left, &noStopCondition);
 
 	setMotorSpeeds(0, 0);
 	rhdSync();
