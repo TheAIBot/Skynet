@@ -142,6 +142,30 @@ static void fwd(odotype *odo, const double dist, const double speed, int (*stopC
 	setMotorSpeeds(0, 0);
 }
 
+static void fwdTurn(odotype *odo, const double angle, const double speed)
+{
+	int time = 0;
+	//angle %= 2*M_PI; //Setting it in the range of 0 to 2 Pi.
+	//printf("Starting with angle = %f, odo angle = %f\n", angle, odo->angle);
+	double angleDifference;
+	do
+	{
+		//printf("%f, %f\n", angleDifference, ANGLE(0.5));
+		syncAndUpdateOdo(odo);
+		angleDifference = angle - odo->angle;
+#define K_MOVE_TURN 0.2
+		double deltaV = max(K_MOVE_TURN * (angleDifference), MIN_SPEED); //Check this for general case.(*)
+		//printf("deltaV = %f\n", deltaV);
+		const double motorSpeed = max(getAcceleratedSpeed(speed, deltaV / 4, time) / 2, MIN_SPEED); //Modify to use this (*)
+		setMotorSpeeds(motorSpeed - deltaV / 2, motorSpeed + deltaV / 2);
+		time++;
+		exitOnButtonPress();
+	} while (fabs(angleDifference) > ANGLE(0.1));
+	//printf("%f\n", angleDifference);
+
+	setMotorSpeeds(0, 0);
+}
+
 static void turn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*))
 {
 	const double startpos = (angle > 0) ? odo->rightWheelPos : odo->leftWheelPos;
@@ -220,9 +244,11 @@ int main()
 {
 	odotype odo = { 0 };
 
+	printf("Started");
+
 	if (!readLineSensorValues("linesensor_calib_script/linesensor_calib.txt"))
 	{
-		exit(EXIT_FAILURE);
+		//exit(EXIT_FAILURE);
 	}
 
 	if (!connectRobot())
@@ -241,7 +267,6 @@ int main()
 	odo.oldLeftWheelEncoderTicks = odo.leftWheelEncoderTicks;
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
 	printf("position: %f, %f\n", odo.leftWheelPos, odo.rightWheelPos);
-
 	/*
 	 fwd(&odo, 1, 0.6, &noStopCondition);
 	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
@@ -251,12 +276,12 @@ int main()
 
 	 fwd(&odo, 1, 0.6, &noStopCondition);
 	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-
+s
 	 fwd(&odo, 1, 0.6, &noStopCondition);
 	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 	 */
 
-	followLine(&odo, 3000, 0.6, left, &noStopCondition);
+	followLine(&odo, 3000, 0.6, center, &noStopCondition);
 
 	setMotorSpeeds(0, 0);
 	rhdSync();
