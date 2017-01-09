@@ -43,7 +43,14 @@ double calibrateLineSensorValue(const double sensorValue, const int sensorID)
 	double calibValue = a * sensorValue + b;
 	if (calibValue == 0 || calibValue > 1)
 	{
-			printf("Incorrect line sensor callibration. Value = %f", calibValue);
+		printf("Incorrect line sensor callibration. Value = %f", calibValue);
 	}
 	return calibValue;
 }
+
+inline double getLineCenteringOffset(enum lineCentering centering)
+{
+	static double centers[3] = { ((double)LINE_SENSOR_WIDTH / 3) * 1, (double)LINE_SENSOR_WIDTH / 2, ((double)LINE_SENSOR_WIDTH / 3) * 2 };
+	return centers[centering];
+}
+
