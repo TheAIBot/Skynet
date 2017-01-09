@@ -17,7 +17,7 @@
 #include "includes/odometry.h"
 #include "includes/log.h"
 #include "includes/linesensor.h"
-#include "irsensor.h"
+#include "includes/irsensor.h"
 
 /*****************************************
  * odometry
@@ -31,7 +31,7 @@
 #define MIN_ACCELERATION (MAX_ACCELERATION / TICKS_PER_SECOND)
 #define WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE 22
 
-#define ANGLE(x) ((double)x / 180.0 * M_PI)
+#define ANGLE(x) ((double)(x) / 180.0 * M_PI)
 
 
 

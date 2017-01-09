@@ -1,11 +1,14 @@
 #ifndef IRSENSOR_H_
 #define IRSENSOR_H_
 
-#include "robotconnector.h"
+#include <stdio.h>
+#include "includes/robotconnector.h"
+
+#define IR_SENSOR_COUNT 5
 
 enum IRSensor
 {
-	left = 0, front_left = 1,front_middle = 2, front_right = 3, right = 4
+	ir_left = 0, ir_front_left = 1, ir_front_middle = 2, ir_front_right = 3, ir_right = 4
 };
 
 typedef struct{
@@ -13,6 +16,7 @@ typedef struct{
 	double Kb;
 }irSensorConstant;
 
-double irDistance(IRSensor sensor, double Ka, double Kb);
+double irDistance(enum IRSensor sensor);
+void testIRDistance();
 
 #endif
