@@ -97,6 +97,7 @@ static void exitOnButtonPress()
 	if (arg != 0)
 	{
 		rhdSync();
+
 		rhdDisconnect();
 		exit(0);
 	}
