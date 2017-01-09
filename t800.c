@@ -53,22 +53,17 @@ static double getAcceleratedSpeed(const double stdSpeed, const double distanceLe
 
 static double getLineOffSetDistance()
 {
-	static double sensorPlacments[LINE_SENSORS_COUNT] = { -6.5, -4.875, -3.25, -1.625, 1.625, 3.25, 4.875, 6.5 };
 	double sum_m = 0;
 	double sum_i = 0;
 	int i;
 	for (i = 0; i < LINE_SENSORS_COUNT; i++)
 	{
-		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
-
-		sum_m += (1 - calibValue) * sensorPlacments[i];
+		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);;
+		sum_m += (1 - calibValue) * i;
 		sum_i += (1 - calibValue);
 	}
-	if (sum_i == 0)
-	{
-		return 0;
-	}
-	return sum_m / sum_i;
+	const double c_m = sum_m / sum_i;
+	return ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - 6.5;
 }
 
 static void syncAndUpdateOdo(odotype *odo)
