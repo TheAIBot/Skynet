@@ -51,24 +51,19 @@ static double getAcceleratedSpeed(const double stdSpeed, const double distanceLe
 	return speed;
 }
 
-static double getLineOffSetDistance()
+static double getLineOffSetDistance(enum lineCentering centering)
 {
-	static double sensorPlacments[LINE_SENSORS_COUNT] = { -6.5, -4.875, -3.25, -1.625, 1.625, 3.25, 4.875, 6.5 };
 	double sum_m = 0;
 	double sum_i = 0;
 	int i;
 	for (i = 0; i < LINE_SENSORS_COUNT; i++)
 	{
 		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
-
-		sum_m += (1 - calibValue) * sensorPlacments[i];
+		sum_m += (1 - calibValue) * i;
 		sum_i += (1 - calibValue);
 	}
-	if (sum_i == 0)
-	{
-		return 0;
-	}
-	return sum_m / sum_i;
+	const double c_m = sum_m / sum_i;
+	return ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - getLineCenteringOffset(centering);
 }
 
 static void syncAndUpdateOdo(odotype *odo)
@@ -197,7 +192,7 @@ static void turn(odotype *odo, const double angle, const double speed)
 	setMotorSpeeds(0, 0);
 }
 
-static void follow_line(odotype *odo, const double dist, const double speed)
+static void followLine(odotype *odo, const double dist, const double speed, const enum lineCentering centering)
 {
 	const double endPosition = odo->totalDistance + dist;
 	int time = 0;
@@ -210,7 +205,7 @@ static void follow_line(odotype *odo, const double dist, const double speed)
 		distLeft = endPosition - odo->totalDistance;
 
 		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
-		const double lineOffDist = getLineOffSetDistance();
+		const double lineOffDist = getLineOffSetDistance(centering);
 		const double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE) + odo->angle;
 		const double K = 2;
 		const double speedDiffPerMotor = (K * (thetaRef - odo->angle)) / 2;
@@ -266,8 +261,8 @@ int main()
 	 turn(&odo, ANGLE(90), 0.3);
 	 //follow_line(&odo, 3000, 0.6);
 	 */
-	//turn(&odo, ANGLE(360), 0.6);
-	fwdTurn(&odo, ANGLE(90) + odo.angle, 0.6);
+
+	followLine(&odo, 3000, 0.6, left);
 
 	setMotorSpeeds(0, 0);
 	rhdSync();
