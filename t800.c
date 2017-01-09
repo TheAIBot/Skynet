@@ -58,7 +58,7 @@ static double getLineOffSetDistance()
 	int i;
 	for (i = 0; i < LINE_SENSORS_COUNT; i++)
 	{
-		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);;
+		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
 		sum_m += (1 - calibValue) * i;
 		sum_i += (1 - calibValue);
 	}
@@ -168,7 +168,7 @@ static void turn(odotype *odo, const double angle, const double speed)
 	setMotorSpeeds(0, 0);
 }
 
-static void follow_line(odotype *odo, const double dist, const double speed)
+static void followLine(odotype *odo, const double dist, const double speed)
 {
 	const double endPosition = odo->totalDistance + dist;
 	int time = 0;
@@ -236,7 +236,7 @@ int main()
 	 turn(&odo, ANGLE(90), 0.3);
 	 */
 
-	follow_line(&odo, 3000, 0.6);
+	followLine(&odo, 3000, 0.6);
 
 	setMotorSpeeds(0, 0);
 	rhdSync();
