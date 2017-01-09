@@ -112,7 +112,7 @@ static void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
 	speedr->updated = 1;
 }
 
-static void fwd(odotype *odo, const double dist, const double speed, int (*stopCondition)())
+static void fwd(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*))
 {
 	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
 	int time = 0;
@@ -132,7 +132,7 @@ static void fwd(odotype *odo, const double dist, const double speed, int (*stopC
 
 		exitOnButtonPress();
 
-		if ((*stopCondition)())
+		if ((*stopCondition)(odo))
 		{
 			break;
 		}
@@ -142,7 +142,7 @@ static void fwd(odotype *odo, const double dist, const double speed, int (*stopC
 	setMotorSpeeds(0, 0);
 }
 
-static void turn(odotype *odo, const double angle, const double speed, int (*stopCondition)())
+static void turn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*))
 {
 	const double startpos = (angle > 0) ? odo->rightWheelPos : odo->leftWheelPos;
 	int time = 0;
@@ -168,7 +168,7 @@ static void turn(odotype *odo, const double angle, const double speed, int (*sto
 
 		exitOnButtonPress();
 
-		if ((*stopCondition)())
+		if ((*stopCondition)(odo))
 		{
 			break;
 		}
@@ -178,7 +178,7 @@ static void turn(odotype *odo, const double angle, const double speed, int (*sto
 	setMotorSpeeds(0, 0);
 }
 
-static void followLine(odotype *odo, const double dist, const double speed, const enum lineCentering centering, int (*stopCondition)())
+static void followLine(odotype *odo, const double dist, const double speed, const enum lineCentering centering, int (*stopCondition)(odotype*))
 {
 	const double endPosition = odo->totalDistance + dist;
 	int time = 0;
@@ -201,7 +201,7 @@ static void followLine(odotype *odo, const double dist, const double speed, cons
 		time++;
 		exitOnButtonPress();
 
-		if ((*stopCondition)())
+		if ((*stopCondition)(odo))
 		{
 			break;
 		}
@@ -211,7 +211,7 @@ static void followLine(odotype *odo, const double dist, const double speed, cons
 	setMotorSpeeds(0, 0);
 }
 
-static int noStopCondition()
+static int noStopCondition(odotype *odo)
 {
 	return 0;
 }
