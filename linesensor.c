@@ -96,6 +96,6 @@ int crossingLine(enum lineColor color, int konf)
 			}
 		}
 	}
-	printf("%d\n", count);
+	//printf("%d\n", count);
 	return count >= konf;
 }

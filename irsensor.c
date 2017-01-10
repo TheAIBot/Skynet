@@ -33,17 +33,14 @@ int loadIRCalibrationData(const char* fileLoc){
 double irDistance(enum IRSensor sensor){
 	int sensorIntensity = irsensor->data[sensor];
 	double distance = irSensorCalibData[sensor].Ka/(sensorIntensity - irSensorCalibData[sensor].Kb);
-	//double distance = írSensorConstants[sensor].Ka/(sensorIntensity - írSensorConstants[sensor].Kb);
 	return distance;
 }
 
 void testIRDistance(){
-	do
-	{
+	do {
 		//printf("Sensor 0 = %d, Sensor 1 = %d, Sensor 2 = %d, Sensor 3 = %d\n",irsensor->data[0],irsensor->data[1],irsensor->data[2],irsensor->data[3]);
 		printf("%f, %f, %f, %f, %f \n", irDistance(ir_left), irDistance(ir_front_left),irDistance(ir_front_middle), 
 			                            irDistance(ir_front_right), irDistance(ir_right));
-
 		rhdSync();
 	} while (1);
 }

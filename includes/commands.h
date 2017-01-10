@@ -33,6 +33,7 @@ void turn(odotype *odo, const double angle, const double speed, int (*stopCondit
 
 void followLine(odotype *odo, const double dist, const double speed, const enum lineCentering centering, int (*stopCondition)(odotype*));
 
+void followWall(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*));
 
 
 #endif
