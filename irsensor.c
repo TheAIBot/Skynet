@@ -12,7 +12,7 @@ int loadIRCalibrationData(const char* fileLoc)
 	FILE* file = fopen(fileLoc, "r");
 	if (file == NULL)
 	{ // Check if the give file is found
-		// If not display an error and return an error value
+	  // If not display an error and return an error value
 		printf("%s NOT FOUND!\n", fileLoc);
 		return 0;
 	}
@@ -46,7 +46,6 @@ void testIRDistance()
 	{
 		//printf("Sensor 0 = %d, Sensor 1 = %d, Sensor 2 = %d, Sensor 3 = %d\n",irsensor->data[0],irsensor->data[1],irsensor->data[2],irsensor->data[3]);
 		printf("%f, %f, %f, %f, %f \n", irDistance(ir_left), irDistance(ir_front_left), irDistance(ir_front_middle), irDistance(ir_front_right), irDistance(ir_right));
-
 		rhdSync();
 	} while (1);
 }

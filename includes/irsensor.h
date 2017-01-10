@@ -2,6 +2,7 @@
 #define IRSENSOR_H_
 
 #define IR_SENSOR_COUNT 5
+#define numberRequiredForPillarDetected 5
 
 enum IRSensor
 {
