@@ -1,17 +1,23 @@
-/*
- * robotconnector.h
- *
- *  Created on: Jan 4, 2017
- *      Author: smr
- */
-
 #ifndef ROBOTCONNECTOR_H_
 #define ROBOTCONNECTOR_H_
 
 #include <sys/time.h>
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include "rhd.h"
 #include "componentserver.h"
 #include "xmlio.h"
+
+void xml_proc(struct xml_in *x);
+void xml_proca(struct xml_in *x);
+void serverconnect(componentservertype *s);
+
+#ifdef __cplusplus
+}
+#endif
 
 struct xml_in *xmldata;
 struct xml_in *xmllaser;
@@ -44,9 +50,6 @@ extern symTableElement *speedl;
 extern symTableElement *speedr;
 extern symTableElement *resetmotorr;
 extern symTableElement *resetmotorl;
-
-void xml_proc(struct xml_in *x);
-void xml_proca(struct xml_in *x);
 
 int connectRobot(void);
 

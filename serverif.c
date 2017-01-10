@@ -11,22 +11,7 @@
 #include <fcntl.h>
 #include "componentserver.h"
 #include "xmlio.h"
-
-extern struct
-{
-	double x;
-	double y;
-	double z;
-	double omega;
-	double phi;
-	double kappa;
-	double code;
-	double id;
-	double crc;
-} gmk;
-
-extern double visionpar[10];
-extern double laserpar[10];
+#include "includes/robotconnector.h"
 
 void serverconnect(componentservertype *s)
 {
