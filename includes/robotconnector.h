@@ -11,17 +11,14 @@ extern "C" {
 #include "componentserver.h"
 #include "xmlio.h"
 
-void xml_proc(struct xml_in *x);
-void xml_proca(struct xml_in *x);
-void serverconnect(componentservertype *s);
-
 #ifdef __cplusplus
 }
 #endif
 
-struct xml_in *xmldata;
-struct xml_in *xmllaser;
-struct
+extern struct xml_in *xmldata;
+extern struct xml_in *xmllaser;
+
+typedef struct
 {
 	double x;
 	double y;
@@ -32,7 +29,10 @@ struct
 	double code;
 	double id;
 	double crc;
-} gmk;
+} roboConnectData;
+
+extern roboConnectData gmk;
+
 
 extern double visionpar[10];
 extern double laserpar[10];

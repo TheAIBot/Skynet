@@ -4,7 +4,7 @@
 CC      = g++
 LD      = ${CC}
 SMR     = /usr/local/smr
-CFLAGS  = -Wall -O2 -I${SMR}/include 
+CFLAGS  = -Wall -O2 -I${SMR}/include -Wno-write-strings
 LDFLAGS = -L${SMR}/lib 
 
 #
@@ -16,15 +16,12 @@ OBJS   = t800.o serverif.o robotconnector.o odometry.o log.o linesensor.o irsens
 LIBS   = -lm librhd.a -lrobot
 
 all:	${PROG}
-
-%.o: %.c
-	gcc ${CFLAGS} -c -o $@ $<
 	
 %.o: %.cpp
-	g++ ${CFLAGS} -c -o $@ $<
+	g++ ${CFLAGS} -c $<
 
 ${PROG}: ${OBJS}
-	${LD} -Wl,-z,multidefs -o ${@} ${LDFLAGS} ${OBJS} ${LIBS}
+	${LD} -o ${@} ${LDFLAGS} ${OBJS} ${LIBS}
 
 clean:
 	rm -f ${OBJS}
