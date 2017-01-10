@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "includes/linesensor.h"
+#include "includes/robotconnector.h"
 
 static lineSensorCalibratedData lineSensorCalibData[LINE_SENSORS_COUNT];
 
@@ -35,7 +36,7 @@ int readLineSensorValues(const char* fileLoc)
 	return 1;
 }
 
-double calibrateLineSensorValue(const double sensorValue, const int sensorID)
+static double calibrateLineSensorValue(const double sensorValue, const int sensorID)
 {
 	const double a = lineSensorCalibData[sensorID].a;
 	const double b = lineSensorCalibData[sensorID].b;
@@ -48,9 +49,24 @@ double calibrateLineSensorValue(const double sensorValue, const int sensorID)
 	return calibValue;
 }
 
-inline double getLineCenteringOffset(enum lineCentering centering)
+static inline double getLineCenteringOffset(enum lineCentering centering)
 {
 	static double centers[3] = { ((double)LINE_SENSOR_WIDTH / 3) * 1, (double)LINE_SENSOR_WIDTH / 2, ((double)LINE_SENSOR_WIDTH / 3) * 2 };
 	return centers[centering];
+}
+
+double getLineOffSetDistance(enum lineCentering centering)
+{
+	double sum_m = 0;
+	double sum_i = 0;
+	int i;
+	for (i = 0; i < LINE_SENSORS_COUNT; i++)
+	{
+		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
+		sum_m += (1 - calibValue) * i;
+		sum_i += (1 - calibValue);
+	}
+	const double c_m = sum_m / sum_i;
+	return ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - getLineCenteringOffset(centering);
 }
 

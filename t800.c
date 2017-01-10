@@ -51,21 +51,6 @@ static double getAcceleratedSpeed(const double stdSpeed, const double distanceLe
 	return speed;
 }
 
-static double getLineOffSetDistance(enum lineCentering centering)
-{
-	double sum_m = 0;
-	double sum_i = 0;
-	int i;
-	for (i = 0; i < LINE_SENSORS_COUNT; i++)
-	{
-		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
-		sum_m += (1 - calibValue) * i;
-		sum_i += (1 - calibValue);
-	}
-	const double c_m = sum_m / sum_i;
-	return ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - getLineCenteringOffset(centering);
-}
-
 static void syncAndUpdateOdo(odotype *odo)
 {
 	if (lmssrv.config && lmssrv.status && lmssrv.connected)

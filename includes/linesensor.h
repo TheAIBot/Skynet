@@ -24,8 +24,6 @@ typedef struct
 //Read calibration values from the calibation file and inserts the data in the given array
 int readLineSensorValues(const char* fileLoc);
 
-double calibrateLineSensorValue(const double sensorValue, const int sensorID);
-
-inline double getLineCenteringOffset(enum lineCentering centering);
+double getLineOffSetDistance(enum lineCentering centering);
 
 #endif
