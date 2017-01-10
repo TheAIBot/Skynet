@@ -281,7 +281,7 @@ s
 	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 	 */
 
-	followLine(&odo, 3000, 0.6, center, &noStopCondition);
+	followLine(&odo, 3000, 0.2, right, &noStopCondition);
 
 	setMotorSpeeds(0, 0);
 	rhdSync();
