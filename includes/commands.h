@@ -25,6 +25,8 @@
 #include "irsensor.h"
 #include "odometry.h"
 
+void setMotorSpeeds(const double leftSpeed, const double rightSpeed);
+
 void fwd(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*));
 
 void fwdTurn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*));

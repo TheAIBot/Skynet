@@ -18,11 +18,9 @@
 #include "includes/log.h"
 #include "includes/commands.h"
 #include "includes/stopconditions.h"
-/*****************************************
- * odometry
- */
-#define WHEEL_DIAMETER   0.067	/* m */
-#define WHEEL_SEPARATION 0.256	/* m */
+
+#define WHEEL_DIAMETER   0.067	// m
+#define WHEEL_SEPARATION 0.256	// m
 #define DELTA_M (M_PI * WHEEL_DIAMETER / 2000)
 #define MAX_ACCELERATION 0.5
 #define MIN_SPEED 0.01
@@ -35,13 +33,13 @@ int main()
 
 	odotype odo = { 0 };
 
-	//need calib file for the problam to work
+	//need calib file for the problem to work
 	if (!readLineSensorCalibrationData("sensor_calib_scripts/linesensor_calib.txt"))
 	{
 		exit(EXIT_FAILURE);
 	}
 
-	//need calib file for the problam to work
+	//need calib file for the problem to work
 	if (!loadIRCalibrationData("sensor_calib_scripts/irSensorCalib.txt"))
 	{
 		exit(EXIT_FAILURE);
@@ -63,22 +61,7 @@ int main()
 	odo.rightWheelEncoderTicks = renc->data[0];
 	odo.oldLeftWheelEncoderTicks = odo.leftWheelEncoderTicks;
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
-	printf("position: %f, %f\n", odo.leftWheelPos, odo.rightWheelPos);
 
-	/*
-	 fwd(&odo, 1, 0.6, &noStopCondition);
-	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-
-	 fwd(&odo, 1, 0.6, &noStopCondition);
-	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-
-	 fwd(&odo, 1, 0.6, &noStopCondition);
-	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-	 s
-	 fwd(&odo, 1, 0.6, &noStopCondition);
-	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-	 */
-	//turn(&odo, ANGLE(180), 0.3, &noStopCondition);
 	followLine(&odo, 100, 0.2, right, &stopAtNeg85Deg);
 	followLine(&odo, 100, 0.2, center, &stopAtBlackLine);
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);

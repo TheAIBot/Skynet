@@ -8,7 +8,7 @@
 
 
 enum lineCentering {
-	right = 0, center, left
+	left = 0, center, right
 };
 
 enum lineColor {
