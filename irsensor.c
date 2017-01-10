@@ -44,3 +44,13 @@ void testIRDistance(){
 		rhdSync();
 	} while (1);
 }
+
+void measureDistance(odotype *odo){
+	int i;
+	double sum=0;
+	for(i=0;i<100;i++){
+		syncAndUpdateOdo(odo);
+		sum+=irDistance(ir_front_left)+irDistance(ir_front_middle)+irDistance(ir_front_right);
+	}
+	 printf("%f \n", sum/300);
+}
