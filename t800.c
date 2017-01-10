@@ -127,23 +127,19 @@ static void fwd(odotype *odo, const double dist, const double speed, int (*stopC
 static void fwdTurn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*))
 {
 	int time = 0;
-	//angle %= 2*M_PI; //Setting it in the range of 0 to 2 Pi.
-	//printf("Starting with angle = %f, odo angle = %f\n", angle, odo->angle);
+
 	double angleDifference;
 	do
 	{
-		//printf("%f, %f\n", angleDifference, ANGLE(0.5));
 		syncAndUpdateOdo(odo);
 		angleDifference = angle - odo->angle;
 #define K_MOVE_TURN 0.2
-		double deltaV = max(K_MOVE_TURN * (angleDifference), MIN_SPEED); //Check this for general case.(*)
-		//printf("deltaV = %f\n", deltaV);
-		const double motorSpeed = max(getAcceleratedSpeed(speed, deltaV / 4, time) / 2, MIN_SPEED); //Modify to use this (*)
+		double deltaV = max(K_MOVE_TURN * (angleDifference), MIN_SPEED);
+		const double motorSpeed = max(getAcceleratedSpeed(speed, deltaV / 4, time) / 2, MIN_SPEED);
 		setMotorSpeeds(motorSpeed - deltaV / 2, motorSpeed + deltaV / 2);
 		time++;
 		exitOnButtonPress();
 	} while (fabs(angleDifference) > ANGLE(0.1) && !(*stopCondition)(odo));
-	//printf("%f\n", angleDifference);
 
 	setMotorSpeeds(0, 0);
 }
