@@ -3,8 +3,7 @@
 
 static lineSensorCalibratedData lineSensorCalibData[LINE_SENSORS_COUNT];
 
-int readLineSensorValues(const char* fileLoc)
-{
+int readLineSensorValues(const char* fileLoc){
 
 	FILE* file = fopen(fileLoc, "r");
 
@@ -48,9 +47,22 @@ double calibrateLineSensorValue(const double sensorValue, const int sensorID)
 	return calibValue;
 }
 
-inline double getLineCenteringOffset(enum lineCentering centering)
+double getLineCenteringOffset(enum lineCentering centering)
 {
 	static double centers[3] = { ((double)LINE_SENSOR_WIDTH / 3) * 1, (double)LINE_SENSOR_WIDTH / 2, ((double)LINE_SENSOR_WIDTH / 3) * 2 };
 	return centers[centering];
+}
+
+double getLineOffSetDistance(enum lineCentering centering){
+	double sum_m = 0, sum_i = 0;
+	int i;
+	for (i = 0; i < LINE_SENSORS_COUNT; i++)
+	{
+		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
+		sum_m += (1 - calibValue) * i;
+		sum_i += (1 - calibValue);
+	}
+	const double c_m = sum_m / sum_i;
+	return ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - getLineCenteringOffset(centering);
 }
 
