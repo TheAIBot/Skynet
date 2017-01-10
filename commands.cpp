@@ -1,4 +1,3 @@
-//Probably to many includes...
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -18,6 +17,7 @@
 #include "includes/log.h"
 #include "includes/irsensor.h"
 #include "includes/commands.h"
+#include "includes/serverif.h"
 
 #define WHEEL_DIAMETER   0.067	/* m */
 #define WHEEL_SEPARATION 0.256	/* m */

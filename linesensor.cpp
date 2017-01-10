@@ -9,9 +9,8 @@ int readLineSensorCalibrationData(const char* fileLoc)
 
 	FILE* file = fopen(fileLoc, "r");
 
-	if (file == NULL) // Check if the give file is found
+	if (file == NULL)
 	{
-		// If not display an error and return an error value
 		printf("%s NOT FOUND!\n", fileLoc);
 		return 0;
 	}

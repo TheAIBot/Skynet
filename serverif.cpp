@@ -9,24 +9,8 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
-#include "componentserver.h"
-#include "xmlio.h"
-
-extern struct
-{
-	double x;
-	double y;
-	double z;
-	double omega;
-	double phi;
-	double kappa;
-	double code;
-	double id;
-	double crc;
-} gmk;
-
-extern double visionpar[10];
-extern double laserpar[10];
+#include "includes/serverif.h"
+#include "includes/robotconnector.h"
 
 void serverconnect(componentservertype *s)
 {
@@ -89,15 +73,15 @@ void xml_proc(struct xml_in *x)
 			}
 			if (strcmp("pos3d", x->a) == 0)
 			{
-				(getdouble(&gmk.x, "x", x));
-				(getdouble(&gmk.y, "y", x));
-				(getdouble(&gmk.z, "z", x));
+				getdouble(&gmk.x, "x", x);
+				getdouble(&gmk.y, "y", x);
+				getdouble(&gmk.z, "z", x);
 			}
 			if (strcmp("rot3d", x->a) == 0)
 			{
-				(getdouble(&gmk.omega, "Omega", x));
-				(getdouble(&gmk.phi, "Phi", x));
-				(getdouble(&gmk.kappa, "Kappa", x));
+				getdouble(&gmk.omega, "Omega", x);
+				getdouble(&gmk.phi, "Phi", x);
+				getdouble(&gmk.kappa, "Kappa", x);
 			}
 			if (strcmp("vision", x->a) == 0)
 			{

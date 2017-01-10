@@ -13,8 +13,14 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include "includes/robotconnector.h"
+#include "includes/serverif.h"
 
 #define ROBOTPORT	24902
+
+struct xml_in *xmldata;
+struct xml_in *xmllaser;
+
+roboConnectData gmk;
 
 double visionpar[10];
 double laserpar[10];
@@ -22,7 +28,6 @@ double laserpar[10];
 componentservertype lmssrv;
 componentservertype camsrv;
 
-// SMR input/output data
 symTableElement *inputtable;
 symTableElement *outputtable;
 symTableElement *lenc;
@@ -33,8 +38,6 @@ symTableElement *speedl;
 symTableElement *speedr;
 symTableElement *resetmotorr;
 symTableElement *resetmotorl;
-
-void serverconnect(componentservertype *s);
 
 symTableElement * getinputref(const char *sym_name, symTableElement * tab)
 {

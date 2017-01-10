@@ -1,7 +1,7 @@
 #include <stdio.h>
-#include "includes/irsensor.h"
 #include <sys/time.h>
 #include <stdint.h>
+#include "includes/irsensor.h"
 #include "includes/robotconnector.h"
 
 /*Constants used by the different IR sensors.*/
@@ -38,14 +38,4 @@ double irDistance(enum IRSensor sensor)
 {
 	int sensorIntensity = irsensor->data[sensor];
 	return irSensorCalibData[sensor].Ka / (sensorIntensity - irSensorCalibData[sensor].Kb);
-}
-
-void testIRDistance()
-{
-	do
-	{
-		//printf("Sensor 0 = %d, Sensor 1 = %d, Sensor 2 = %d, Sensor 3 = %d\n",irsensor->data[0],irsensor->data[1],irsensor->data[2],irsensor->data[3]);
-		printf("%f, %f, %f, %f, %f \n", irDistance(ir_left), irDistance(ir_front_left), irDistance(ir_front_middle), irDistance(ir_front_right), irDistance(ir_right));
-		rhdSync();
-	} while (1);
 }
