@@ -1,8 +1,10 @@
+#include <stdio.h>
+#include "includes/robotconnector.h"
 #include "includes/irsensor.h"
 
 
 /*Constants used by the different IR sensors.*/
-static double irSensorConstants[IR_SENSOR_COUNT]; //Temp name
+static irSensorCalibrationData irSensorCalibData[IR_SENSOR_COUNT]; //Temp name
 
 double irDistance(enum IRSensor sensor){
 	int sensorIntensity = irsensor->data[sensor];
