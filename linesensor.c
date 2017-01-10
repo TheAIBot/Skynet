@@ -4,7 +4,7 @@
 
 static lineSensorCalibratedData lineSensorCalibData[LINE_SENSORS_COUNT];
 
-int readLineSensorValues(const char* fileLoc){
+int readLineSensorCalibrationData(const char* fileLoc){
 
 	FILE* file = fopen(fileLoc, "r");
 

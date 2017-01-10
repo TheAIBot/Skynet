@@ -1,16 +1,23 @@
-
 #include "includes/commands.h"
 
-#define K_MOVE_TURN 0.2
+#define WHEEL_DIAMETER   0.067	/* m */
+#define WHEEL_SEPARATION 0.256	/* m */
+#define DELTA_M (M_PI * WHEEL_DIAMETER / 2000)
+#define MAX_ACCELERATION 0.5
+#define MIN_SPEED 0.01
+#define TICKS_PER_SECOND 100
+#define MIN_ACCELERATION (MAX_ACCELERATION / TICKS_PER_SECOND)
 
-//Methods used by the commands
+#define ANGLE(x) ((double)x / 180.0 * M_PI)
 
 
-inline double min(const double x, const double y){
+inline double min(const double x, const double y)
+{
 	return ((x) < (y)) ? (x) : (y);
 }
 
-inline double max(const double x, const double y){
+inline double max(const double x, const double y)
+{
 	return ((x) > (y)) ? (x) : (y);
 }
 
@@ -18,18 +25,18 @@ double getAcceleratedSpeed(const double stdSpeed, const double distanceLeft, con
 {
 	const double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distanceLeft);
 	const double accFunc = (MAX_ACCELERATION / TICKS_PER_SECOND) * tickTime;
-	const double speed = (stdSpeed > 0) ? min(min(stdSpeed, speedFunc), accFunc) : max(max(stdSpeed, speedFunc), accFunc);
+	const double speed = (stdSpeed >= 0) ? min(min(stdSpeed, speedFunc), accFunc) : max(max(stdSpeed, -speedFunc), -accFunc);
 	//printf("%f %f %f %d %f\n", stdSpeed, speedFunc, accFunc, tickTime, speed);
 	return speed;
 }
 
-void syncAndUpdateOdo(odotype *odo){
+void syncAndUpdateOdo(odotype *odo)
+{
 	if (lmssrv.config && lmssrv.status && lmssrv.connected)
 	{
 		while ((xml_in_fd(xmllaser, lmssrv.sockfd) > 0))
 		{
 			xml_proca(xmllaser);
-
 		}
 	}
 
@@ -47,19 +54,20 @@ void syncAndUpdateOdo(odotype *odo){
 	updateOdo(odo);
 }
 
-void exitOnButtonPress(){
+void exitOnButtonPress()
+{
 	int arg;
 	ioctl(0, FIONREAD, &arg);
 	if (arg != 0)
 	{
 		rhdSync();
-
 		rhdDisconnect();
 		exit(0);
 	}
 }
 
-void setMotorSpeeds(const double leftSpeed, const double rightSpeed){
+void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
+{
 	//printf("%f %f\n", leftSpeed, rightSpeed);
 
 	speedl->data[0] = 100 * leftSpeed;
@@ -68,8 +76,8 @@ void setMotorSpeeds(const double leftSpeed, const double rightSpeed){
 	speedr->updated = 1;
 }
 
-void fwd(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*)){
-
+void fwd(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*))
+{
 	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
 	int time = 0;
 
@@ -93,7 +101,9 @@ void fwd(odotype *odo, const double dist, const double speed, int (*stopConditio
 	setMotorSpeeds(0, 0);
 }
 
-void fwdTurn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*)){
+void fwdTurn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*))
+{
+#define K_MOVE_TURN 0.2
 	int time = 0;
 
 	double angleDifference;
@@ -111,7 +121,8 @@ void fwdTurn(odotype *odo, const double angle, const double speed, int (*stopCon
 	setMotorSpeeds(0, 0);
 }
 
-void turn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*)){
+void turn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*))
+{
 	const double startpos = (angle > 0) ? odo->rightWheelPos : odo->leftWheelPos;
 
 	int time = 0;
@@ -142,7 +153,8 @@ void turn(odotype *odo, const double angle, const double speed, int (*stopCondit
 	setMotorSpeeds(0, 0);
 }
 
-void followLine(odotype *odo, const double dist, const double speed, const enum lineCentering centering, int (*stopCondition)(odotype*)){
+void followLine(odotype *odo, const double dist, const double speed, const enum lineCentering centering, int (*stopCondition)(odotype*))
+{
 
 	const double endPosition = odo->totalDistance + dist;
 	int time = 0;
@@ -154,13 +166,21 @@ void followLine(odotype *odo, const double dist, const double speed, const enum 
 
 		distLeft = endPosition - odo->totalDistance;
 
-		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
+		//tried to make it go backwards
+		const double motorSpeed = (speed >= 0) ? max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED) : min(getAcceleratedSpeed(speed, distLeft, time), -MIN_SPEED);
 		const double lineOffDist = getLineOffSetDistance(centering);
 		const double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE) + odo->angle;
 		const double K = 2;
 		const double speedDiffPerMotor = (K * (thetaRef - odo->angle)) / 2;
 
-		setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
+		if (speed >= 0)
+		{
+			setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
+		}
+		else
+		{
+			setMotorSpeeds(motorSpeed + speedDiffPerMotor, motorSpeed - speedDiffPerMotor);
+		}
 
 		time++;
 		exitOnButtonPress();
@@ -169,7 +189,4 @@ void followLine(odotype *odo, const double dist, const double speed, const enum 
 
 	setMotorSpeeds(0, 0);
 }
-
-
-
 

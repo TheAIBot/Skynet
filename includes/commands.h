@@ -25,30 +25,14 @@
 #include "irsensor.h"
 #include "odometry.h"
 
+void fwd(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*));
 
-#define K_MOVE_TURN 0.2
-#define WHEEL_DIAMETER   0.067	/* m */
-#define WHEEL_SEPARATION 0.256	/* m */
-#define DELTA_M (M_PI * WHEEL_DIAMETER / 2000)
-#define MAX_ACCELERATION 0.5
-#define MIN_SPEED 0.01
-#define TICKS_PER_SECOND 100
-#define MIN_ACCELERATION (MAX_ACCELERATION / TICKS_PER_SECOND)
-#define WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE 22
+void fwdTurn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*));
 
-#define ANGLE(x) ((double)(x) / 180.0 * M_PI)
+void turn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*));
 
+void followLine(odotype *odo, const double dist, const double speed, const enum lineCentering centering, int (*stopCondition)(odotype*));
 
-
-void setMotorSpeeds(const double leftSpeed, const double rightSpeed);
-
-void fwd(odotype *odo, const double dist, const double speed);
-
-void fwdTurn(odotype *odo, const double angle, const double speed);
-
-void turn(odotype *odo, const double angle, const double speed);
-
-void followLine(odotype *odo, const double dist, const double speed, const enum lineCentering centering);
 
 
 #endif
