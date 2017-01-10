@@ -3,7 +3,8 @@
 
 #define IR_SENSOR_COUNT 5
 
-enum IRSensor{
+enum IRSensor
+{
 	ir_left = 0, ir_front_left, ir_front_middle, ir_front_right, ir_right
 };
 

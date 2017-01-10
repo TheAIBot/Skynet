@@ -7,19 +7,23 @@
 /*Constants used by the different IR sensors.*/
 static irSensorCalibrationData irSensorCalibData[IR_SENSOR_COUNT]; //Temp name
 
-int loadIRCalibrationData(const char* fileLoc){
+int loadIRCalibrationData(const char* fileLoc)
+{
 	FILE* file = fopen(fileLoc, "r");
-	if (file == NULL) {// Check if the give file is found		
+	if (file == NULL)
+	{ // Check if the give file is found
 		// If not display an error and return an error value
 		printf("%s NOT FOUND!\n", fileLoc);
 		return 0;
 	}
 	//Error the data value pair for each sensor
 	int i;
-	for (i = 0; i < IR_SENSOR_COUNT; i++)	{
+	for (i = 0; i < IR_SENSOR_COUNT; i++)
+	{
 		double Ka, Kb;
 		const int scanStatus = fscanf(file, "%lf %lf\n", &Ka, &Kb);
-		if (scanStatus != 2) { //Check if the correct number of items was read
+		if (scanStatus != 2)
+		{ //Check if the correct number of items was read
 			printf("Error occured when reading linesensor calibration file. %d numbers expected, but %d was found.", 2, scanStatus);
 			return 0;
 		}
@@ -30,19 +34,18 @@ int loadIRCalibrationData(const char* fileLoc){
 	return 1;
 }
 
-double irDistance(enum IRSensor sensor){
+double irDistance(enum IRSensor sensor)
+{
 	int sensorIntensity = irsensor->data[sensor];
-	double distance = irSensorCalibData[sensor].Ka/(sensorIntensity - irSensorCalibData[sensor].Kb);
-	//double distance = írSensorConstants[sensor].Ka/(sensorIntensity - írSensorConstants[sensor].Kb);
-	return distance;
+	return irSensorCalibData[sensor].Ka / (sensorIntensity - irSensorCalibData[sensor].Kb);
 }
 
-void testIRDistance(){
+void testIRDistance()
+{
 	do
 	{
 		//printf("Sensor 0 = %d, Sensor 1 = %d, Sensor 2 = %d, Sensor 3 = %d\n",irsensor->data[0],irsensor->data[1],irsensor->data[2],irsensor->data[3]);
-		printf("%f, %f, %f, %f, %f \n", irDistance(ir_left), irDistance(ir_front_left),irDistance(ir_front_middle), 
-			                            irDistance(ir_front_right), irDistance(ir_right));
+		printf("%f, %f, %f, %f, %f \n", irDistance(ir_left), irDistance(ir_front_left), irDistance(ir_front_middle), irDistance(ir_front_right), irDistance(ir_right));
 
 		rhdSync();
 	} while (1);

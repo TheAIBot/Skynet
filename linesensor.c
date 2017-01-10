@@ -4,7 +4,8 @@
 
 static lineSensorCalibratedData lineSensorCalibData[LINE_SENSORS_COUNT];
 
-int readLineSensorCalibrationData(const char* fileLoc){
+int readLineSensorCalibrationData(const char* fileLoc)
+{
 
 	FILE* file = fopen(fileLoc, "r");
 
@@ -35,7 +36,8 @@ int readLineSensorCalibrationData(const char* fileLoc){
 	return 1;
 }
 
-static double calibrateLineSensorValue(const double sensorValue, const int sensorID){
+static double calibrateLineSensorValue(const double sensorValue, const int sensorID)
+{
 	const double a = lineSensorCalibData[sensorID].a;
 	const double b = lineSensorCalibData[sensorID].b;
 
@@ -54,21 +56,29 @@ inline double getLineCenteringOffset(enum lineCentering centering)
 	return centers[centering];
 }
 
-
-double getLineOffSetDistance(enum lineCentering centering){
+double getLineOffSetDistance(enum lineCentering centering, enum lineColor color)
+{
 	double sum_m = 0;
 	double sum_i = 0;
 	int i;
 	for (i = 0; i < LINE_SENSORS_COUNT; i++)
 	{
 		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
-		sum_m += (1 - calibValue) * i;
-		sum_i += (1 - calibValue);
+		if (color == black)
+		{
+			sum_m += (1 - calibValue) * i;
+			sum_i += (1 - calibValue);
+		}
+		else
+		{
+			sum_m += calibValue * i;
+			sum_i += calibValue;
+		}
+
 	}
 	const double c_m = sum_m / sum_i;
 	return ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - getLineCenteringOffset(centering);
 }
-
 
 int crossingLine(enum lineColor color, int konf)
 {

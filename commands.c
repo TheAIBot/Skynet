@@ -1,3 +1,22 @@
+//Probably to many includes...
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include "includes/robotconnector.h"
+#include "includes/log.h"
+#include "includes/irsensor.h"
 #include "includes/commands.h"
 
 #define WHEEL_DIAMETER   0.067	/* m */
@@ -9,7 +28,6 @@
 #define MIN_ACCELERATION (MAX_ACCELERATION / TICKS_PER_SECOND)
 
 #define ANGLE(x) ((double)x / 180.0 * M_PI)
-
 
 inline double min(const double x, const double y)
 {
@@ -153,7 +171,7 @@ void turn(odotype *odo, const double angle, const double speed, int (*stopCondit
 	setMotorSpeeds(0, 0);
 }
 
-void followLine(odotype *odo, const double dist, const double speed, const enum lineCentering centering, int (*stopCondition)(odotype*))
+void followLine(odotype *odo, const double dist, const double speed, enum lineCentering centering, enum lineColor color, int (*stopCondition)(odotype*))
 {
 
 	const double endPosition = odo->totalDistance + dist;
@@ -168,7 +186,7 @@ void followLine(odotype *odo, const double dist, const double speed, const enum 
 
 		//tried to make it go backwards
 		const double motorSpeed = (speed >= 0) ? max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED) : min(getAcceleratedSpeed(speed, distLeft, time), -MIN_SPEED);
-		const double lineOffDist = getLineOffSetDistance(centering);
+		const double lineOffDist = getLineOffSetDistance(centering, color);
 		const double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE) + odo->angle;
 		const double K = 2;
 		const double speedDiffPerMotor = (K * (thetaRef - odo->angle)) / 2;

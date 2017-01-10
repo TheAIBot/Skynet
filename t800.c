@@ -79,18 +79,18 @@ int main()
 	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 	 */
 	//turn(&odo, ANGLE(180), 0.3, &noStopCondition);
-	followLine(&odo, 100, 0.2, right, &stopAtNeg85Deg);
-	followLine(&odo, 100, 0.2, center, &stopAtBlackLine);
+	followLine(&odo, 100, 0.2, right, white, &stopAtNeg85Deg);
+	followLine(&odo, 100, 0.2, center, white, &stopAtBlackLine);
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 	fwd(&odo, 100, 0.2, &stopAtBlackLine);
 	fwd(&odo, 0.1, 0.2, &noStopCondition);
 	fwd(&odo, 100, 0.2, &stopAtBlackLine);
 	fwd(&odo, 0.3, 0.2, &noStopCondition);
 	turn(&odo, ANGLE(-90), 0.3, &noStopCondition);
-	followLine(&odo, 100, 0.2, center, &stopAtBlackLine);
+	followLine(&odo, 100, 0.2, center, white, &stopAtBlackLine);
 	fwd(&odo, 0.135, 0.2, &noStopCondition);
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-	followLine(&odo, 100, 0.2, right, &stopAtBlackLine);
+	followLine(&odo, 100, 0.2, center, white, &noStopCondition);
 
 	setMotorSpeeds(0.0, 0.0);
 	rhdSync();
