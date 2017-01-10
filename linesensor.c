@@ -54,3 +54,27 @@ inline double getLineCenteringOffset(enum lineCentering centering)
 	return centers[centering];
 }
 
+ int crossingLine(enum lineColor color, int konf) {
+	int count = 0;
+	int i;
+	if (color == black) {
+		for (i = 0; i < LINE_SENSORS_COUNT; i++) {
+			double calibvalue = calibrateLineSensorValue(linesensor->data[i],
+					i);
+			if (calibvalue < 0.25) {
+				count++;
+			}
+		}
+	}
+	if (color == white) {
+		for (i = 0; i < LINE_SENSORS_COUNT; i++) {
+			double calibvalue = calibrateLineSensorValue(linesensor->data[i],
+					i);
+			if (calibvalue > 0.80) {
+				count++;
+			}
+		}
+	}
+
+	return count>=konf;
+}
