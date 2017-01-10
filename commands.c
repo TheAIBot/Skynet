@@ -1,41 +1,35 @@
 
 #include "includes/commands.h"
 
+#define K_MOVE_TURN 0.2
 
 //Methods used by the commands
 
 
-void setMotorSpeeds(const double leftSpeed, const double rightSpeed){
-	//printf("%f %f\n", leftSpeed, rightSpeed);
-
-	speedl->data[0] = 100 * leftSpeed;
-	speedl->updated = 1;
-	speedr->data[0] = 100 * rightSpeed;
-	speedr->updated = 1;
-}
-
-static inline double min(const double x, const double y){
+inline double min(const double x, const double y){
 	return ((x) < (y)) ? (x) : (y);
 }
 
-static inline double max(const double x, const double y){
+inline double max(const double x, const double y){
 	return ((x) > (y)) ? (x) : (y);
 }
 
-static double getAcceleratedSpeed(const double stdSpeed, const double distanceLeft, const int tickTime){
+double getAcceleratedSpeed(const double stdSpeed, const double distanceLeft, const int tickTime)
+{
 	const double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distanceLeft);
 	const double accFunc = (MAX_ACCELERATION / TICKS_PER_SECOND) * tickTime;
-	const double speed = min(min(stdSpeed, speedFunc), accFunc);
+	const double speed = (stdSpeed > 0) ? min(min(stdSpeed, speedFunc), accFunc) : max(max(stdSpeed, speedFunc), accFunc);
 	//printf("%f %f %f %d %f\n", stdSpeed, speedFunc, accFunc, tickTime, speed);
 	return speed;
 }
 
-static void syncAndUpdateOdo(odotype *odo){
+void syncAndUpdateOdo(odotype *odo){
 	if (lmssrv.config && lmssrv.status && lmssrv.connected)
 	{
 		while ((xml_in_fd(xmllaser, lmssrv.sockfd) > 0))
 		{
 			xml_proca(xmllaser);
+
 		}
 	}
 
@@ -53,22 +47,29 @@ static void syncAndUpdateOdo(odotype *odo){
 	updateOdo(odo);
 }
 
-static void exitOnButtonPress(){
+void exitOnButtonPress(){
 	int arg;
 	ioctl(0, FIONREAD, &arg);
-	if (arg != 0){
+	if (arg != 0)
+	{
 		rhdSync();
+
 		rhdDisconnect();
 		exit(0);
 	}
 }
 
+void setMotorSpeeds(const double leftSpeed, const double rightSpeed){
+	//printf("%f %f\n", leftSpeed, rightSpeed);
 
+	speedl->data[0] = 100 * leftSpeed;
+	speedl->updated = 1;
+	speedr->data[0] = 100 * rightSpeed;
+	speedr->updated = 1;
+}
 
+void fwd(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*)){
 
-//The actual commands:
-
-void fwd(odotype *odo, const double dist, const double speed){
 	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
 	int time = 0;
 
@@ -87,34 +88,32 @@ void fwd(odotype *odo, const double dist, const double speed){
 
 		exitOnButtonPress();
 
-	} while (distLeft > 0);
+	} while (distLeft > 0 && !(*stopCondition)(odo));
 
 	setMotorSpeeds(0, 0);
 }
 
-void fwdTurn(odotype *odo, const double angle, const double speed){
+void fwdTurn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*)){
 	int time = 0;
-	//angle %= 2*M_PI; //Setting it in the range of 0 to 2 Pi.
-	//printf("Starting with angle = %f, odo angle = %f\n", angle, odo->angle);
+
 	double angleDifference;
-	do{
-		//printf("%f, %f\n", angleDifference, ANGLE(0.5));
+	do
+	{
 		syncAndUpdateOdo(odo);
 		angleDifference = angle - odo->angle;
-		double deltaV = max(K_MOVE_TURN * (angleDifference), MIN_SPEED); //Check this for general case.(*)
-		//printf("deltaV = %f\n", deltaV);
-		const double motorSpeed = max(getAcceleratedSpeed(speed, deltaV / 4, time) / 2, MIN_SPEED); //Modify to use this (*)
+		double deltaV = max(K_MOVE_TURN * (angleDifference), MIN_SPEED);
+		const double motorSpeed = max(getAcceleratedSpeed(speed, deltaV / 4, time) / 2, MIN_SPEED);
 		setMotorSpeeds(motorSpeed - deltaV / 2, motorSpeed + deltaV / 2);
 		time++;
 		exitOnButtonPress();
-	} while (fabs(angleDifference) > ANGLE(0.1));
-	//printf("%f\n", angleDifference);
+	} while (fabs(angleDifference) > ANGLE(0.1) && !(*stopCondition)(odo));
 
 	setMotorSpeeds(0, 0);
 }
 
-void turn(odotype *odo, const double angle, const double speed){
+void turn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*)){
 	const double startpos = (angle > 0) ? odo->rightWheelPos : odo->leftWheelPos;
+
 	int time = 0;
 
 	double distLeft;
@@ -138,12 +137,13 @@ void turn(odotype *odo, const double angle, const double speed){
 
 		exitOnButtonPress();
 
-	} while (distLeft > 0);
+	} while (distLeft > 0 && !(*stopCondition)(odo));
 
 	setMotorSpeeds(0, 0);
 }
 
-void followLine(odotype *odo, const double dist, const double speed, const enum lineCentering centering){
+void followLine(odotype *odo, const double dist, const double speed, const enum lineCentering centering, int (*stopCondition)(odotype*)){
+
 	const double endPosition = odo->totalDistance + dist;
 	int time = 0;
 
@@ -165,7 +165,7 @@ void followLine(odotype *odo, const double dist, const double speed, const enum 
 		time++;
 		exitOnButtonPress();
 
-	} while (distLeft > 0);
+	} while (distLeft > 0 && !(*stopCondition)(odo));
 
 	setMotorSpeeds(0, 0);
 }

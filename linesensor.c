@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "includes/linesensor.h"
+#include "includes/robotconnector.h"
 
 static lineSensorCalibratedData lineSensorCalibData[LINE_SENSORS_COUNT];
 
@@ -34,8 +35,7 @@ int readLineSensorValues(const char* fileLoc){
 	return 1;
 }
 
-double calibrateLineSensorValue(const double sensorValue, const int sensorID)
-{
+static double calibrateLineSensorValue(const double sensorValue, const int sensorID){
 	const double a = lineSensorCalibData[sensorID].a;
 	const double b = lineSensorCalibData[sensorID].b;
 
@@ -47,14 +47,17 @@ double calibrateLineSensorValue(const double sensorValue, const int sensorID)
 	return calibValue;
 }
 
-double getLineCenteringOffset(enum lineCentering centering)
+inline double getLineCenteringOffset(enum lineCentering centering)
 {
-	static double centers[3] = { ((double)LINE_SENSOR_WIDTH / 3) * 1, (double)LINE_SENSOR_WIDTH / 2, ((double)LINE_SENSOR_WIDTH / 3) * 2 };
+	//static double centers[3] = { ((double)LINE_SENSOR_WIDTH / 3) * 1, (double)LINE_SENSOR_WIDTH / 2, ((double)LINE_SENSOR_WIDTH / 3) * 2 };
+	static double centers[3] = { ((double) LINE_SENSOR_WIDTH / 4) * 1, (double) LINE_SENSOR_WIDTH / 2, ((double) LINE_SENSOR_WIDTH / 4) * 3 };
 	return centers[centering];
 }
 
+
 double getLineOffSetDistance(enum lineCentering centering){
-	double sum_m = 0, sum_i = 0;
+	double sum_m = 0;
+	double sum_i = 0;
 	int i;
 	for (i = 0; i < LINE_SENSORS_COUNT; i++)
 	{
@@ -66,3 +69,33 @@ double getLineOffSetDistance(enum lineCentering centering){
 	return ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - getLineCenteringOffset(centering);
 }
 
+
+int crossingLine(enum lineColor color, int konf)
+{
+	int count = 0;
+	int i;
+	if (color == black)
+	{
+		for (i = 0; i < LINE_SENSORS_COUNT; i++)
+		{
+			double calibvalue = calibrateLineSensorValue(linesensor->data[i], i);
+			if (calibvalue < 0.25)
+			{
+				count++;
+			}
+		}
+	}
+	if (color == white)
+	{
+		for (i = 0; i < LINE_SENSORS_COUNT; i++)
+		{
+			double calibvalue = calibrateLineSensorValue(linesensor->data[i], i);
+			if (calibvalue > 0.80)
+			{
+				count++;
+			}
+		}
+	}
+	printf("%d\n", count);
+	return count >= konf;
+}

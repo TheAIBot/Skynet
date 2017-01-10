@@ -8,6 +8,7 @@
 #ifndef ROBOTCONNECTOR_H_
 #define ROBOTCONNECTOR_H_
 
+#include <sys/time.h>
 #include "rhd.h"
 #include "componentserver.h"
 #include "xmlio.h"
