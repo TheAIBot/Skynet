@@ -18,6 +18,7 @@
 #include "includes/log.h"
 #include "includes/linesensor.h"
 #include "includes/irsensor.h"
+#include "includes/commands.h"
 
 /*****************************************
  * odometry
@@ -33,211 +34,15 @@
 
 #define ANGLE(x) ((double)(x) / 180.0 * M_PI)
 
-
-
-
-
-static inline double min(const double x, const double y)
-{
-	return ((x) < (y)) ? (x) : (y);
-}
-
-static inline double max(const double x, const double y)
-{
-	return ((x) > (y)) ? (x) : (y);
-}
-
-static double getAcceleratedSpeed(const double stdSpeed, const double distanceLeft, const int tickTime)
-{
-	const double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distanceLeft);
-	const double accFunc = (MAX_ACCELERATION / TICKS_PER_SECOND) * tickTime;
-	const double speed = min(min(stdSpeed, speedFunc), accFunc);
-	//printf("%f %f %f %d %f\n", stdSpeed, speedFunc, accFunc, tickTime, speed);
-	return speed;
-}
-
-static double getLineOffSetDistance(enum lineCentering centering)
-{
-	double sum_m = 0;
-	double sum_i = 0;
-	int i;
-	for (i = 0; i < LINE_SENSORS_COUNT; i++)
-	{
-		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
-		sum_m += (1 - calibValue) * i;
-		sum_i += (1 - calibValue);
-	}
-	const double c_m = sum_m / sum_i;
-	return ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - getLineCenteringOffset(centering);
-}
-
-static void syncAndUpdateOdo(odotype *odo)
-{
-	if (lmssrv.config && lmssrv.status && lmssrv.connected)
-	{
-		while ((xml_in_fd(xmllaser, lmssrv.sockfd) > 0))
-		{
-			xml_proca(xmllaser);
-		}
-	}
-
-	if (camsrv.config && camsrv.status && camsrv.connected)
-	{
-		while ((xml_in_fd(xmldata, camsrv.sockfd) > 0))
-		{
-			xml_proc(xmldata);
-		}
-	}
-
-	rhdSync();
-	odo->leftWheelEncoderTicks = lenc->data[0];
-	odo->rightWheelEncoderTicks = renc->data[0];
-	updateOdo(odo);
-}
-
-static void exitOnButtonPress()
-{
-	int arg;
-	ioctl(0, FIONREAD, &arg);
-	if (arg != 0)
-	{
-		rhdSync();
-		rhdDisconnect();
-		exit(0);
-	}
-}
-
-static void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
-{
-	//printf("%f %f\n", leftSpeed, rightSpeed);
-
-	speedl->data[0] = 100 * leftSpeed;
-	speedl->updated = 1;
-	speedr->data[0] = 100 * rightSpeed;
-	speedr->updated = 1;
-}
-
-static void fwd(odotype *odo, const double dist, const double speed)
-{
-	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
-	int time = 0;
-
-	double distLeft;
-	do
-	{
-		syncAndUpdateOdo(odo);
-
-		distLeft = dist - (((odo->rightWheelPos + odo->leftWheelPos) / 2) - startpos);
-
-		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
-
-		setMotorSpeeds(motorSpeed, motorSpeed);
-
-		time++;
-
-		exitOnButtonPress();
-
-	} while (distLeft > 0);
-
-	setMotorSpeeds(0, 0);
-}
-
-static void fwdTurn(odotype *odo, const double angle, const double speed)
-{
-	int time = 0;
-	//angle %= 2*M_PI; //Setting it in the range of 0 to 2 Pi.
-	//printf("Starting with angle = %f, odo angle = %f\n", angle, odo->angle);
-	double angleDifference;
-	do
-	{
-		//printf("%f, %f\n", angleDifference, ANGLE(0.5));
-		syncAndUpdateOdo(odo);
-		angleDifference = angle - odo->angle;
-#define K_MOVE_TURN 0.2
-		double deltaV = max(K_MOVE_TURN * (angleDifference), MIN_SPEED); //Check this for general case.(*)
-		//printf("deltaV = %f\n", deltaV);
-		const double motorSpeed = max(getAcceleratedSpeed(speed, deltaV / 4, time) / 2, MIN_SPEED); //Modify to use this (*)
-		setMotorSpeeds(motorSpeed - deltaV / 2, motorSpeed + deltaV / 2);
-		time++;
-		exitOnButtonPress();
-	} while (fabs(angleDifference) > ANGLE(0.1));
-	//printf("%f\n", angleDifference);
-
-	setMotorSpeeds(0, 0);
-}
-
-static void turn(odotype *odo, const double angle, const double speed)
-{
-	const double startpos = (angle > 0) ? odo->rightWheelPos : odo->leftWheelPos;
-	int time = 0;
-
-	double distLeft;
-	do
-	{
-		syncAndUpdateOdo(odo);
-
-		distLeft = (fabs(angle) * odo->wheelSeparation) / 2 - (((angle > 0) ? odo->rightWheelPos : odo->leftWheelPos) - startpos);
-
-		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time) / 2, MIN_SPEED);
-		if (angle > 0)
-		{
-			setMotorSpeeds(-motorSpeed, motorSpeed);
-		}
-		else
-		{
-			setMotorSpeeds(motorSpeed, -motorSpeed);
-		}
-
-		time++;
-
-		exitOnButtonPress();
-
-	} while (distLeft > 0);
-
-	setMotorSpeeds(0, 0);
-}
-
-static void followLine(odotype *odo, const double dist, const double speed, const enum lineCentering centering)
-{
-	const double endPosition = odo->totalDistance + dist;
-	int time = 0;
-
-	double distLeft;
-	do
-	{
-		syncAndUpdateOdo(odo);
-
-		distLeft = endPosition - odo->totalDistance;
-
-		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
-		const double lineOffDist = getLineOffSetDistance(centering);
-		const double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE) + odo->angle;
-		const double K = 2;
-		const double speedDiffPerMotor = (K * (thetaRef - odo->angle)) / 2;
-
-		setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
-
-		time++;
-		exitOnButtonPress();
-
-	} while (distLeft > 0);
-
-	setMotorSpeeds(0, 0);
-}
-
 int main()
 {
 	odotype odo = { 0 };
 
 	printf("Started");
 
-	if (!readLineSensorValues("linesensor_calib_script/linesensor_calib.txt"))
-	{
-		//exit(EXIT_FAILURE);
-	}
-
-	if (!connectRobot())
-	{
+	if 	   (!readLineSensorValues("sensor_calib_scripts/linesensor_calib.txt") ||
+			!loadIRCalibrationData("sensor_calib_scripts/irSensorCalib.txt")   ||
+			!connectRobot()){
 		exit(EXIT_FAILURE);
 	}
 
@@ -252,7 +57,7 @@ int main()
 	odo.oldLeftWheelEncoderTicks = odo.leftWheelEncoderTicks;
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
 	//printf("position: %f, %f\n", odo.leftWheelPos, odo.rightWheelPos);
-	/*
+	
 	 fwd(&odo, 1, 0.6);
 	 turn(&odo, ANGLE(90), 0.3);
 
@@ -265,12 +70,14 @@ int main()
 	 fwd(&odo, 1, 0.6);
 	 turn(&odo, ANGLE(90), 0.3);
 	 //follow_line(&odo, 3000, 0.6);
-	 */
+	 
 
-	//followLine(&odo, 3000, 0.6, left);
-	testIRDistance();
+	//followLine(&odo, 3000, 0.6, left);	
 
-	setMotorSpeeds(0, 0);
+	//fwd(&odo, 2.5, 0.6);
+	//testIRDistance();
+
+	setMotorSpeeds(0.0, 0.0);
 	rhdSync();
 	rhdDisconnect();
 	writeLogs("logging.txt");
