@@ -45,8 +45,8 @@ static double getAcceleratedSpeed(const double stdSpeed, const double distanceLe
 {
 	const double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distanceLeft);
 	const double accFunc = (MAX_ACCELERATION / TICKS_PER_SECOND) * tickTime;
-	const double speed = (stdSpeed > 0) ? min(min(stdSpeed, speedFunc), accFunc) : max(max(stdSpeed, speedFunc), accFunc);
-	//printf("%f %f %f %d %f\n", stdSpeed, speedFunc, accFunc, tickTime, speed);
+	const double speed = (stdSpeed >= 0) ? min(min(stdSpeed, speedFunc), accFunc) : max(max(stdSpeed, -speedFunc), -accFunc);
+	printf("%f %f %f %d %f\n", stdSpeed, speedFunc, accFunc, tickTime, speed);
 	return speed;
 }
 
@@ -90,7 +90,7 @@ static void exitOnButtonPress()
 
 static void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
 {
-	//printf("%f %f\n", leftSpeed, rightSpeed);
+	printf("%f %f\n", leftSpeed, rightSpeed);
 
 	speedl->data[0] = 100 * leftSpeed;
 	speedl->updated = 1;
@@ -189,13 +189,21 @@ static void followLine(odotype *odo, const double dist, const double speed, cons
 
 		distLeft = endPosition - odo->totalDistance;
 
-		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
+		//tried to make it go backwards
+		const double motorSpeed = (speed >= 0) ? max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED) : min(getAcceleratedSpeed(speed, distLeft, time), -MIN_SPEED);
 		const double lineOffDist = getLineOffSetDistance(centering);
 		const double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE) + odo->angle;
 		const double K = 2;
 		const double speedDiffPerMotor = (K * (thetaRef - odo->angle)) / 2;
 
-		setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
+		if (speed >= 0)
+		{
+			setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
+		}
+		else
+		{
+			setMotorSpeeds(motorSpeed + speedDiffPerMotor, motorSpeed - speedDiffPerMotor);
+		}
 
 		time++;
 		exitOnButtonPress();
@@ -247,8 +255,8 @@ int main()
 	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 	 */
 	//turn(&odo, ANGLE(180), 0.3, &noStopCondition);
-	followLine(&odo, 100, 0.2, right, &stopAtNeg80Deg);
-	followLine(&odo, 100, 0.2, center, &stopAtBlackLine);
+	followLine(&odo, 100, -0.2, right, &noStopCondition);
+	//followLine(&odo, 100, 0.2, center, &stopAtBlackLine);
 
 	setMotorSpeeds(0, 0);
 	rhdSync();
