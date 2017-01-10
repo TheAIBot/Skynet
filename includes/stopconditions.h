@@ -24,9 +24,14 @@ int stopAtBlackLine(odotype *odo)
 	return crossingLine(black, 3);
 }
 
-int stopAtNeg80Deg(odotype *odo)
+int stopAtNeg85Deg(odotype *odo)
 {
 	return odo->angle < ANGLE(-85);
+}
+
+int stopAt85Deg(odotype *odo)
+{
+	return odo->angle < ANGLE(85);
 }
 
 #endif /* STOPCONDITIONS_H_ */
