@@ -46,7 +46,7 @@ static double getAcceleratedSpeed(const double stdSpeed, const double distanceLe
 {
 	const double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distanceLeft);
 	const double accFunc = (MAX_ACCELERATION / TICKS_PER_SECOND) * tickTime;
-	const double speed = min(min(stdSpeed, speedFunc), accFunc);
+	const double speed = (stdSpeed > 0) ? min(min(stdSpeed, speedFunc), accFunc) : max(max(stdSpeed, speedFunc), accFunc);
 	//printf("%f %f %f %d %f\n", stdSpeed, speedFunc, accFunc, tickTime, speed);
 	return speed;
 }
@@ -89,7 +89,7 @@ static void exitOnButtonPress()
 
 static void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
 {
-	//printf("%f %f\n", leftSpeed, rightSpeed);
+	printf("%f %f\n", leftSpeed, rightSpeed);
 
 	speedl->data[0] = 100 * leftSpeed;
 	speedl->updated = 1;
@@ -265,8 +265,8 @@ s
 	 fwd(&odo, 1, 0.6, &noStopCondition);
 	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 	 */
-
-	followLine(&odo, 3000, 0.2, right, &noStopCondition);
+	turn(&odo, ANGLE(180), 0.3, &noStopCondition);
+	followLine(&odo, 3000, -0.2, center, &noStopCondition);
 
 	setMotorSpeeds(0, 0);
 	rhdSync();
