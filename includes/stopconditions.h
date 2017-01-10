@@ -37,21 +37,57 @@ int stopAt85Deg(odotype *odo)
 	return odo->angle < ANGLE(85);
 }
 
-void setIRDetectionSensor(enum IRSensor sensor){
+void setIRDetectionSensor(enum IRSensor sensor)
+{
 	currentIRSensor = sensor;
 }
 
-void setIRDetectionDistance(double distance){
+void setIRDetectionDistance(double distance)
+{
 	distancePillarDetection = distance;
 }
 
-int stopAtDetectedPillar(odotype *odo){
+int stopAtDetectedPillar(odotype *odo)
+{
 	static int countWithinDistance = 0;
-	if (irDistance(currentIRSensor) < distancePillarDetection) 
+	if (irDistance(currentIRSensor) < distancePillarDetection)
+	{
 		countWithinDistance++;
-	else countWithinDistance = 0;
-	//printf("Current Ir sensor = %d, distance from this sensor is = %f\n", currentIRSensor, irDistance(currentIRSensor));
-	return (countWithinDistance >= numberRequiredForPillarDetected);
+	}
+	else
+	{
+		countWithinDistance = 0;
+	}
+	if (countWithinDistance >= numberRequiredForPillarDetected)
+	{
+		countWithinDistance = 0;
+		return 1;
+	}
+	return 0;
+}
+
+int stopAtBlockedForwardPath(odotype *odo)
+{
+	return (irDistance(ir_front_left) < 20 && irDistance(ir_front_middle) < 20 && irDistance(ir_front_right) < 20);
+}
+
+int stopAtFreeRightIR(odotype *odo)
+{
+	static int countWithinDistance = 0;
+	if (irDistance(ir_front_right) > 50)
+	{
+		countWithinDistance++;
+	}
+	else
+	{
+		countWithinDistance = 0;
+	}
+	if (countWithinDistance >= numberRequiredForPillarDetected)
+	{
+		countWithinDistance = 0;
+		return 1;
+	}
+	return 0;
 }
 
 #endif /* STOPCONDITIONS_H_ */

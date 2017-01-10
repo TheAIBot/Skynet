@@ -64,25 +64,26 @@ int main()
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
 	printf("position: %f, %f\n", odo.leftWheelPos, odo.rightWheelPos);
 
-	followLine(&odo, 100, 0.2, right, white, &stopAtNeg85Deg);
-	followLine(&odo, 100, 0.2, center, white, &stopAtBlackLine);
+	/*
+
+	followLine(&odo, 100, 0.2, right, black, &stopAtNeg85Deg);
+	followLine(&odo, 100, 0.2, center, black, &stopAtBlackLine);
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 	fwd(&odo, 100, 0.2, &stopAtBlackLine);
 	fwd(&odo, 0.1, 0.2, &noStopCondition);
 	fwd(&odo, 100, 0.2, &stopAtBlackLine);
 	fwd(&odo, 0.3, 0.2, &noStopCondition);
 	turn(&odo, ANGLE(-90), 0.3, &noStopCondition);
-	followLine(&odo, 100, 0.2, center, white, &stopAtBlackLine);
+	followLine(&odo, 100, 0.2, center, black, &stopAtBlackLine);
 	fwd(&odo, 0.135, 0.2, &noStopCondition);
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-	followLine(&odo, 100, 0.2, center, white, &noStopCondition);
+	followLine(&odo, 100, 0.2, right, black, &stopAtBlackLine);
 
-	/*
 	//Around the gates and to the wall.
 	setIRDetectionDistance(50);//
 	setIRDetectionSensor(ir_left);
-	followLine(&odo, 100, 0.2, center, &stopAtDetectedPillar);
-	followLine(&odo, 0.4, 0.2, center, &noStopCondition);
+	followLine(&odo, 100, 0.2, center, black, &stopAtDetectedPillar);
+	followLine(&odo, 0.4, 0.2, center, black, &noStopCondition);
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 	fwd(&odo, 1, 0.2, &noStopCondition);
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);	
@@ -93,7 +94,7 @@ int main()
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);	
 
 
-	followLine(&odo, 100, 0.2, center, &stopAtBlackLine);
+	followLine(&odo, 100, 0.2, center, black, &stopAtBlackLine);
 	fwd(&odo, 0.3, 0.2, &noStopCondition);
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);		
 	fwd(&odo, 0.1, 0.2, &noStopCondition);
@@ -101,11 +102,18 @@ int main()
 
 	setIRDetectionDistance(20);
 	setIRDetectionSensor(ir_right);	
-	followLine(&odo, 100, 0.2, center, &stopAtDetectedPillar);
+	followLine(&odo, 100, 0.2, center, black, &stopAtDetectedPillar);
 	setIRDetectionSensor(ir_left);
 	fwd(&odo, 0.5, 0.2, &noStopCondition);
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 	*/
+
+	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
+	followLine(&odo, 100, 0.2, center, black, &stopAtBlockedForwardPath);
+	double distance = measureDistance(&odo);
+	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
+	followWall(&odo, distance, 0.2, &stopAtFreeRightIR);
+
 
 	setMotorSpeeds(0.0, 0.0);
 	rhdSync();

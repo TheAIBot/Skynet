@@ -178,7 +178,8 @@ void followLine(odotype *odo, const double dist, const double speed, enum lineCe
 	int time = 0;
 
 	double distLeft;
-	do { 		
+	do
+	{
 		syncAndUpdateOdo(odo);
 
 		distLeft = endPosition - odo->totalDistance;
@@ -190,7 +191,8 @@ void followLine(odotype *odo, const double dist, const double speed, enum lineCe
 		const double K = 2;
 		const double speedDiffPerMotor = (K * (thetaRef - odo->angle)) / 2;
 
-		if (speed >= 0)	{
+		if (speed >= 0)
+		{
 			setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
 		}
 		else
@@ -206,13 +208,14 @@ void followLine(odotype *odo, const double dist, const double speed, enum lineCe
 	setMotorSpeeds(0, 0);
 }
 
-
-void followWall(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*)){
+void followWall(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*))
+{
 	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
 	int time = 0;
 
 	double distLeft;
-	do {
+	do
+	{
 		syncAndUpdateOdo(odo);
 
 		distLeft = dist - (((odo->rightWheelPos + odo->leftWheelPos) / 2) - startpos);
@@ -220,11 +223,14 @@ void followWall(odotype *odo, const double dist, const double speed, int (*stopC
 		const double K = 0.05;
 		const double medTerm = (20 - irDistance(ir_left)); //A distance of 20 centimeters is optimal
 		const double speedDiffPerMotor = (K * medTerm) / 2;
-		printf("IR distance = %f, speedDiff = %f, motorSpeed = %f\n",irDistance(ir_left),speedDiffPerMotor,motorSpeed); //
+		printf("IR distance = %f, speedDiff = %f, motorSpeed = %f\n", irDistance(ir_left), speedDiffPerMotor, motorSpeed); //
 
-		if (speed >= 0)		{
+		if (speed >= 0)
+		{
 			setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
-		} else {
+		}
+		else
+		{
 			setMotorSpeeds(motorSpeed + speedDiffPerMotor, motorSpeed - speedDiffPerMotor);
 		}
 
@@ -236,7 +242,7 @@ void followWall(odotype *odo, const double dist, const double speed, int (*stopC
 	setMotorSpeeds(0, 0);
 }
 
-void measureDistance(odotype *odo)
+double measureDistance(odotype *odo)
 {
 	int i;
 	double sum = 0;
@@ -245,5 +251,5 @@ void measureDistance(odotype *odo)
 		syncAndUpdateOdo(odo);
 		sum += irDistance(ir_front_left) + irDistance(ir_front_middle) + irDistance(ir_front_right);
 	}
-	printf("%f \n", sum / 300);
+	return sum / 100;
 }

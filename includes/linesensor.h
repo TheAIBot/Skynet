@@ -6,16 +6,18 @@
 #define LINE_SENSORS_COUNT 8
 #define WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE 22
 
-
-enum lineCentering {
-	right = 0, center, left
+enum lineCentering
+{
+	left = 0, center, right
 };
 
-enum lineColor {
+enum lineColor
+{
 	white, black
 };
 
-typedef struct {
+typedef struct
+{
 	double a;
 	double b;
 } lineSensorCalibratedData;
