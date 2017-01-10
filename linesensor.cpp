@@ -48,14 +48,14 @@ static double calibrateLineSensorValue(const double sensorValue, const int senso
 	return calibValue;
 }
 
-inline double getLineCenteringOffset(enum lineCentering centering)
+inline double getLineCenteringOffset(enum LineCentering centering)
 {
 	//static double centers[3] = { ((double)LINE_SENSOR_WIDTH / 3) * 1, (double)LINE_SENSOR_WIDTH / 2, ((double)LINE_SENSOR_WIDTH / 3) * 2 };
 	static double centers[3] = { ((double) LINE_SENSOR_WIDTH / 4) * 1, (double) LINE_SENSOR_WIDTH / 2, ((double) LINE_SENSOR_WIDTH / 4) * 3 };
 	return centers[centering];
 }
 
-double getLineOffSetDistance(enum lineCentering centering, enum lineColor color)
+double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
 {
 	double sum_m = 0;
 	double sum_i = 0;
@@ -79,7 +79,7 @@ double getLineOffSetDistance(enum lineCentering centering, enum lineColor color)
 	return ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - getLineCenteringOffset(centering);
 }
 
-int crossingLine(enum lineColor color, int konf)
+int crossingLine(enum LineColor color, int konf)
 {
 	int count = 0;
 	int i;

@@ -18,10 +18,10 @@ LIBS   = -lm librhd.a -lrobot
 all:	${PROG}
 	
 %.o: %.cpp
-	g++ ${CFLAGS} -c $<
+	g++ -std=c++11 ${CFLAGS} -c $<
 
 ${PROG}: ${OBJS}
-	${LD} -o ${@} ${LDFLAGS} ${OBJS} ${LIBS}
+	${LD} -std=c++11 -o ${@} ${LDFLAGS} ${OBJS} ${LIBS}
 
 clean:
 	rm -f ${OBJS}

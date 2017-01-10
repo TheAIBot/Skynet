@@ -6,12 +6,12 @@
 #define LINE_SENSORS_COUNT 8
 #define WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE 22
 
-enum lineCentering
+enum LineCentering
 {
 	left = 0, center, right
 };
 
-enum lineColor
+enum LineColor
 {
 	white, black
 };
@@ -25,10 +25,10 @@ typedef struct
 //Read calibration values from the calibation file and inserts the data in the given array
 int readLineSensorCalibrationData(const char* fileLoc);
 
-double getLineCenteringOffset(enum lineCentering centering);
+double getLineCenteringOffset(enum LineCentering centering);
 
-double getLineOffSetDistance(enum lineCentering centering, enum lineColor color);
+double getLineOffSetDistance(enum LineCentering centering, enum LineColor color);
 
-int crossingLine(enum lineColor color, int konf);
+int crossingLine(enum LineColor color, int konf);
 
 #endif

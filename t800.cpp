@@ -28,6 +28,7 @@
 #define TICKS_PER_SECOND 100
 #define MIN_ACCELERATION (MAX_ACCELERATION / TICKS_PER_SECOND)
 #define WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE 22
+#define STD_SPEED 0.2
 
 int main()
 {
@@ -55,62 +56,61 @@ int main()
 	 */
 	rhdSync();
 
-	odo.wheelSeparation = 0.256;
+	odo.wheelSeparation = WHEEL_SEPARATION;
 	odo.metersPerEncoderTick = DELTA_M;
 	odo.leftWheelEncoderTicks = lenc->data[0];
 	odo.rightWheelEncoderTicks = renc->data[0];
 	odo.oldLeftWheelEncoderTicks = odo.leftWheelEncoderTicks;
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
 
-	/*
+	//go to box
+	followLine(&odo, 100, STD_SPEED, LineCentering::right, LineColor::black, &stopAtDeg<-90, 5>);
+	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
 
-	followLine(&odo, 100, 0.2, right, black, &stopAtNeg85Deg);
-	followLine(&odo, 100, 0.2, center, black, &stopAtBlackLine);
-	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-	fwd(&odo, 100, 0.2, &stopAtBlackLine);
-	fwd(&odo, 0.1, 0.2, &noStopCondition);
-	fwd(&odo, 100, 0.2, &stopAtBlackLine);
-	fwd(&odo, 0.3, 0.2, &noStopCondition);
-	turn(&odo, ANGLE(-90), 0.3, &noStopCondition);
-	followLine(&odo, 100, 0.2, center, black, &stopAtBlackLine);
-	fwd(&odo, 0.135, 0.2, &noStopCondition);
-	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-	followLine(&odo, 100, 0.2, right, black, &stopAtBlackLine);
+	//go to line towards box to move
+	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
+	fwd(&odo, 100, STD_SPEED, &stopAtLine<LineColor::black, 4>);
+	fwd(&odo, 0.1, STD_SPEED, &noStopCondition);
+	fwd(&odo, 100, STD_SPEED, &stopAtLine<LineColor::black, 4>);
+	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
+	turn(&odo, ANGLE(-90), STD_SPEED, &noStopCondition);
+
+	//push box and go through gate
+	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
+	fwd(&odo, 0.135, STD_SPEED, &noStopCondition);
+	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
+	followLine(&odo, 1, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 4>);
+	followLine(&odo, 1, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
 
 	//Around the gates and to the wall.
-	setIRDetectionDistance(50);//
-	setIRDetectionSensor(ir_left);
-	followLine(&odo, 100, 0.2, center, black, &stopAtDetectedPillar);
-	followLine(&odo, 0.4, 0.2, center, black, &noStopCondition);
-	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-	fwd(&odo, 1, 0.2, &noStopCondition);
-	turn(&odo, ANGLE(90), 0.3, &noStopCondition);	
-	fwd(&odo, 0.6, 0.2, &noStopCondition);
-	turn(&odo, ANGLE(90), 0.3, &noStopCondition);	
-	fwd(&odo, 100, 0.2, &stopAtBlackLine);
-	fwd(&odo, 0.3, 0.2, &noStopCondition);
-	turn(&odo, ANGLE(90), 0.3, &noStopCondition);	
+	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtDetectedPillar<IRSensor::ir_left, 50>);
+	followLine(&odo, 0.4, STD_SPEED, LineCentering::center, LineColor::black, &noStopCondition); // change this to detect the wall?
+	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
+	fwd(&odo, 1, STD_SPEED, &noStopCondition);
+	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
+	fwd(&odo, 0.6, STD_SPEED, &noStopCondition);
+	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
+	fwd(&odo, 100, STD_SPEED, &stopAtLine<LineColor::black, 4>);
+	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
+	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 
 
-	followLine(&odo, 100, 0.2, center, black, &stopAtBlackLine);
-	fwd(&odo, 0.3, 0.2, &noStopCondition);
-	turn(&odo, ANGLE(90), 0.3, &noStopCondition);		
-	fwd(&odo, 0.1, 0.2, &noStopCondition);
+	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
+	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
+	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
+	fwd(&odo, 0.1, STD_SPEED, &noStopCondition);
 
+	followLine(&odo, 100, STD_SPEED, center, black, &stopAtDetectedPillar<ir_right , 20>);
+	fwd(&odo, 0.5, STD_SPEED, &noStopCondition);
+	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 
-	setIRDetectionDistance(20);
-	setIRDetectionSensor(ir_right);	
-	followLine(&odo, 100, 0.2, center, black, &stopAtDetectedPillar);
-	setIRDetectionSensor(ir_left);
-	fwd(&odo, 0.5, 0.2, &noStopCondition);
-	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-	*/
-
+	/*
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 	followLine(&odo, 100, 0.2, center, black, &stopAtBlockedForwardPath);
 	double distance = measureDistance(&odo);
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 	followWall(&odo, distance, 0.2, &stopAtFreeRightIR);
+	*/
 
 
 	setMotorSpeeds(0.0, 0.0);
