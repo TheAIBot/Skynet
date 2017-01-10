@@ -51,7 +51,8 @@ static double calibrateLineSensorValue(const double sensorValue, const int senso
 
 static inline double getLineCenteringOffset(enum lineCentering centering)
 {
-	static double centers[3] = { ((double)LINE_SENSOR_WIDTH / 3) * 1, (double)LINE_SENSOR_WIDTH / 2, ((double)LINE_SENSOR_WIDTH / 3) * 2 };
+	//static double centers[3] = { ((double)LINE_SENSOR_WIDTH / 3) * 1, (double)LINE_SENSOR_WIDTH / 2, ((double)LINE_SENSOR_WIDTH / 3) * 2 };
+	static double centers[3] = { ((double) LINE_SENSOR_WIDTH / 4) * 1, (double) LINE_SENSOR_WIDTH / 2, ((double) LINE_SENSOR_WIDTH / 4) * 3 };
 	return centers[centering];
 }
 
@@ -68,5 +69,35 @@ double getLineOffSetDistance(enum lineCentering centering)
 	}
 	const double c_m = sum_m / sum_i;
 	return ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - getLineCenteringOffset(centering);
+}
+
+int crossingLine(enum lineColor color, int konf)
+{
+	int count = 0;
+	int i;
+	if (color == black)
+	{
+		for (i = 0; i < LINE_SENSORS_COUNT; i++)
+		{
+			double calibvalue = calibrateLineSensorValue(linesensor->data[i], i);
+			if (calibvalue < 0.25)
+			{
+				count++;
+			}
+		}
+	}
+	if (color == white)
+	{
+		for (i = 0; i < LINE_SENSORS_COUNT; i++)
+		{
+			double calibvalue = calibrateLineSensorValue(linesensor->data[i], i);
+			if (calibvalue > 0.80)
+			{
+				count++;
+			}
+		}
+	}
+	printf("%d\n", count);
+	return count >= konf;
 }
 

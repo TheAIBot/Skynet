@@ -17,6 +17,7 @@
 #include "includes/odometry.h"
 #include "includes/log.h"
 #include "includes/linesensor.h"
+#include "includes/stopconditions.h"
 
 /*****************************************
  * odometry
@@ -29,8 +30,6 @@
 #define TICKS_PER_SECOND 100
 #define MIN_ACCELERATION (MAX_ACCELERATION / TICKS_PER_SECOND)
 #define WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE 22
-
-#define ANGLE(x) ((double)x / 180.0 * M_PI)
 
 static inline double min(const double x, const double y)
 {
@@ -58,6 +57,7 @@ static void syncAndUpdateOdo(odotype *odo)
 		while ((xml_in_fd(xmllaser, lmssrv.sockfd) > 0))
 		{
 			xml_proca(xmllaser);
+
 		}
 	}
 
@@ -82,6 +82,7 @@ static void exitOnButtonPress()
 	if (arg != 0)
 	{
 		rhdSync();
+
 		rhdDisconnect();
 		exit(0);
 	}
@@ -89,7 +90,7 @@ static void exitOnButtonPress()
 
 static void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
 {
-	printf("%f %f\n", leftSpeed, rightSpeed);
+	//printf("%f %f\n", leftSpeed, rightSpeed);
 
 	speedl->data[0] = 100 * leftSpeed;
 	speedl->updated = 1;
@@ -99,6 +100,7 @@ static void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
 
 static void fwd(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*))
 {
+
 	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
 	int time = 0;
 
@@ -117,17 +119,12 @@ static void fwd(odotype *odo, const double dist, const double speed, int (*stopC
 
 		exitOnButtonPress();
 
-		if ((*stopCondition)(odo))
-		{
-			break;
-		}
-
-	} while (distLeft > 0);
+	} while (distLeft > 0 && !(*stopCondition)(odo));
 
 	setMotorSpeeds(0, 0);
 }
 
-static void fwdTurn(odotype *odo, const double angle, const double speed)
+static void fwdTurn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*))
 {
 	int time = 0;
 	//angle %= 2*M_PI; //Setting it in the range of 0 to 2 Pi.
@@ -145,7 +142,7 @@ static void fwdTurn(odotype *odo, const double angle, const double speed)
 		setMotorSpeeds(motorSpeed - deltaV / 2, motorSpeed + deltaV / 2);
 		time++;
 		exitOnButtonPress();
-	} while (fabs(angleDifference) > ANGLE(0.1));
+	} while (fabs(angleDifference) > ANGLE(0.1) && !(*stopCondition)(odo));
 	//printf("%f\n", angleDifference);
 
 	setMotorSpeeds(0, 0);
@@ -154,6 +151,7 @@ static void fwdTurn(odotype *odo, const double angle, const double speed)
 static void turn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*))
 {
 	const double startpos = (angle > 0) ? odo->rightWheelPos : odo->leftWheelPos;
+
 	int time = 0;
 
 	double distLeft;
@@ -177,18 +175,14 @@ static void turn(odotype *odo, const double angle, const double speed, int (*sto
 
 		exitOnButtonPress();
 
-		if ((*stopCondition)(odo))
-		{
-			break;
-		}
-
-	} while (distLeft > 0);
+	} while (distLeft > 0 && !(*stopCondition)(odo));
 
 	setMotorSpeeds(0, 0);
 }
 
 static void followLine(odotype *odo, const double dist, const double speed, const enum lineCentering centering, int (*stopCondition)(odotype*))
 {
+
 	const double endPosition = odo->totalDistance + dist;
 	int time = 0;
 
@@ -210,23 +204,14 @@ static void followLine(odotype *odo, const double dist, const double speed, cons
 		time++;
 		exitOnButtonPress();
 
-		if ((*stopCondition)(odo))
-		{
-			break;
-		}
-
-	} while (distLeft > 0);
+	} while (distLeft > 0 && !(*stopCondition)(odo));
 
 	setMotorSpeeds(0, 0);
 }
 
-static int noStopCondition(odotype *odo)
-{
-	return 0;
-}
-
 int main()
 {
+
 	odotype odo = { 0 };
 
 	printf("Started");
@@ -261,12 +246,13 @@ int main()
 
 	 fwd(&odo, 1, 0.6, &noStopCondition);
 	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-s
+	 s
 	 fwd(&odo, 1, 0.6, &noStopCondition);
 	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 	 */
-	turn(&odo, ANGLE(180), 0.3, &noStopCondition);
-	followLine(&odo, 3000, -0.2, center, &noStopCondition);
+	//turn(&odo, ANGLE(180), 0.3, &noStopCondition);
+	followLine(&odo, 100, 0.2, right, &stopAtNeg80Deg);
+	followLine(&odo, 100, 0.2, center, &stopAtBlackLine);
 
 	setMotorSpeeds(0, 0);
 	rhdSync();

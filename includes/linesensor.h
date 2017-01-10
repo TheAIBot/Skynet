@@ -1,5 +1,5 @@
 #ifndef LINESENSOR_H_
-#define LINESENSOR_H
+#define LINESENSOR_H_
 
 //Line sensor information
 #define LINE_SENSOR_WIDTH 13
@@ -7,7 +7,7 @@
 
 enum lineCentering
 {
-	right = 0, center, left
+	left = 0, center, right
 };
 
 enum lineColor
@@ -25,5 +25,7 @@ typedef struct
 int readLineSensorValues(const char* fileLoc);
 
 double getLineOffSetDistance(enum lineCentering centering);
+
+int crossingLine(enum lineColor color, int konf);
 
 #endif
