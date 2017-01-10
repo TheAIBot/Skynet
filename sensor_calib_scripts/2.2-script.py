@@ -1,6 +1,5 @@
 from pylab import *
 import numpy as np
-import scipy as scipy
 from scipy.optimize import curve_fit
 
 data = np.loadtxt("2.2-log.txt")
@@ -39,11 +38,16 @@ print(index)
 def func(x, ka, kb):
     return (ka/x) + kb
 
-val = curve_fit(func, distmat[:, 0], mat[:, 2])
-ka = val[0][0]
-kb = val[0][1]
-print("ka = " + str(ka))
-print("kb = " + str(kb))
+def getSensorCalibConstants(sensorIndex):
+    val = curve_fit(func, distmat[:, 0], mat[:, sensorIndex])
+    ka = val[0][0]
+    kb = val[0][1]
+    return (ka, kb)
+    
+
+    
+for i in range(0,5):
+    print(i," : ", getSensorCalibConstants(i))
 
 
 figure()
@@ -56,5 +60,7 @@ title("ir fitted curve")
 
 #Print ka and kb to file
 f = open("irSensorCalib.txt",'w')
-f.write("{0} {1}\n".format(ka,kb))
+for i in range(0,5):
+    ka, kb = getSensorCalibConstants(i)
+    f.write("{0} {1}\n".format(ka,kb))
 f.close()
