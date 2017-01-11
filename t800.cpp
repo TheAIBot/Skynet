@@ -63,6 +63,8 @@ int main()
 	odo.oldLeftWheelEncoderTicks = odo.leftWheelEncoderTicks;
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
 
+
+	
 	//go to box
 	followLine(&odo, 100, STD_SPEED, LineCentering::right, LineColor::black, &stopAtDeg<-90, 5>);
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
@@ -81,7 +83,8 @@ int main()
 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 	followLine(&odo, 1, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 4>);
 	followLine(&odo, 1, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
-
+	
+	
 	//Around the gates and to the wall.
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtDetectedPillar<IRSensor::ir_left, 50>);
 	followLine(&odo, 0.4, STD_SPEED, LineCentering::center, LineColor::black, &noStopCondition); // change this to detect the wall?
@@ -100,9 +103,31 @@ int main()
 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 	fwd(&odo, 0.1, STD_SPEED, &noStopCondition);
 
-	followLine(&odo, 100, STD_SPEED, center, black, &stopAtDetectedPillar<ir_right , 20>);
+	followLine(&odo, 100, STD_SPEED, center, LineColor::black, &stopAtDetectedPillar<ir_right , 20>);
 	fwd(&odo, 0.5, STD_SPEED, &noStopCondition);
 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
+	fwd(&odo, 0.4, STD_SPEED, &noStopCondition);
+	//Follow wall	
+	followWall(&odo, 3, STD_SPEED, &stopAtBlankSpace<ir_left,60>);	
+	fwd(&odo, 0.40, STD_SPEED, &noStopCondition);
+	turn(&odo, ANGLE(90), 0.3, &noStopCondition);		
+	fwd(&odo, 0.75, STD_SPEED, &noStopCondition);
+	turn(&odo, ANGLE(90), 0.3, &noStopCondition);		
+	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);	
+	followWall(&odo, 3, STD_SPEED,&stopAtBlankSpace<ir_left,60>);	
+	fwd(&odo, 0.50, STD_SPEED, &noStopCondition);	
+	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
+	//Back at black line	
+	followLine(&odo, 100, STD_SPEED, LineCentering::left, LineColor::black, &stopAtLine<LineColor::black, 4>);
+	fwd(&odo, 0.5, STD_SPEED, &noStopCondition);	
+	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
+	//Follow white line:	
+	
+	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::white, &stopAtLine<LineColor::black, 8>);
+	fwd(&odo, 0.4, STD_SPEED, &noStopCondition);	
+	turn(&odo, ANGLE(-90), 0.3, &noStopCondition);
+	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtDetectedPillar<ir_front_center , 30>);
+
 
 	/*
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);

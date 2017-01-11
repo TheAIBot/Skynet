@@ -37,40 +37,33 @@ template<enum IRSensor sensor, int distance>
 int stopAtDetectedPillar(odotype *odo)
 {
 	static int countWithinDistance = 0;
-	if (irDistance(sensor) < distance)
-	{
-		countWithinDistance++;
-	}
-	else
-	{
-		countWithinDistance = 0;
-	}
-	if (countWithinDistance >= numberRequiredForPillarDetected)
-	{
+	countWithinDistance = (irDistance(sensor) < distance)? countWithinDistance + 1: 0;
+	if (countWithinDistance >= numberRequiredForPillarDetected)	{
 		countWithinDistance = 0;
 		return 1;
-	}
-	return 0;
+	} else return 0;
 }
+
+template<enum IRSensor sensor, int distance>
+int stopAtBlankSpace(odotype *odo){
+	return (irDistance(sensor) > distance);
+}
+
 
 int stopAtBlockedForwardPath(odotype *odo)
 {
-	return (irDistance(ir_front_left) < 20 && irDistance(ir_front_middle) < 20 && irDistance(ir_front_right) < 20);
+	return (irDistance(ir_front_left) < 20 && irDistance(ir_front_center) < 20 && irDistance(ir_front_right) < 20);
 }
 
 int stopAtFreeRightIR(odotype *odo)
 {
 	static int countWithinDistance = 0;
-	if (irDistance(ir_front_right) > 50)
-	{
+	if (irDistance(ir_front_right) > 50)	{
 		countWithinDistance++;
-	}
-	else
-	{
+	} 	else{
 		countWithinDistance = 0;
 	}
-	if (countWithinDistance >= numberRequiredForPillarDetected)
-	{
+	if (countWithinDistance >= numberRequiredForPillarDetected)	{
 		countWithinDistance = 0;
 		return 1;
 	}

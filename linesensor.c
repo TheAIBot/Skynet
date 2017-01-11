@@ -5,13 +5,13 @@
 
 static lineSensorCalibratedData lineSensorCalibData[LINE_SENSORS_COUNT];
 
-int readLineSensorCalibrationData(const char* fileLoc)
-{
+int readLineSensorCalibrationData(const char* fileLoc){
 
 	FILE* file = fopen(fileLoc, "r");
 
-	if (file == NULL)
+	if (file == NULL) // Check if the give file is found
 	{
+		// If not display an error and return an error value
 		printf("%s NOT FOUND!\n", fileLoc);
 		return 0;
 	}
@@ -36,8 +36,7 @@ int readLineSensorCalibrationData(const char* fileLoc)
 	return 1;
 }
 
-static double calibrateLineSensorValue(const double sensorValue, const int sensorID)
-{
+static double calibrateLineSensorValue(const double sensorValue, const int sensorID){
 	const double a = lineSensorCalibData[sensorID].a;
 	const double b = lineSensorCalibData[sensorID].b;
 
@@ -49,38 +48,30 @@ static double calibrateLineSensorValue(const double sensorValue, const int senso
 	return calibValue;
 }
 
-inline double getLineCenteringOffset(enum LineCentering centering)
+inline double getLineCenteringOffset(enum lineCentering centering)
 {
 	//static double centers[3] = { ((double)LINE_SENSOR_WIDTH / 3) * 1, (double)LINE_SENSOR_WIDTH / 2, ((double)LINE_SENSOR_WIDTH / 3) * 2 };
 	static double centers[3] = { ((double) LINE_SENSOR_WIDTH / 4) * 1, (double) LINE_SENSOR_WIDTH / 2, ((double) LINE_SENSOR_WIDTH / 4) * 3 };
 	return centers[centering];
 }
 
-double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
-{
+
+double getLineOffSetDistance(enum lineCentering centering){
 	double sum_m = 0;
 	double sum_i = 0;
 	int i;
 	for (i = 0; i < LINE_SENSORS_COUNT; i++)
 	{
 		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
-		if (color == black)
-		{
-			sum_m += (1 - calibValue) * i;
-			sum_i += (1 - calibValue);
-		}
-		else
-		{
-			sum_m += calibValue * i;
-			sum_i += calibValue;
-		}
-
+		sum_m += (1 - calibValue) * i;
+		sum_i += (1 - calibValue);
 	}
 	const double c_m = sum_m / sum_i;
 	return ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - getLineCenteringOffset(centering);
 }
 
-int crossingLine(enum LineColor color, int konf)
+
+int crossingLine(enum lineColor color, int konf)
 {
 	int count = 0;
 	int i;

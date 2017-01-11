@@ -6,13 +6,11 @@
 #define LINE_SENSORS_COUNT 8
 #define WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE 22
 
-enum LineCentering
-{
+enum LineCentering{
 	left = 0, center, right
 };
 
-enum LineColor
-{
+enum LineColor{
 	white, black
 };
 
