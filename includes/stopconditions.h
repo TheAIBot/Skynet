@@ -13,50 +13,61 @@
 #include "linesensor.h"
 #include "irsensor.h"
 
-#define ANGLE(x) ((double)x / 180.0 * M_PI)
-static enum IRSensor currentIRSensor;
-static double distancePillarDetection = 50.0;
+#define ANGLE(x) ((double)(x) / 180.0 * M_PI)
 
 int noStopCondition(odotype *odo)
 {
 	return 0;
 }
 
-int stopAtBlackLine(odotype *odo)
+template<enum LineColor color, int conf>
+int stopAtLine(odotype *odo)
 {
-	return crossingLine(black, 3);
+	return crossingLine(color, conf);
 }
 
-int stopAtNeg85Deg(odotype *odo)
+template<int angle, int deviation>
+int stopAtDeg(odotype *odo)
 {
-	return odo->angle < ANGLE(-85);
+	return odo->angle <= ANGLE(angle + deviation) &&
+		   odo->angle >= ANGLE(angle - deviation);
 }
 
-int stopAt85Deg(odotype *odo)
+template<enum IRSensor sensor, int distance>
+int stopAtDetectedPillar(odotype *odo)
 {
-	return odo->angle < ANGLE(85);
-}
-
-void setIRDetectionSensor(enum IRSensor sensor){
-	currentIRSensor = sensor;
-}
-
-void setIRDetectionDistance(double distance){
-	distancePillarDetection = distance;
-}
-
-int stopAtDetectedPillar(odotype *odo){
 	static int countWithinDistance = 0;
-	if (irDistance(currentIRSensor) < distancePillarDetection) 
-		countWithinDistance++;
-	else countWithinDistance = 0;
-	//printf("Current Ir sensor = %d, distance from this sensor is = %f\n", currentIRSensor, irDistance(currentIRSensor));
-	return (countWithinDistance >= numberRequiredForPillarDetected);
+	countWithinDistance = (irDistance(sensor) < distance)? countWithinDistance + 1: 0;
+	if (countWithinDistance >= numberRequiredForPillarDetected)	{
+		countWithinDistance = 0;
+		return 1;
+	} else return 0;
 }
 
+template<enum IRSensor sensor, int distance>
 int stopAtBlankSpace(odotype *odo){
-	//printf("stopDistance = %f, meaning it is \n", irDistance(currentIRSensor), irDistance(currentIRSensor)>60);
-	return (irDistance(currentIRSensor) > 60);
+	return (irDistance(sensor) > distance);
+}
+
+
+int stopAtBlockedForwardPath(odotype *odo)
+{
+	return (irDistance(ir_front_left) < 20 && irDistance(ir_front_center) < 20 && irDistance(ir_front_right) < 20);
+}
+
+int stopAtFreeRightIR(odotype *odo)
+{
+	static int countWithinDistance = 0;
+	if (irDistance(ir_front_right) > 50)	{
+		countWithinDistance++;
+	} 	else{
+		countWithinDistance = 0;
+	}
+	if (countWithinDistance >= numberRequiredForPillarDetected)	{
+		countWithinDistance = 0;
+		return 1;
+	}
+	return 0;
 }
 
 #endif /* STOPCONDITIONS_H_ */

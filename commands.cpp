@@ -1,4 +1,23 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+#include <math.h>
+#include <unistd.h>
+#include <string.h>
+#include <stdlib.h>
+#include <signal.h>
+#include <sys/ioctl.h>
+#include <sys/socket.h>
+#include <sys/time.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <fcntl.h>
+#include <sys/ioctl.h>
+#include "includes/robotconnector.h"
+#include "includes/log.h"
+#include "includes/irsensor.h"
 #include "includes/commands.h"
+#include "includes/serverif.h"
 
 #define WHEEL_DIAMETER   0.067	/* m */
 #define WHEEL_SEPARATION 0.256	/* m */
@@ -10,19 +29,15 @@
 
 #define ANGLE(x) ((double)x / 180.0 * M_PI)
 
-
-inline double min(const double x, const double y)
-{
+inline double min(const double x, const double y){
 	return ((x) < (y)) ? (x) : (y);
 }
 
-inline double max(const double x, const double y)
-{
+inline double max(const double x, const double y){
 	return ((x) > (y)) ? (x) : (y);
 }
 
-double getAcceleratedSpeed(const double stdSpeed, const double distanceLeft, const int tickTime)
-{
+double getAcceleratedSpeed(const double stdSpeed, const double distanceLeft, const int tickTime){
 	const double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distanceLeft);
 	const double accFunc = (MAX_ACCELERATION / TICKS_PER_SECOND) * tickTime;
 	const double speed = (stdSpeed >= 0) ? min(min(stdSpeed, speedFunc), accFunc) : max(max(stdSpeed, -speedFunc), -accFunc);
@@ -30,20 +45,15 @@ double getAcceleratedSpeed(const double stdSpeed, const double distanceLeft, con
 	return speed;
 }
 
-void syncAndUpdateOdo(odotype *odo)
-{
-	if (lmssrv.config && lmssrv.status && lmssrv.connected)
-	{
-		while ((xml_in_fd(xmllaser, lmssrv.sockfd) > 0))
-		{
+void syncAndUpdateOdo(odotype *odo){
+	if (lmssrv.config && lmssrv.status && lmssrv.connected)	{
+		while ((xml_in_fd(xmllaser, lmssrv.sockfd) > 0)){
 			xml_proca(xmllaser);
 		}
 	}
 
-	if (camsrv.config && camsrv.status && camsrv.connected)
-	{
-		while ((xml_in_fd(xmldata, camsrv.sockfd) > 0))
-		{
+	if (camsrv.config && camsrv.status && camsrv.connected)	{
+		while ((xml_in_fd(xmldata, camsrv.sockfd) > 0))	{
 			xml_proc(xmldata);
 		}
 	}
@@ -139,8 +149,7 @@ void turn(odotype *odo, const double angle, const double speed, int (*stopCondit
 		{
 			setMotorSpeeds(-motorSpeed, motorSpeed);
 		}
-		else
-		{
+		else{
 			setMotorSpeeds(motorSpeed, -motorSpeed);
 		}
 
@@ -153,26 +162,28 @@ void turn(odotype *odo, const double angle, const double speed, int (*stopCondit
 	setMotorSpeeds(0, 0);
 }
 
-void followLine(odotype *odo, const double dist, const double speed, const enum lineCentering centering, int (*stopCondition)(odotype*))
+void followLine(odotype *odo, const double dist, const double speed, enum LineCentering centering, enum LineColor color, int (*stopCondition)(odotype*))
 {
 
 	const double endPosition = odo->totalDistance + dist;
 	int time = 0;
 
 	double distLeft;
-	do { 		
+	do
+	{
 		syncAndUpdateOdo(odo);
 
 		distLeft = endPosition - odo->totalDistance;
 
 		//tried to make it go backwards
 		const double motorSpeed = (speed >= 0) ? max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED) : min(getAcceleratedSpeed(speed, distLeft, time), -MIN_SPEED);
-		const double lineOffDist = getLineOffSetDistance(centering);
+		const double lineOffDist = getLineOffSetDistance(centering, color);
 		const double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE) + odo->angle;
 		const double K = 2;
 		const double speedDiffPerMotor = (K * (thetaRef - odo->angle)) / 2;
 
-		if (speed >= 0)	{
+		if (speed >= 0)
+		{
 			setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
 		}
 		else
@@ -187,7 +198,6 @@ void followLine(odotype *odo, const double dist, const double speed, const enum 
 
 	setMotorSpeeds(0, 0);
 }
-
 
 void followWall(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*)){
 	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
@@ -216,4 +226,16 @@ void followWall(odotype *odo, const double dist, const double speed, int (*stopC
 	} while (distLeft > 0 && !(*stopCondition)(odo));
 
 	setMotorSpeeds(0, 0);
+}
+
+double measureDistance(odotype *odo)
+{
+	int i;
+	double sum = 0;
+	for (i = 0; i < 100; i++)
+	{
+		syncAndUpdateOdo(odo);
+		sum += irDistance(ir_front_left) + irDistance(ir_front_middle) + irDistance(ir_front_right);
+	}
+	return sum / 100;
 }
