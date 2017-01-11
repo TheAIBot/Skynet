@@ -157,8 +157,9 @@ void waitForCompleteStopAndCorrectPosition(odotype* odo)
 
 		printf("%f, %f\n", distanceLeftForRightWheel, distanceLeftForLeftWheel);
 
+#define ACCEPTABLE_DISTANCE_ERROR 0.005
 		double motorSpeedRight;
-		if (fabs(distanceLeftForRightWheel) < 0.01)
+		if (fabs(distanceLeftForRightWheel) < ACCEPTABLE_DISTANCE_ERROR)
 		{
 			motorSpeedRight = 0;
 		}
@@ -168,7 +169,7 @@ void waitForCompleteStopAndCorrectPosition(odotype* odo)
 		}
 
 		double motorSpeedLeft;
-		if (fabs(distanceLeftForLeftWheel) < 0.01)
+		if (fabs(distanceLeftForLeftWheel) < ACCEPTABLE_DISTANCE_ERROR)
 		{
 			motorSpeedLeft = 0;
 		}
@@ -176,7 +177,7 @@ void waitForCompleteStopAndCorrectPosition(odotype* odo)
 		{
 			motorSpeedLeft = (distanceLeftForLeftWheel >= 0) ? max(getAcceleratedSpeed(0.05, distanceLeftForLeftWheel, time), MIN_SPEED) : min(getAcceleratedSpeed(-0.05, distanceLeftForLeftWheel, time), -MIN_SPEED);
 		}
-		//printf("%f, %f\n", motorSpeedRight, motorSpeedLeft);
+		printf("%f, %f\n", motorSpeedRight, motorSpeedLeft);
 
 		setMotorSpeeds(motorSpeedLeft, motorSpeedRight);
 
@@ -184,7 +185,7 @@ void waitForCompleteStopAndCorrectPosition(odotype* odo)
 
 		exitOnButtonPress();
 
-	} while (fabs(distanceLeftForRightWheel) > 0.01 || fabs(distanceLeftForLeftWheel) > 0.01);
+	} while (fabs(distanceLeftForRightWheel) > ACCEPTABLE_DISTANCE_ERROR || fabs(distanceLeftForLeftWheel) > ACCEPTABLE_DISTANCE_ERROR);
 
 	setMotorSpeeds(0, 0);
 }
