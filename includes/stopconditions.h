@@ -54,4 +54,9 @@ int stopAtDetectedPillar(odotype *odo){
 	return (countWithinDistance >= numberRequiredForPillarDetected);
 }
 
+int stopAtBlankSpace(odotype *odo){
+	//printf("stopDistance = %f, meaning it is \n", irDistance(currentIRSensor), irDistance(currentIRSensor)>60);
+	return (irDistance(currentIRSensor) > 60);
+}
+
 #endif /* STOPCONDITIONS_H_ */

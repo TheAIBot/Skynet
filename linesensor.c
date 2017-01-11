@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include "includes/linesensor.h"
+#include "includes/odometry.h"
 #include "includes/robotconnector.h"
 
 static lineSensorCalibratedData lineSensorCalibData[LINE_SENSORS_COUNT];

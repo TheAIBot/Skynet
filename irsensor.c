@@ -2,6 +2,7 @@
 #include "includes/irsensor.h"
 #include <sys/time.h>
 #include <stdint.h>
+#include "includes/odometry.h"
 #include "includes/robotconnector.h"
 
 /*Constants used by the different IR sensors.*/

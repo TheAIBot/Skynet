@@ -94,7 +94,7 @@ int main()
 	followLine(&odo, 100, 0.2, right, &stopAtBlackLine);
 	*/
 
-	/*
+	
 	//Around the gates and to the wall.
 	setIRDetectionDistance(50);//
 	setIRDetectionSensor(ir_left);
@@ -118,13 +118,27 @@ int main()
 
 	setIRDetectionDistance(20);
 	setIRDetectionSensor(ir_right);	
-	followLine(&odo, 100, 0.2, center, &stopAtDetectedPillar);
+	followLine(&odo, 100, 0.2, center, &stopAtDetectedPillar);	
+	//At the first gate at the wall:
 	setIRDetectionSensor(ir_left);
 	fwd(&odo, 0.5, 0.2, &noStopCondition);
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-	*/
-	followWall(&odo, 3, 0.2, &noStopCondition);
-
+	fwd(&odo, 0.6, 0.2, &noStopCondition);
+	//Follow wall	
+	followWall(&odo, 3, 0.2, &stopAtBlankSpace);	
+	fwd(&odo, 0.40, 0.2, &noStopCondition);
+	turn(&odo, ANGLE(90), 0.3, &noStopCondition);		
+	fwd(&odo, 0.75, 0.2, &noStopCondition);
+	turn(&odo, ANGLE(90), 0.3, &noStopCondition);		
+	fwd(&odo, 0.3, 0.2, &noStopCondition);	
+	followWall(&odo, 3, 0.2, &stopAtBlankSpace);	
+	fwd(&odo, 0.50, 0.2, &noStopCondition);	
+	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
+	//Back at black line	
+	followLine(&odo, 100, 0.2, right, &stopAtBlackLine);
+	fwd(&odo, 0.5, 0.2, &noStopCondition);	
+	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
+	//Follow white line:
 
 
 	setMotorSpeeds(0.0, 0.0);

@@ -200,11 +200,11 @@ void followWall(odotype *odo, const double dist, const double speed, int (*stopC
 		distLeft = dist - (((odo->rightWheelPos + odo->leftWheelPos) / 2) - startpos);
 		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
 		const double K = 0.05;
-		const double medTerm = (20 - irDistance(ir_left)); //A distance of 20 centimeters is optimal
+		const double medTerm = -(20 - irDistance(ir_left)); //A distance of 20 centimeters is optimal
 		const double speedDiffPerMotor = (K * medTerm) / 2;
 		printf("IR distance = %f, speedDiff = %f, motorSpeed = %f\n",irDistance(ir_left),speedDiffPerMotor,motorSpeed); //
 
-		if (speed >= 0)		{
+		if (speed >= 0)	{
 			setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
 		} else {
 			setMotorSpeeds(motorSpeed + speedDiffPerMotor, motorSpeed - speedDiffPerMotor);
