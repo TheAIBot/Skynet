@@ -26,6 +26,11 @@ int stopAtLine(odotype *odo)
 	return crossingLine(color, conf);
 }
 
+template<enum LineColor color>
+int stopAtParallelLine(odotype *odo){
+	return parallelLine(color);
+}
+
 template<int angle, int deviation>
 int stopAtDeg(odotype *odo)
 {
@@ -44,11 +49,12 @@ int stopAtDetectedPillar(odotype *odo)
 	} else return 0;
 }
 
+
+
 template<enum IRSensor sensor, int distance>
 int stopAtBlankSpace(odotype *odo){
 	return (irDistance(sensor) > distance);
 }
-
 
 int stopAtBlockedForwardPath(odotype *odo)
 {

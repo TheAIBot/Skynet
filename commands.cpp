@@ -338,7 +338,7 @@ double measureDistance(odotype *odo)
 	for (i = 0; i < 100; i++)
 	{
 		syncAndUpdateOdo(odo);
-		sum += irDistance(ir_front_left) + irDistance(ir_front_middle) + irDistance(ir_front_right);
+		sum += irDistance(ir_front_left) + irDistance(ir_front_center) + irDistance(ir_front_right);
 	}
 	return sum / 100;
 }
