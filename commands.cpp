@@ -29,14 +29,15 @@
 
 #define ANGLE(x) ((double)x / 180.0 * M_PI)
 
-inline double min(const double x, const double y){
+inline double min(const double x, const double y)
+{
 	return ((x) < (y)) ? (x) : (y);
 }
 
-inline double max(const double x, const double y){
+inline double max(const double x, const double y)
+{
 	return ((x) > (y)) ? (x) : (y);
 }
-
 
 double getAcceleratedSpeed(const double stdSpeed, const double distanceLeft, const int tickTime)
 {
@@ -47,15 +48,20 @@ double getAcceleratedSpeed(const double stdSpeed, const double distanceLeft, con
 	return speed;
 }
 
-void syncAndUpdateOdo(odotype *odo){
-	if (lmssrv.config && lmssrv.status && lmssrv.connected)	{
-		while ((xml_in_fd(xmllaser, lmssrv.sockfd) > 0)){
+void syncAndUpdateOdo(odotype *odo)
+{
+	if (lmssrv.config && lmssrv.status && lmssrv.connected)
+	{
+		while ((xml_in_fd(xmllaser, lmssrv.sockfd) > 0))
+		{
 			xml_proca(xmllaser);
 		}
 	}
 
-	if (camsrv.config && camsrv.status && camsrv.connected)	{
-		while ((xml_in_fd(xmldata, camsrv.sockfd) > 0))	{
+	if (camsrv.config && camsrv.status && camsrv.connected)
+	{
+		while ((xml_in_fd(xmldata, camsrv.sockfd) > 0))
+		{
 			xml_proc(xmldata);
 		}
 	}
@@ -66,12 +72,23 @@ void syncAndUpdateOdo(odotype *odo){
 	updateOdo(odo);
 }
 
+void forceSetMotorSpeeds(const double leftSpeed, const double rightSpeed)
+{
+	//printf("%f %f\n", currentSpeedLeft, currentSpeedRight);
+
+	speedl->data[0] = 100 * leftSpeed;
+	speedl->updated = 1;
+	speedr->data[0] = 100 * rightSpeed;
+	speedr->updated = 1;
+}
+
 void exitOnButtonPress()
 {
 	int arg;
 	ioctl(0, FIONREAD, &arg);
 	if (arg != 0)
 	{
+		forceSetMotorSpeeds(0, 0);
 		rhdSync();
 		rhdDisconnect();
 		exit(0);
@@ -116,17 +133,6 @@ void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
 	speedr->data[0] = 100 * currentSpeedRight;
 	speedr->updated = 1;
 }
-
-void forceSetMotorSpeeds(const double leftSpeed, const double rightSpeed)
-{
-	//printf("%f %f\n", currentSpeedLeft, currentSpeedRight);
-
-	speedl->data[0] = 100 * leftSpeed;
-	speedl->updated = 1;
-	speedr->data[0] = 100 * rightSpeed;
-	speedr->updated = 1;
-}
-
 
 void waitForCompleteStopAndCorrectPosition(odotype* odo)
 {
@@ -264,7 +270,8 @@ void turn(odotype *odo, const double angle, const double speed, int (*stopCondit
 		{
 			setMotorSpeeds(-motorSpeed, motorSpeed);
 		}
-		else{
+		else
+		{
 			setMotorSpeeds(motorSpeed, -motorSpeed);
 		}
 
@@ -314,12 +321,14 @@ void followLine(odotype *odo, const double dist, const double speed, enum LineCe
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 
-void followWall(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*)){
+void followWall(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*))
+{
 	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
 	int time = 0;
 
 	double distLeft;
-	do {
+	do
+	{
 		syncAndUpdateOdo(odo);
 
 		distLeft = dist - (((odo->rightWheelPos + odo->leftWheelPos) / 2) - startpos);
@@ -327,11 +336,14 @@ void followWall(odotype *odo, const double dist, const double speed, int (*stopC
 		const double K = 0.05;
 		const double medTerm = -(20 - irDistance(ir_left)); //A distance of 20 centimeters is optimal
 		const double speedDiffPerMotor = (K * medTerm) / 2;
-		printf("IR distance = %f, speedDiff = %f, motorSpeed = %f\n",irDistance(ir_left),speedDiffPerMotor,motorSpeed); //
+		printf("IR distance = %f, speedDiff = %f, motorSpeed = %f\n", irDistance(ir_left), speedDiffPerMotor, motorSpeed); //
 
-		if (speed >= 0)	{
+		if (speed >= 0)
+		{
 			setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
-		} else {
+		}
+		else
+		{
 			setMotorSpeeds(motorSpeed + speedDiffPerMotor, motorSpeed - speedDiffPerMotor);
 		}
 

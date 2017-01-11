@@ -29,6 +29,4 @@ double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
 
 int crossingLine(enum LineColor color, int konf);
 
-int parallelLine(enum LineColor color);
-
 #endif

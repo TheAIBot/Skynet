@@ -29,7 +29,7 @@ int stopAtLine(odotype *odo)
 template<enum LineColor color>
 int stopAtParallelLine(odotype *odo)
 {
-	return parallelLine(color);
+	return fabs(getLineOffSetDistance(LineCentering::center, color)) < 0.2;
 }
 
 template<int angle, int deviation>

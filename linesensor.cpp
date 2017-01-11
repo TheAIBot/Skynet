@@ -95,7 +95,7 @@ int crossingLine(enum LineColor color, int konf)
 			}
 		}
 	}
-	if (color == white)
+	else if (color == white)
 	{
 		for (i = 0; i < LINE_SENSORS_COUNT; i++)
 		{
@@ -108,14 +108,4 @@ int crossingLine(enum LineColor color, int konf)
 	}
 	//printf("%d\n", count);
 	return count >= konf;
-}
-
-int parallelLine(enum LineColor color){
-	if (color == black)	{
-		return (calibrateLineSensorValue(linesensor->data[3], 3) < 0.25 &&
-				calibrateLineSensorValue(linesensor->data[4], 4) < 0.25);
-	} else if (color == white)	{		
-		return (calibrateLineSensorValue(linesensor->data[3], 3) > 0.80 &&
-				calibrateLineSensorValue(linesensor->data[4], 4) > 0.80);
-	}
 }
