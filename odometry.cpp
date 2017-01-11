@@ -18,13 +18,18 @@ static int preventOverflow(int delta)
 	return delta;
 }
 
-static double updateRightencPos(odotype* p)
+double getDistanceFromTicks(odotype *p, double ticks)
+{
+	return ticks * p->metersPerEncoderTick;
+}
+
+static double updateRightEncPos(odotype* p)
 {
 	double delta = p->rightWheelEncoderTicks - p->oldRightWheelEncoderTicks;
 	delta = preventOverflow(delta);
 	p->oldRightWheelEncoderTicks = p->rightWheelEncoderTicks;
-	p->rightWheelPos += delta * p->metersPerEncoderTick;
-	return delta * p->metersPerEncoderTick;
+	p->rightWheelPos += getDistanceFromTicks(p, delta);
+	return getDistanceFromTicks(p, delta);
 }
 
 static double updateLeftEncPos(odotype* p)
@@ -32,13 +37,13 @@ static double updateLeftEncPos(odotype* p)
 	double delta = p->leftWheelEncoderTicks - p->oldLeftWheelEncoderTicks;
 	delta = preventOverflow(delta);
 	p->oldLeftWheelEncoderTicks = p->leftWheelEncoderTicks;
-	p->leftWheelPos += delta * p->metersPerEncoderTick;
-	return delta * p->metersPerEncoderTick;
+	p->leftWheelPos += getDistanceFromTicks(p, delta);
+	return getDistanceFromTicks(p, delta);
 }
 
 void updateOdo(odotype *p)
 {
-	const double incR = updateRightencPos(p);
+	const double incR = updateRightEncPos(p);
 	const double incL = updateLeftEncPos(p);
 
 	p->totalDistance += fabs(incR + incL) / 2;

@@ -25,7 +25,7 @@
 #define MAX_ACCELERATION 0.5
 #define MIN_SPEED 0.01
 #define TICKS_PER_SECOND 100
-#define MIN_ACCELERATION (MAX_ACCELERATION / TICKS_PER_SECOND)
+#define MAX_ACCELERATION_PER_TICK (MAX_ACCELERATION / TICKS_PER_SECOND)
 
 #define ANGLE(x) ((double)x / 180.0 * M_PI)
 
@@ -41,10 +41,10 @@ inline double max(const double x, const double y)
 
 double getAcceleratedSpeed(const double stdSpeed, const double distanceLeft, const int tickTime)
 {
-	const double speedFunc = sqrt(2 * (MAX_ACCELERATION) * distanceLeft);
+	const double speedFunc = sqrt(2 * (MAX_ACCELERATION) * fabs(distanceLeft));
 	const double accFunc = (MAX_ACCELERATION / TICKS_PER_SECOND) * tickTime;
 	const double speed = (stdSpeed >= 0) ? min(min(stdSpeed, speedFunc), accFunc) : max(max(stdSpeed, -speedFunc), -accFunc);
-	//printf("%f %f %f %d %f\n", stdSpeed, speedFunc, accFunc, tickTime, speed);
+	//printf("%f, %f, %f %d %f\n", stdSpeed, speedFunc, accFunc, tickTime, speed);
 	return speed;
 }
 
@@ -86,12 +86,113 @@ void exitOnButtonPress()
 
 void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
 {
-	//printf("%f %f\n", leftSpeed, rightSpeed);
+	static double currentSpeedLeft = 0;
+	static double currentSpeedRight = 0;
 
-	speedl->data[0] = 100 * leftSpeed;
+	double diffLeft = leftSpeed - currentSpeedLeft;
+	double correctSpeedLeft;
+	if (diffLeft != 0)
+	{
+		correctSpeedLeft = (diffLeft > 0) ? min(leftSpeed, currentSpeedLeft + MAX_ACCELERATION_PER_TICK) : max(leftSpeed, currentSpeedLeft - MAX_ACCELERATION_PER_TICK);
+	}
+	else
+	{
+		correctSpeedLeft = leftSpeed;
+	}
+
+	double diffRight = rightSpeed - currentSpeedRight;
+	double correctSpeedRight;
+	if (diffRight != 0)
+	{
+		correctSpeedRight = (diffRight > 0) ? min(rightSpeed, currentSpeedRight + MAX_ACCELERATION_PER_TICK) : max(rightSpeed, currentSpeedRight - MAX_ACCELERATION_PER_TICK);
+	}
+	else
+	{
+		correctSpeedRight = rightSpeed;
+	}
+	//printf("%f, %f \n", correctSpeedRight, correctSpeedLeft);
+
+	currentSpeedLeft = correctSpeedLeft;
+	currentSpeedRight = correctSpeedRight;
+
+	//printf("%f %f\n", currentSpeedLeft, currentSpeedRight);
+
+	speedl->data[0] = 100 * currentSpeedLeft;
 	speedl->updated = 1;
-	speedr->data[0] = 100 * rightSpeed;
+	speedr->data[0] = 100 * currentSpeedRight;
 	speedr->updated = 1;
+}
+
+void waitForCompleteStopAndCorrectPosition(odotype* odo)
+{
+	const double startRightWheelPos = odo->rightWheelPos;
+	const double startLeftWheelPos = odo->leftWheelPos;
+	double previousRightWheelEncoderTicks;
+	double previousLeftWheelEncoderTicks;
+	do
+	{
+		previousRightWheelEncoderTicks = odo->rightWheelEncoderTicks;
+		previousLeftWheelEncoderTicks = odo->leftWheelEncoderTicks;
+
+		syncAndUpdateOdo(odo);
+		setMotorSpeeds(0, 0);
+		exitOnButtonPress();
+
+		//printf("%f %f", previousRightWheelEncoderTicks - odo->rightWheelEncoderTicks, previousLeftWheelEncoderTicks - odo->leftWheelEncoderTicks);
+
+	} while (previousRightWheelEncoderTicks != odo->rightWheelEncoderTicks || previousLeftWheelEncoderTicks != odo->leftWheelEncoderTicks);
+	//robot has now come to a complete stop. Now need to correct the robots position
+
+	const double distanceForRightWheel = startRightWheelPos - odo->rightWheelPos;
+	const double distanceForLeftWheel = startLeftWheelPos - odo->leftWheelPos;
+	const double oldRightWheelPos = odo->rightWheelPos;
+	const double oldLeftWheelPos = odo->leftWheelPos;
+	printf("%f %f\n", distanceForRightWheel, distanceForLeftWheel);
+
+	int time = 0;
+
+	//this will get it close but not all the way there.
+	double distanceLeftForRightWheel;
+	double distanceLeftForLeftWheel;
+	do
+	{
+		syncAndUpdateOdo(odo);
+
+		distanceLeftForRightWheel = distanceForRightWheel - (odo->rightWheelPos - oldRightWheelPos);
+		distanceLeftForLeftWheel = distanceForLeftWheel - (odo->leftWheelPos - oldLeftWheelPos);
+
+		printf("%f, %f\n", distanceLeftForRightWheel, distanceLeftForLeftWheel);
+
+		double motorSpeedRight;
+		if (fabs(distanceLeftForRightWheel) < 0.01)
+		{
+			motorSpeedRight = 0;
+		}
+		else
+		{
+			motorSpeedRight = (distanceLeftForRightWheel >= 0) ? max(getAcceleratedSpeed(0.05, distanceLeftForRightWheel, time), MIN_SPEED) : min(getAcceleratedSpeed(-0.05, distanceLeftForRightWheel, time), -MIN_SPEED);
+		}
+
+		double motorSpeedLeft;
+		if (fabs(distanceLeftForLeftWheel) < 0.01)
+		{
+			motorSpeedLeft = 0;
+		}
+		else
+		{
+			motorSpeedLeft = (distanceLeftForLeftWheel >= 0) ? max(getAcceleratedSpeed(0.05, distanceLeftForLeftWheel, time), MIN_SPEED) : min(getAcceleratedSpeed(-0.05, distanceLeftForLeftWheel, time), -MIN_SPEED);
+		}
+		//printf("%f, %f\n", motorSpeedRight, motorSpeedLeft);
+
+		setMotorSpeeds(motorSpeedLeft, motorSpeedRight);
+
+		time++;
+
+		exitOnButtonPress();
+
+	} while (fabs(distanceLeftForRightWheel) > 0.01 || fabs(distanceLeftForLeftWheel) > 0.01);
+
+	setMotorSpeeds(0, 0);
 }
 
 void fwd(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*))
@@ -116,7 +217,7 @@ void fwd(odotype *odo, const double dist, const double speed, int (*stopConditio
 
 	} while (distLeft > 0 && !(*stopCondition)(odo));
 
-	setMotorSpeeds(0, 0);
+	waitForCompleteStopAndCorrectPosition(odo);
 }
 
 void fwdTurn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*))
@@ -136,7 +237,7 @@ void fwdTurn(odotype *odo, const double angle, const double speed, int (*stopCon
 		exitOnButtonPress();
 	} while (fabs(angleDifference) > ANGLE(0.1) && !(*stopCondition)(odo));
 
-	setMotorSpeeds(0, 0);
+	waitForCompleteStopAndCorrectPosition(odo);
 }
 
 void turn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*))
@@ -168,7 +269,7 @@ void turn(odotype *odo, const double angle, const double speed, int (*stopCondit
 
 	} while (distLeft > 0 && !(*stopCondition)(odo));
 
-	setMotorSpeeds(0, 0);
+	waitForCompleteStopAndCorrectPosition(odo);
 }
 
 void followLine(odotype *odo, const double dist, const double speed, enum LineCentering centering, enum LineColor color, int (*stopCondition)(odotype*))
@@ -205,7 +306,7 @@ void followLine(odotype *odo, const double dist, const double speed, enum LineCe
 
 	} while (distLeft > 0 && !(*stopCondition)(odo));
 
-	setMotorSpeeds(0, 0);
+	waitForCompleteStopAndCorrectPosition(odo);
 }
 
 void followWall(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*))
@@ -239,7 +340,7 @@ void followWall(odotype *odo, const double dist, const double speed, int (*stopC
 
 	} while (distLeft > 0 && !(*stopCondition)(odo));
 
-	setMotorSpeeds(0, 0);
+	waitForCompleteStopAndCorrectPosition(odo);
 }
 
 double measureDistance(odotype *odo)
