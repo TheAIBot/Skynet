@@ -64,7 +64,7 @@ int main()
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
 
 
-	/*
+	
 	//go to box
 	followLine(&odo, 100, STD_SPEED, LineCentering::right, LineColor::black, &stopAtDeg<-90, 5>);
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
@@ -95,7 +95,7 @@ int main()
 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 	fwd(&odo, 100, STD_SPEED, &stopAtLine<LineColor::black, 4>);
 	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
-	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
+	turn(&odo, ANGLE(180), STD_SPEED, &stopAtParallelLine<LineColor::black>);
 
 
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
@@ -127,7 +127,7 @@ int main()
 	fwd(&odo, 0.4, STD_SPEED, &noStopCondition);	
 	turn(&odo, ANGLE(-90), 0.3, &noStopCondition);
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtDetectedPillar<ir_front_center , 30>);
-	*/
+	
 
 	/*
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);

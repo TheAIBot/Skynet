@@ -117,6 +117,17 @@ void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
 	speedr->updated = 1;
 }
 
+void forceSetMotorSpeeds(const double leftSpeed, const double rightSpeed)
+{
+	//printf("%f %f\n", currentSpeedLeft, currentSpeedRight);
+
+	speedl->data[0] = 100 * leftSpeed;
+	speedl->updated = 1;
+	speedr->data[0] = 100 * rightSpeed;
+	speedr->updated = 1;
+}
+
+
 void waitForCompleteStopAndCorrectPosition(odotype* odo)
 {
 	const double startRightWheelPos = odo->rightWheelPos;

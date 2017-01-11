@@ -4,6 +4,9 @@
 #include "odometry.h"
 #include "linesensor.h"
 
+
+void forceSetMotorSpeeds(const double leftSpeed, const double rightSpeed);
+
 void setMotorSpeeds(const double leftSpeed, const double rightSpeed);
 
 void fwd(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*));
