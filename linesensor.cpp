@@ -55,8 +55,8 @@ static double calibrateLineSensorValue(const double sensorValue, const int senso
 
 double fRand(double fMin, double fMax)
 {
-    double f = (double)rand() / RAND_MAX;
-    return fMin + f * (fMax - fMin);
+	double f = (double) rand() / RAND_MAX;
+	return fMin + f * (fMax - fMin);
 }
 
 double correctCalibratedValue(enum LineColor color, const double value)
@@ -83,31 +83,14 @@ double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
 	double sum_i = 0;
 	int i;
 	static LineCentering lineC[8] = { right, right, right, right, left, left, left, left };
-	double maxValue = 0;
-	double average = 0;
-	for (i = 0; i < LINE_SENSORS_COUNT; ++i)
-	{
-		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
-		const double correctedValue = correctCalibratedValue(color, calibValue);
-		if (correctedValue > maxValue)
-		{
-			maxValue = correctedValue;
-		}
-		average += correctedValue;
-	}
-	average /= LINE_SENSORS_COUNT;
-
-	const double a = maxValue - average;
-	const double b = average;
-	printf("a %f b %f\n", a, b);
 
 	for (i = 0; i < LINE_SENSORS_COUNT; ++i)
 	{
 		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
 		const double weight = (centering == lineC[i]) ? 3 : 1;
 		//printf("%f ", weight);
-		sum_m += a * (correctCalibratedValue(color, calibValue) * i * weight) + b;
-		sum_i += a * (correctCalibratedValue(color, calibValue) * weight) + b;
+		sum_m += ((correctCalibratedValue(color, calibValue) > 0.85) ? 1 : 0) * i * weight;
+		sum_i += ((correctCalibratedValue(color, calibValue) > 0.85) ? 1 : 0) * weight;
 	}
 	//printf("\n");
 	const double c_m = sum_m / sum_i;
