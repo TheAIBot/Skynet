@@ -3,6 +3,9 @@
 #include "includes/odometry.h"
 #include "includes/robotconnector.h"
 
+#define MAX_VALUE_FOR_BLACK 0.25
+#define MIN_VALUE_FOR_WHITE 0.80
+
 static lineSensorCalibratedData lineSensorCalibData[LINE_SENSORS_COUNT];
 
 int readLineSensorCalibrationData(const char* fileLoc)
@@ -64,7 +67,7 @@ double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
 	for (i = 0; i < LINE_SENSORS_COUNT; i++)
 	{
 		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
-		if (color == black)
+		if (color == LineColor::black)
 		{
 			sum_m += (1 - calibValue) * i;
 			sum_i += (1 - calibValue);
@@ -77,30 +80,32 @@ double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
 
 	}
 	const double c_m = sum_m / sum_i;
-	return ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - getLineCenteringOffset(centering);
+	const double offsetDistance = ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - getLineCenteringOffset(centering);
+	//printf("%f\n", offsetDistance);
+	return offsetDistance;
 }
 
 int crossingLine(enum LineColor color, int konf)
 {
 	int count = 0;
 	int i;
-	if (color == black)
+	if (color == LineColor::black)
 	{
 		for (i = 0; i < LINE_SENSORS_COUNT; i++)
 		{
-			double calibvalue = calibrateLineSensorValue(linesensor->data[i], i);
-			if (calibvalue < 0.25)
+			const double calibvalue = calibrateLineSensorValue(linesensor->data[i], i);
+			if (calibvalue <= MAX_VALUE_FOR_BLACK)
 			{
 				count++;
 			}
 		}
 	}
-	else if (color == white)
+	else if (color == LineColor::white)
 	{
 		for (i = 0; i < LINE_SENSORS_COUNT; i++)
 		{
-			double calibvalue = calibrateLineSensorValue(linesensor->data[i], i);
-			if (calibvalue > 0.80)
+			const double calibvalue = calibrateLineSensorValue(linesensor->data[i], i);
+			if (calibvalue >= MIN_VALUE_FOR_WHITE)
 			{
 				count++;
 			}
@@ -108,4 +113,18 @@ int crossingLine(enum LineColor color, int konf)
 	}
 	//printf("%d\n", count);
 	return count >= konf;
+}
+
+int parallelLine(enum LineColor color)
+{
+	if (color == LineColor::black)
+	{
+		return (calibrateLineSensorValue(linesensor->data[3], 3) < MAX_VALUE_FOR_BLACK &&
+				calibrateLineSensorValue(linesensor->data[4], 4) < MAX_VALUE_FOR_BLACK);
+	}
+	else
+	{
+		return (calibrateLineSensorValue(linesensor->data[3], 3) > MIN_VALUE_FOR_WHITE &&
+				calibrateLineSensorValue(linesensor->data[4], 4) > MIN_VALUE_FOR_WHITE);
+	}
 }

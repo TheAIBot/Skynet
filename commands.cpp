@@ -121,7 +121,6 @@ void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
 	{
 		correctSpeedRight = rightSpeed;
 	}
-	//printf("%f, %f \n", correctSpeedRight, correctSpeedLeft);
 
 	currentSpeedLeft = correctSpeedLeft;
 	currentSpeedRight = correctSpeedRight;
@@ -138,8 +137,8 @@ void waitForCompleteStopAndCorrectPosition(odotype* odo)
 {
 	const double startRightWheelPos = odo->rightWheelPos;
 	const double startLeftWheelPos = odo->leftWheelPos;
-	double previousRightWheelEncoderTicks;
-	double previousLeftWheelEncoderTicks;
+	int previousRightWheelEncoderTicks;
+	int previousLeftWheelEncoderTicks;
 	do
 	{
 		previousRightWheelEncoderTicks = odo->rightWheelEncoderTicks;
@@ -149,8 +148,6 @@ void waitForCompleteStopAndCorrectPosition(odotype* odo)
 		setMotorSpeeds(0, 0);
 		exitOnButtonPress();
 
-		//printf("%f %f", previousRightWheelEncoderTicks - odo->rightWheelEncoderTicks, previousLeftWheelEncoderTicks - odo->leftWheelEncoderTicks);
-
 	} while (previousRightWheelEncoderTicks != odo->rightWheelEncoderTicks || previousLeftWheelEncoderTicks != odo->leftWheelEncoderTicks);
 	//robot has now come to a complete stop. Now need to correct the robots position
 
@@ -158,7 +155,6 @@ void waitForCompleteStopAndCorrectPosition(odotype* odo)
 	const double distanceForLeftWheel = startLeftWheelPos - odo->leftWheelPos;
 	const double oldRightWheelPos = odo->rightWheelPos;
 	const double oldLeftWheelPos = odo->leftWheelPos;
-	printf("%f %f\n", distanceForRightWheel, distanceForLeftWheel);
 
 	int time = 0;
 
@@ -172,7 +168,7 @@ void waitForCompleteStopAndCorrectPosition(odotype* odo)
 		distanceLeftForRightWheel = distanceForRightWheel - (odo->rightWheelPos - oldRightWheelPos);
 		distanceLeftForLeftWheel = distanceForLeftWheel - (odo->leftWheelPos - oldLeftWheelPos);
 
-		printf("%f, %f\n", distanceLeftForRightWheel, distanceLeftForLeftWheel);
+		//printf("%f, %f\n", distanceLeftForRightWheel, distanceLeftForLeftWheel);
 
 #define ACCEPTABLE_DISTANCE_ERROR 0.005
 		double motorSpeedRight;
@@ -194,7 +190,7 @@ void waitForCompleteStopAndCorrectPosition(odotype* odo)
 		{
 			motorSpeedLeft = (distanceLeftForLeftWheel >= 0) ? max(getAcceleratedSpeed(0.05, distanceLeftForLeftWheel, time), MIN_SPEED) : min(getAcceleratedSpeed(-0.05, distanceLeftForLeftWheel, time), -MIN_SPEED);
 		}
-		printf("%f, %f\n", motorSpeedRight, motorSpeedLeft);
+		//printf("%f, %f\n", motorSpeedRight, motorSpeedLeft);
 
 		setMotorSpeeds(motorSpeedLeft, motorSpeedRight);
 

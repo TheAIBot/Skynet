@@ -73,12 +73,14 @@ int main()
 	fwd(&odo, 0.1, STD_SPEED, &noStopCondition);
 	fwd(&odo, 100, STD_SPEED, &stopAtLine<LineColor::black, 4>);
 	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
-	turn(&odo, ANGLE(-90), STD_SPEED, &noStopCondition);
+	turn(&odo, ANGLE(-45), STD_SPEED, &noStopCondition);
+	turn(&odo, ANGLE(-90), STD_SPEED, &stopAtParallelLine<LineColor::black>);
 
 	//push box and go through gate
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
 	fwd(&odo, 0.135, STD_SPEED, &noStopCondition);
-	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
+	turn(&odo, ANGLE(45), STD_SPEED, &noStopCondition);
+	turn(&odo, ANGLE(90), STD_SPEED, &stopAtParallelLine<LineColor::black>);
 	followLine(&odo, 1, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 4>);
 	followLine(&odo, 1, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
 
@@ -92,7 +94,7 @@ int main()
 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 	fwd(&odo, 100, STD_SPEED, &stopAtLine<LineColor::black, 4>);
 	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
-	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
+	turn(&odo, ANGLE(180), STD_SPEED, &stopAtParallelLine<LineColor::black>);
 
 
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
@@ -100,7 +102,7 @@ int main()
 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 	fwd(&odo, 0.1, STD_SPEED, &noStopCondition);
 
-	followLine(&odo, 100, STD_SPEED, center, black, &stopAtDetectedPillar<ir_right , 20>);
+	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtDetectedPillar<IRSensor::ir_right , 20>);
 	fwd(&odo, 0.5, STD_SPEED, &noStopCondition);
 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 

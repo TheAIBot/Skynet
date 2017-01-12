@@ -28,8 +28,9 @@ static double updateRightEncPos(odotype* p)
 	double delta = p->rightWheelEncoderTicks - p->oldRightWheelEncoderTicks;
 	delta = preventOverflow(delta);
 	p->oldRightWheelEncoderTicks = p->rightWheelEncoderTicks;
-	p->rightWheelPos += getDistanceFromTicks(p, delta);
-	return getDistanceFromTicks(p, delta);
+	const double traveledDistance = getDistanceFromTicks(p, delta);
+	p->rightWheelPos += traveledDistance;
+	return traveledDistance;
 }
 
 static double updateLeftEncPos(odotype* p)
@@ -37,8 +38,9 @@ static double updateLeftEncPos(odotype* p)
 	double delta = p->leftWheelEncoderTicks - p->oldLeftWheelEncoderTicks;
 	delta = preventOverflow(delta);
 	p->oldLeftWheelEncoderTicks = p->leftWheelEncoderTicks;
-	p->leftWheelPos += getDistanceFromTicks(p, delta);
-	return getDistanceFromTicks(p, delta);
+	const double traveledDistance = getDistanceFromTicks(p, delta);
+	p->leftWheelPos += traveledDistance;
+	return traveledDistance;
 }
 
 void updateOdo(odotype *p)
