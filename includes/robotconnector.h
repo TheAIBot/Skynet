@@ -29,9 +29,9 @@ typedef struct
 	double code;
 	double id;
 	double crc;
-} roboConnectData;
+} laserData;
 
-extern roboConnectData gmk;
+extern laserData gmk;
 
 
 extern double visionpar[10];

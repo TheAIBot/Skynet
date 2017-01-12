@@ -125,7 +125,7 @@ void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
 	currentSpeedLeft = correctSpeedLeft;
 	currentSpeedRight = correctSpeedRight;
 
-	//printf("%f %f\n", currentSpeedLeft, currentSpeedRight);
+    //printf("%f %f\n", currentSpeedLeft, currentSpeedRight);
 
 	speedl->data[0] = 100 * currentSpeedLeft;
 	speedl->updated = 1;
@@ -296,18 +296,30 @@ void followLine(odotype *odo, const double dist, const double speed, enum LineCe
 		//tried to make it go backwards
 		const double motorSpeed = (speed >= 0) ? max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED) : min(getAcceleratedSpeed(speed, distLeft, time), -MIN_SPEED);
 		const double lineOffDist = getLineOffSetDistance(centering, color);
-		const double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE) + odo->angle;
-		const double K = 2;
-		const double speedDiffPerMotor = (K * (thetaRef - odo->angle)) / 2;
 
-		if (speed >= 0)
-		{
-			setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
-		}
-		else
-		{
-			setMotorSpeeds(motorSpeed + speedDiffPerMotor, motorSpeed - speedDiffPerMotor);
-		}
+        const double maxDiff = atan(((double)LINE_SENSOR_WIDTH / 2) / (double)WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE);
+        const double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE);
+       // printf("thetaRef = %f, maxDiff = %f\n",thetaRef,maxDiff);
+        const double percentOff = (thetaRef / maxDiff);
+        const double K = 7;
+
+        //const double speedDiffPerMotor = motorSpeed * percentOff;
+/*        atan()
+
+        double rightWheelSpeed;
+        double leftWheelSpeed;
+        double maxSpeed = max(fabs(motorSpeed - speedDiffPerMotor), fabs(motorSpeed + speedDiffPerMotor));
+        if (maxSpeed > fabs(speed)){
+            rightWheelSpeed = ((motorSpeed + speedDiffPerMotor)/maxSpeed)*speed;
+            leftWheelSpeed  = ((motorSpeed - speedDiffPerMotor)/maxSpeed)*speed;
+            //printf("right %f left %f\n", rightWheelSpeed, leftWheelSpeed);
+        } else {
+            rightWheelSpeed = motorSpeed + speedDiffPerMotor;
+            leftWheelSpeed  = motorSpeed - speedDiffPerMotor;
+        }
+        */
+        //printf("left motor speed = %f, right motor speed = %f\n", motorSpeed - motorSpeed*percentOff, motorSpeed + motorSpeed*percentOff);
+        setMotorSpeeds(motorSpeed - motorSpeed*percentOff, motorSpeed + motorSpeed*percentOff);
 
 		time++;
 		exitOnButtonPress();

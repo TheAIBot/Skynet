@@ -52,37 +52,37 @@ static double calibrateLineSensorValue(const double sensorValue, const int senso
 	return calibValue;
 }
 
-inline double getLineCenteringOffset(enum LineCentering centering)
+double correctCalibratedValue(enum LineColor color, const double value)
 {
-	//static double centers[3] = { ((double)LINE_SENSOR_WIDTH / 3) * 1, (double)LINE_SENSOR_WIDTH / 2, ((double)LINE_SENSOR_WIDTH / 3) * 2 };
-	static double centers[3] = { ((double) LINE_SENSOR_WIDTH / 4) * 1, (double) LINE_SENSOR_WIDTH / 2, ((double) LINE_SENSOR_WIDTH / 4) * 3 };
-	return centers[centering];
+    if(color == LineColor::black)
+    {
+        const double correctedValue = (1 - value);
+        return correctedValue * correctedValue * correctedValue * correctedValue * correctedValue;
+    }
+    return value * value * value * value * value;
 }
 
 double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
 {
 	double sum_m = 0;
 	double sum_i = 0;
-	int i;
-	for (i = 0; i < LINE_SENSORS_COUNT; i++)
-	{
-		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
-		if (color == LineColor::black)
-		{
-			sum_m += (1 - calibValue) * i;
-			sum_i += (1 - calibValue);
-		}
-		else
-		{
-			sum_m += calibValue * i;
-			sum_i += calibValue;
-		}
-
-	}
-	const double c_m = sum_m / sum_i;
-	const double offsetDistance = ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - getLineCenteringOffset(centering);
-	//printf("%f\n", offsetDistance);
-	return offsetDistance;
+    int i;
+    static LineCentering lineC[8] = {right ,right ,right, right, left, left, left, left};
+    for (i = 0; i < LINE_SENSORS_COUNT; ++i)
+    {
+        const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
+        const double weight = (centering == lineC[i]) ? 2 : 1;
+        //printf("%f ", weight);
+        sum_m += correctCalibratedValue(color, calibValue) * i * weight;
+        sum_i += correctCalibratedValue(color, calibValue) * weight;
+    }
+    //printf("\n");
+    const double c_m = sum_m / sum_i;
+    //printf("%f\n", c_m);
+    const double offsetDistance = ((double) LINE_SENSOR_WIDTH
+    / (LINE_SENSORS_COUNT - 1)) * c_m - (LINE_SENSOR_WIDTH / 2);
+    //printf("%f\n", offsetDistance);
+    return offsetDistance;
 }
 
 int crossingLine(enum LineColor color, int konf)
