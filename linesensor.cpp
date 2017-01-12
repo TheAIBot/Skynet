@@ -53,22 +53,17 @@ static double calibrateLineSensorValue(const double sensorValue, const int senso
 	return calibValue;
 }
 
-double correctCalibratedValue(enum LineColor color, const double value)
-{
+double correctCalibratedValue(enum LineColor color, const double value){
 	double correctedValue;
-	if (color == LineColor::black)
-	{
+	if (color == LineColor::black){
 		correctedValue = (1 - value);
-	}
-	else
-	{
+	} else {
 		correctedValue = value;
 	}
-	if (correctedValue < 0.85)
-	{
-		correctedValue = 0.6 + rand() * 0.05;
+	if (correctedValue < 0.70) {
+		correctedValue = 0.0;
 	}
-	return correctedValue * correctedValue * correctedValue;
+	return correctedValue;
 }
 
 double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
@@ -77,36 +72,20 @@ double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
 	double sum_i = 0;
 	int i;
 	static LineCentering lineC[8] = { right, right, right, right, left, left, left, left };
-	double maxValue = 0;
-	double average = 0;
-	for (i = 0; i < LINE_SENSORS_COUNT; ++i)
-	{
+	for (i = 0; i < LINE_SENSORS_COUNT; ++i){
 		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
 		const double correctedValue = correctCalibratedValue(color, calibValue);
-		if (correctedValue > maxValue)
-		{
-			maxValue = correctedValue;
-		}
-		average += correctedValue;
-	}
-	average /= LINE_SENSORS_COUNT;
-
-	const double a = maxValue - average;
-	const double b = average;
-
-	for (i = 0; i < LINE_SENSORS_COUNT; ++i)
-	{
-		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
-		const double weight = (centering == lineC[i]) ? 3 : 1;
+		const double weight = (centering == lineC[i]) ? 2 : 1;
+		printf("Sensor %d, calibValue = %f, correctedValue = %f.\n", i, calibValue, correctedValue);
 		//printf("%f ", weight);
-		sum_m += a * (correctCalibratedValue(color, calibValue) * i * weight) + b;
-		sum_i += a * (correctCalibratedValue(color, calibValue) * weight) + b;
-	}
-	//printf("\n");
+		sum_m += correctCalibratedValue(color, calibValue) * i * weight;
+		sum_i += correctCalibratedValue(color, calibValue) * weight;
+	} printf("\n\n\n\n");
+
 	const double c_m = sum_m / sum_i;
-	//printf("%f\n", c_m);
-	const double offsetDistance = ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - (LINE_SENSOR_WIDTH / 2);
-	//printf("%f\n", offsetDistance);
+
+	const double offsetDistance = ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT -1)) * c_m - (LINE_SENSOR_WIDTH / 2);
+	printf("offset Distance = %f\n", offsetDistance);
 	return offsetDistance;
 }
 

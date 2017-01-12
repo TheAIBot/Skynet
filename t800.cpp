@@ -64,7 +64,7 @@ int main()
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
 
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &noStopCondition);
-
+	/*
 	//go to box
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
 
@@ -112,7 +112,7 @@ int main()
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 	followWall(&odo, distance, 0.2, &stopAtFreeRightIR);
 	*/
-
+	
 
 	forceSetMotorSpeeds(0, 0);
 	rhdSync();
