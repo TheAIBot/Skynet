@@ -53,6 +53,12 @@ static double calibrateLineSensorValue(const double sensorValue, const int senso
 	return calibValue;
 }
 
+double fRand(double fMin, double fMax)
+{
+    double f = (double)rand() / RAND_MAX;
+    return fMin + f * (fMax - fMin);
+}
+
 double correctCalibratedValue(enum LineColor color, const double value)
 {
 	double correctedValue;
@@ -66,9 +72,9 @@ double correctCalibratedValue(enum LineColor color, const double value)
 	}
 	if (correctedValue < 0.85)
 	{
-		correctedValue = 0.6 + rand() * 0.05;
+		correctedValue = 0.6 + fRand(0.00, 0.05);
 	}
-	return correctedValue * correctedValue * correctedValue;
+	return correctedValue;
 }
 
 double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
@@ -93,6 +99,7 @@ double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
 
 	const double a = maxValue - average;
 	const double b = average;
+	printf("a %f b %f\n", a, b);
 
 	for (i = 0; i < LINE_SENSORS_COUNT; ++i)
 	{
