@@ -299,26 +299,8 @@ void followLine(odotype *odo, const double dist, const double speed, enum LineCe
 
         const double maxDiff = atan(((double)LINE_SENSOR_WIDTH / 2) / (double)WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE);
         const double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE);
-       // printf("thetaRef = %f, maxDiff = %f\n",thetaRef,maxDiff);
         const double percentOff = (thetaRef / maxDiff);
-        const double K = 7;
 
-        //const double speedDiffPerMotor = motorSpeed * percentOff;
-/*        atan()
-
-        double rightWheelSpeed;
-        double leftWheelSpeed;
-        double maxSpeed = max(fabs(motorSpeed - speedDiffPerMotor), fabs(motorSpeed + speedDiffPerMotor));
-        if (maxSpeed > fabs(speed)){
-            rightWheelSpeed = ((motorSpeed + speedDiffPerMotor)/maxSpeed)*speed;
-            leftWheelSpeed  = ((motorSpeed - speedDiffPerMotor)/maxSpeed)*speed;
-            //printf("right %f left %f\n", rightWheelSpeed, leftWheelSpeed);
-        } else {
-            rightWheelSpeed = motorSpeed + speedDiffPerMotor;
-            leftWheelSpeed  = motorSpeed - speedDiffPerMotor;
-        }
-        */
-        //printf("left motor speed = %f, right motor speed = %f\n", motorSpeed - motorSpeed*percentOff, motorSpeed + motorSpeed*percentOff);
         setMotorSpeeds(motorSpeed - motorSpeed*percentOff, motorSpeed + motorSpeed*percentOff);
 
 		time++;

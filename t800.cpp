@@ -63,8 +63,9 @@ int main()
 	odo.oldLeftWheelEncoderTicks = odo.leftWheelEncoderTicks;
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
 
+	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &noStopCondition);
+
 	//go to box
-	followLine(&odo, 100, STD_SPEED, LineCentering::right, LineColor::black, &stopAtDeg<-90, 5>);
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
 
 	//go to line towards box to move
@@ -73,14 +74,12 @@ int main()
 	fwd(&odo, 0.1, STD_SPEED, &noStopCondition);
 	fwd(&odo, 100, STD_SPEED, &stopAtLine<LineColor::black, 4>);
 	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
-	turn(&odo, ANGLE(-45), STD_SPEED, &noStopCondition);
 	turn(&odo, ANGLE(-90), STD_SPEED, &stopAtParallelLine<LineColor::black>);
 
 	//push box and go through gate
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
 	fwd(&odo, 0.135, STD_SPEED, &noStopCondition);
-	turn(&odo, ANGLE(45), STD_SPEED, &noStopCondition);
-	turn(&odo, ANGLE(90), STD_SPEED, &stopAtParallelLine<LineColor::black>);
+	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 	followLine(&odo, 1, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 4>);
 	followLine(&odo, 1, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
 
@@ -97,7 +96,7 @@ int main()
 	turn(&odo, ANGLE(180), STD_SPEED, &stopAtParallelLine<LineColor::black>);
 
 
-	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
+	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 6>);
 	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 	fwd(&odo, 0.1, STD_SPEED, &noStopCondition);
