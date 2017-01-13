@@ -7,6 +7,8 @@
 #define MAX_VALUE_FOR_BLACK 0.25
 #define MIN_VALUE_FOR_WHITE 0.80
 
+bool simulateFloor = false;
+
 static lineSensorCalibratedData lineSensorCalibData[LINE_SENSORS_COUNT];
 
 int readLineSensorCalibrationData(const char* fileLoc)
@@ -46,25 +48,34 @@ static double calibrateLineSensorValue(const double sensorValue, const int senso
 	const double b = lineSensorCalibData[sensorID].b;
 
 	double calibValue = a * sensorValue + b;
-	if (calibValue == 0 || calibValue > 1){
+	if (calibValue == 0 || calibValue > 1)
+	{
 		printf("Incorrect line sensor callibration. Value = %f\n", calibValue);
 	}
 	return calibValue;
 }
 
+double floatRandom(const double min, const double max)
+{
+	const double f = (double) rand() / RAND_MAX;
+	return f * min + (max - min);
+}
 
-double correctCalibratedValue(enum LineColor color, const double value){
+double correctCalibratedValue(enum LineColor color, const double value)
+{
 	double correctedValue;
-	if (color == LineColor::black){
+	if (color == LineColor::black)
+	{
 		correctedValue = (1 - value);
-	} else {
+	}
+	else{
 		correctedValue = value;
 	}
-	/*
-	if (correctedValue < 0.50) {
-		correctedValue = 0.5;
+	if (simulateFloor && correctedValue < 0.70)
+	{
+		correctedValue = 0.6 + floatRandom(-0.05, 0.05);
 	}
-	*/
+
 	return correctedValue;
 }
 
@@ -98,8 +109,8 @@ double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
 	} printf("\n\n");
 
 	const double c_m = sum_m / sum_i;
-	const double offsetDistance = ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT -1)) * c_m - (LINE_SENSOR_WIDTH / 2);
-	printf("offset Distance = %f\n", offsetDistance);
+	const double offsetDistance = ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - (LINE_SENSOR_WIDTH / 2);
+	//printf("offset Distance = %f\n", offsetDistance);
 	return offsetDistance;
 }
 
@@ -129,7 +140,7 @@ int crossingLine(enum LineColor color, int konf)
 			}
 		}
 	}
-	//printf("%d\n", count);
+//printf("%d\n", count);
 	return count >= konf;
 }
 
