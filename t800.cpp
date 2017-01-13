@@ -47,7 +47,7 @@ static void loadCalibrations(bool useSimCalibrations)
 	//need calib file for the problem to work
 	if (!loadIRCalibrationData(irSensorCalibFileName.c_str()))
 	{
-		//exit(EXIT_FAILURE);
+		exit(EXIT_FAILURE);
 	}
 }
 
