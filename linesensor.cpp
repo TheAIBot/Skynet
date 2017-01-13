@@ -46,9 +46,8 @@ static double calibrateLineSensorValue(const double sensorValue, const int senso
 	const double b = lineSensorCalibData[sensorID].b;
 
 	double calibValue = a * sensorValue + b;
-	if (calibValue == 0 || calibValue > 1)
-	{
-		printf("Incorrect line sensor callibration. Value = %f", calibValue);
+	if (calibValue == 0 || calibValue > 1){
+		printf("Incorrect line sensor callibration. Value = %f\n", calibValue);
 	}
 	return calibValue;
 }
@@ -61,9 +60,11 @@ double correctCalibratedValue(enum LineColor color, const double value){
 	} else {
 		correctedValue = value;
 	}
-	if (correctedValue < 0.60) {
-		correctedValue = 0.0;
+	/*
+	if (correctedValue < 0.50) {
+		correctedValue = 0.5;
 	}
+	*/
 	return correctedValue;
 }
 
@@ -72,13 +73,26 @@ double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
 	double sum_m = 0;
 	double sum_i = 0;
 	int i;
-	static const LineCentering lineC[8] = { right, right, right, right, left, left, left, left };
+	double min = 2, max=-1;
+	double a,b;
 
-	for (i = 0; i < LINE_SENSORS_COUNT; ++i)
-	{
-		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
-		const double weight = (centering == lineC[i]) ? 3 : 1;
-		printf("sensor %d, calibValue = %f, correctedValue = %f. \n", i, calibValue, correctCalibratedValue(color, calibValue));
+	for (i = 0; i < LINE_SENSORS_COUNT; ++i)	{
+		double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
+		if (calibValue > 0.5) calibValue = 0.5;
+		if (calibValue > max) max = calibValue;
+		else if (calibValue < min) min = calibValue;
+	}
+	printf("min = %f, max = %f\n", min, max);
+	a=-1/(min-max);
+	b=min/(min-max);
+	printf("a = %f, b = %f\n",a,b);
+	static const LineCentering lineC[8] = { right, right, right, right, left, left, left, left };
+	for (i = 0; i < LINE_SENSORS_COUNT; ++i)	{
+		double trueCalib = calibrateLineSensorValue(linesensor->data[i], i);
+		if (trueCalib > 0.5) trueCalib = 0.5;
+		double calibValue = a*trueCalib+b;
+		const double weight = (centering == lineC[i]) ? 1.5 : 1;
+		printf("sensor %d, calibValue = %f, true calibValue = %f, correctedValue = %f. \n", i, calibValue, trueCalib, correctCalibratedValue(color, calibValue));
 		sum_m += correctCalibratedValue(color, calibValue) * i * weight;
 		sum_i += correctCalibratedValue(color, calibValue) * weight;
 	} printf("\n\n");
