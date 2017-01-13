@@ -20,7 +20,7 @@
 struct xml_in *xmldata;
 struct xml_in *xmllaser;
 
-roboConnectData gmk;
+laserData gmk;
 
 double visionpar[10];
 double laserpar[10];
