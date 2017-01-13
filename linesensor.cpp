@@ -68,7 +68,8 @@ double correctCalibratedValue(enum LineColor color, const double value)
 	{
 		correctedValue = (1 - value);
 	}
-	else{
+	else
+	{
 		correctedValue = value;
 	}
 	if (simulateFloor && correctedValue < 0.70)
@@ -83,30 +84,31 @@ double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
 {
 	double sum_m = 0;
 	double sum_i = 0;
-	int i;
-	double min = 2, max=-1;
-	double a,b;
+	double min = 2;
+	double max = -1;
 
-	for (i = 0; i < LINE_SENSORS_COUNT; ++i)	{
-		double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
-		if (calibValue > 0.5) calibValue = 0.5;
-		if (calibValue > max) max = calibValue;
-		else if (calibValue < min) min = calibValue;
+	for (int i = 0; i < LINE_SENSORS_COUNT; ++i)
+	{
+		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
+		max = (calibValue > max) ? calibValue : max;
+		min = (calibValue < min) ? calibValue : min;
 	}
-	printf("min = %f, max = %f\n", min, max);
-	a=-1/(min-max);
-	b=min/(min-max);
-	printf("a = %f, b = %f\n",a,b);
+	//printf("min = %f, max = %f\n", min, max);
+	const double a = -1 / (min - max);
+	const double b = min / (min - max);
+	//printf("a = %f, b = %f\n", a, b);
 	static const LineCentering lineC[8] = { right, right, right, right, left, left, left, left };
-	for (i = 0; i < LINE_SENSORS_COUNT; ++i)	{
-		double trueCalib = calibrateLineSensorValue(linesensor->data[i], i);
-		if (trueCalib > 0.5) trueCalib = 0.5;
-		double calibValue = a*trueCalib+b;
-		const double weight = (centering == lineC[i]) ? 2: 1;
-		printf("sensor %d, calibValue = %f, true calibValue = %f, correctedValue = %f. \n", i, calibValue, trueCalib, correctCalibratedValue(color, calibValue));
-		sum_m += correctCalibratedValue(color, calibValue) * i * weight;
-		sum_i += correctCalibratedValue(color, calibValue) * weight;
-	} printf("\n\n");
+	for (int i = 0; i < LINE_SENSORS_COUNT; ++i)
+	{
+		const double trueCalib = calibrateLineSensorValue(linesensor->data[i], i);
+		const double calibValue = a * trueCalib + b;
+		const double correctedValue = correctCalibratedValue(color, calibValue);
+		const double weight = (centering == lineC[i]) ? 2 : 1;
+		sum_m += correctedValue * i * weight;
+		sum_i += correctedValue * weight;
+		//printf("sensor %d, calibValue = %f, true calibValue = %f, correctedValue = %f. \n", i, calibValue, trueCalib, correctCalibratedValue(color, calibValue));
+	}
+	//printf("\n\n");
 
 	const double c_m = sum_m / sum_i;
 	const double offsetDistance = ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - (LINE_SENSOR_WIDTH / 2);
@@ -146,9 +148,12 @@ int crossingLine(enum LineColor color, int konf)
 
 int parallelLine(enum LineColor color)
 {
-	if (color == LineColor::black)	{
+	if (color == LineColor::black)
+	{
 		return (calibrateLineSensorValue(linesensor->data[3], 3) < MAX_VALUE_FOR_BLACK || calibrateLineSensorValue(linesensor->data[4], 4) < MAX_VALUE_FOR_BLACK);
-	} else{
+	}
+	else
+	{
 		return (calibrateLineSensorValue(linesensor->data[3], 3) > MIN_VALUE_FOR_WHITE || calibrateLineSensorValue(linesensor->data[4], 4) > MIN_VALUE_FOR_WHITE);
 	}
 }

@@ -1,9 +1,8 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 #include <math.h>
 #include <unistd.h>
-#include <string.h>
 #include <stdlib.h>
 #include <signal.h>
 #include <sys/ioctl.h>
@@ -13,6 +12,7 @@
 #include <arpa/inet.h>
 #include <fcntl.h>
 #include <sys/ioctl.h>
+#include <iostream>
 #include "includes/robotconnector.h"
 #include "includes/log.h"
 #include "includes/irsensor.h"
@@ -88,6 +88,17 @@ void exitOnButtonPress()
 	ioctl(0, FIONREAD, &arg);
 	if (arg != 0)
 	{
+		std::string p;
+		std::cin >> p;
+		if (p.compare(std::string("p")) == 0)
+		{
+			forceSetMotorSpeeds(0, 0);
+			std::cin >> p;
+			if (p.compare(std::string("p")) == 0)
+			{
+				return;
+			}
+		}
 		forceSetMotorSpeeds(0, 0);
 		rhdSync();
 		rhdDisconnect();
@@ -125,7 +136,7 @@ void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
 	currentSpeedLeft = correctSpeedLeft;
 	currentSpeedRight = correctSpeedRight;
 
-    //printf("%f %f\n", currentSpeedLeft, currentSpeedRight);
+	//printf("%f %f\n", currentSpeedLeft, currentSpeedRight);
 
 	speedl->data[0] = 100 * currentSpeedLeft;
 	speedl->updated = 1;
@@ -287,7 +298,8 @@ void followLine(odotype *odo, const double dist, const double speed, enum LineCe
 	int time = 0;
 
 	double distLeft;
-	do {
+	do
+	{
 		syncAndUpdateOdo(odo);
 
 		distLeft = endPosition - odo->totalDistance;
@@ -296,11 +308,11 @@ void followLine(odotype *odo, const double dist, const double speed, enum LineCe
 		const double motorSpeed = (speed >= 0) ? max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED) : min(getAcceleratedSpeed(speed, distLeft, time), -MIN_SPEED);
 		const double lineOffDist = getLineOffSetDistance(centering, color);
 
-        const double maxDiff = atan(((double)LINE_SENSOR_WIDTH / 2) / (double)WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE);
-        const double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE);
-        const double percentOff = (thetaRef / maxDiff);
+		const double maxDiff = atan(((double) LINE_SENSOR_WIDTH / 2) / (double) WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE);
+		const double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE);
+		const double percentOff = (thetaRef / maxDiff);
 
-        setMotorSpeeds(motorSpeed - motorSpeed*percentOff, motorSpeed + motorSpeed*percentOff);
+		setMotorSpeeds(motorSpeed - motorSpeed * percentOff, motorSpeed + motorSpeed * percentOff);
 
 		time++;
 		exitOnButtonPress();
