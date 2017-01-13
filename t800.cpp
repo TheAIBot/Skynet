@@ -1,50 +1,77 @@
-#include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
-#include <string.h>
-#include <math.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
+#include <string>
 #include "includes/robotconnector.h"
 #include "includes/odometry.h"
 #include "includes/log.h"
 #include "includes/commands.h"
 #include "includes/stopconditions.h"
-#include "includes/irsensor.h"
 
 #define WHEEL_DIAMETER   0.067	// m
 #define WHEEL_SEPARATION 0.256	// m
 #define DELTA_M (M_PI * WHEEL_DIAMETER / 2000)
-#define MAX_ACCELERATION 0.5
-#define MIN_SPEED 0.01
 #define TICKS_PER_SECOND 100
-#define MIN_ACCELERATION (MAX_ACCELERATION / TICKS_PER_SECOND)
-#define WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE 22
 #define STD_SPEED 0.2
 
-int main()
+#define USE_REAL_CALIB_ARG "-real"
+#define SIM_LINE_SENSOR_CALIB_FILE_NAME "sensor_calib_scripts/linesensor_calib_sim.txt"
+#define REAL_LINE_SENSOR_CALIB_FILE_NAME "sensor_calib_scripts/linesensor_calib_real.txt"
+#define SIM_IR_SENSOR_CALIB_FILE_NAME "sensor_calib_scripts/irSensorCalib_sim.txt"
+#define REAL_IR_SENSOR_CALIB_FILE_NAME "sensor_calib_scripts/irSensorCalib_real.txt"
+
+#define SIMULATE_FLOOR_ARG "-floor"
+
+static void loadCalibrations(bool useSumCalibrations)
+{
+	//default is sim calibration
+	std::string lineSensorCalibFileName;
+	std::string irSensorCalibFileName;
+	if (!useSumCalibrations)
+	{
+		printf("Using simulation calibrations\n");
+		lineSensorCalibFileName = SIM_LINE_SENSOR_CALIB_FILE_NAME;
+		irSensorCalibFileName = SIM_IR_SENSOR_CALIB_FILE_NAME;
+	}
+	else
+	{
+		printf("Using real world calibrations\n");
+		lineSensorCalibFileName = REAL_LINE_SENSOR_CALIB_FILE_NAME;
+		irSensorCalibFileName = REAL_IR_SENSOR_CALIB_FILE_NAME;
+	}
+	//need calib file for the problem to work
+	if (!readLineSensorCalibrationData(lineSensorCalibFileName.c_str()))
+	{
+		exit(EXIT_FAILURE);
+	}
+
+	//need calib file for the problem to work
+	if (!loadIRCalibrationData(irSensorCalibFileName.c_str()))
+	{
+		exit(EXIT_FAILURE);
+	}
+}
+
+int main(int argc, char* argv[])
 {
 	odotype odo = { 0 };
+	bool useSimCalibs = true;
 
-	//need calib file for the problem to work
-	if (!readLineSensorCalibrationData("sensor_calib_scripts/linesensor_calib.txt"))
+	for (int i = 1; i < argc; ++i)
 	{
-		exit(EXIT_FAILURE);
+		const std::string argument = argv[i];
+		//std::cout << argument << std::endl;
+		if (argument.compare(std::string(USE_REAL_CALIB_ARG)) != 0)
+		{
+			useSimCalibs = false;
+		}
+		if (argument.compare(std::string(SIMULATE_FLOOR_ARG)) != 0)
+		{
+			std::cout << "Simulating floor" << std::endl;
+			simulateFloor = true;
+		}
 	}
 
-	//need calib file for the problem to work
-	if (!loadIRCalibrationData("sensor_calib_scripts/irSensorCalib.txt"))
-	{
-		exit(EXIT_FAILURE);
-	}
+	loadCalibrations(useSimCalibs);
 
 	//can't run program if can't connect to robot
 	if (!connectRobot())
@@ -64,7 +91,7 @@ int main()
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
 
 	followLine(&odo, 100, STD_SPEED, LineCentering::right, LineColor::black, &noStopCondition);
-	/*
+
 	//go to box
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
 
@@ -95,13 +122,12 @@ int main()
 	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
 	turn(&odo, ANGLE(180), STD_SPEED, &stopAtParallelLine<LineColor::black>);
 
-
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 6>);
 	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 	fwd(&odo, 0.1, STD_SPEED, &noStopCondition);
 
-	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtDetectedPillar<IRSensor::ir_right , 20>);
+	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtDetectedPillar<IRSensor::ir_right, 20>);
 	fwd(&odo, 0.5, STD_SPEED, &noStopCondition);
 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 
@@ -112,7 +138,6 @@ int main()
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 	followWall(&odo, distance, 0.2, &stopAtFreeRightIR);
 	*/
-	
 
 	forceSetMotorSpeeds(0, 0);
 	rhdSync();
