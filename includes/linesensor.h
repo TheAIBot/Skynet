@@ -6,6 +6,8 @@
 #define LINE_SENSORS_COUNT 8
 #define WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE 22
 
+extern bool simulateFloor;
+
 enum LineCentering{
 	left = 0, center, right
 };
@@ -25,7 +27,7 @@ int readLineSensorCalibrationData(const char* fileLoc);
 
 double getLineCenteringOffset(enum LineCentering centering);
 
-double getLineOffSetDistance(enum LineCentering centering, enum LineColor color);
+double getLineOffsetDistance(enum LineCentering centering, enum LineColor color);
 
 int crossingLine(enum LineColor color, int konf);
 

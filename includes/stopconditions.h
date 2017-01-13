@@ -27,8 +27,7 @@ int stopAtLine(odotype *odo)
 }
 
 template<enum LineColor color>
-int stopAtParallelLine(odotype *odo)
-{
+int stopAtParallelLine(odotype *odo){
 	return parallelLine(color);
 }
 
@@ -68,16 +67,13 @@ int stopAtBlockedForwardPath(odotype *odo)
 int stopAtFreeRightIR(odotype *odo)
 {
 	static int countWithinDistance = 0;
-	if (irDistance(ir_front_right) > 50)
-	{
+	if (irDistance(ir_front_right) > 50)	{
 		countWithinDistance++;
 	}
-	else
-	{
+	else{
 		countWithinDistance = 0;
 	}
-	if (countWithinDistance >= numberRequiredForPillarDetected)
-	{
+	if (countWithinDistance >= numberRequiredForPillarDetected){
 		countWithinDistance = 0;
 		return 1;
 	}
