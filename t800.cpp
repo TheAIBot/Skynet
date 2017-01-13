@@ -1,6 +1,6 @@
-#include <stdio.h>
+#include <iostream>
 #include <stdlib.h>
-#include <string.h>
+#include <string>
 #include "includes/robotconnector.h"
 #include "includes/odometry.h"
 #include "includes/log.h"
@@ -13,26 +13,65 @@
 #define TICKS_PER_SECOND 100
 #define STD_SPEED 0.2
 
+#define USE_REAL_CALIB_ARG "-real"
+#define SIM_LINE_SENSOR_CALIB_FILE_NAME "sensor_calib_scripts/linesensor_calib_sim.txt"
+#define REAL_LINE_SENSOR_CALIB_FILE_NAME "sensor_calib_scripts/linesensor_calib_real.txt"
+#define SIM_IR_SENSOR_CALIB_FILE_NAME "sensor_calib_scripts/irSensorCalib_sim.txt"
+#define REAL_IR_SENSOR_CALIB_FILE_NAME "sensor_calib_scripts/irSensorCalib_real.txt"
+
+#define SIMULATE_FLOOR_ARG "-floor"
+
+static void loadCalibrations(bool useSumCalibrations)
+{
+	//default is sim calibration
+	std::string lineSensorCalibFileName;
+	std::string irSensorCalibFileName;
+	if (!useSumCalibrations)
+	{
+		printf("Using simulation calibrations\n");
+		lineSensorCalibFileName = SIM_LINE_SENSOR_CALIB_FILE_NAME;
+		irSensorCalibFileName = SIM_IR_SENSOR_CALIB_FILE_NAME;
+	}
+	else
+	{
+		printf("Using real world calibrations\n");
+		lineSensorCalibFileName = REAL_LINE_SENSOR_CALIB_FILE_NAME;
+		irSensorCalibFileName = REAL_IR_SENSOR_CALIB_FILE_NAME;
+	}
+	//need calib file for the problem to work
+	if (!readLineSensorCalibrationData(lineSensorCalibFileName.c_str()))
+	{
+		exit(EXIT_FAILURE);
+	}
+
+	//need calib file for the problem to work
+	if (!loadIRCalibrationData(irSensorCalibFileName.c_str()))
+	{
+		exit(EXIT_FAILURE);
+	}
+}
+
 int main(int argc, char* argv[])
 {
 	odotype odo = { 0 };
+	bool useSimCalibs = true;
 
-	for (int i = 0; i < argc; ++i)
+	for (int i = 1; i < argc; ++i)
 	{
-
+		const std::string argument = argv[i];
+		//std::cout << argument << std::endl;
+		if (argument.compare(std::string(USE_REAL_CALIB_ARG)) != 0)
+		{
+			useSimCalibs = false;
+		}
+		if (argument.compare(std::string(SIMULATE_FLOOR_ARG)) != 0)
+		{
+			std::cout << "Simulating floor" << std::endl;
+			simulateFloor = true;
+		}
 	}
 
-	//need calib file for the problem to work
-	if (!readLineSensorCalibrationData("sensor_calib_scripts/linesensor_calib.txt"))
-	{
-		exit(EXIT_FAILURE);
-	}
-
-	//need calib file for the problem to work
-	if (!loadIRCalibrationData("sensor_calib_scripts/irSensorCalib.txt"))
-	{
-		exit(EXIT_FAILURE);
-	}
+	loadCalibrations(useSimCalibs);
 
 	//can't run program if can't connect to robot
 	if (!connectRobot())

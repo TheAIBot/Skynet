@@ -7,6 +7,8 @@
 #define MAX_VALUE_FOR_BLACK 0.25
 #define MIN_VALUE_FOR_WHITE 0.80
 
+bool simulateFloor = false;
+
 static lineSensorCalibratedData lineSensorCalibData[LINE_SENSORS_COUNT];
 
 int readLineSensorCalibrationData(const char* fileLoc)
