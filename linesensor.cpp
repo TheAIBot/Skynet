@@ -52,6 +52,11 @@ static double calibrateLineSensorValue(const double sensorValue, const int senso
 	{
 		printf("Incorrect line sensor callibration. Value = %f\n", calibValue);
 	}
+
+	if (simulateFloor && calibValue < 0.70)
+	{
+		calibValue = 0.6 + floatRandom(-0.05, 0.05);
+	}
 	return calibValue;
 }
 
@@ -71,10 +76,6 @@ double correctCalibratedValue(enum LineColor color, const double value)
 	else
 	{
 		correctedValue = value;
-	}
-	if (simulateFloor && correctedValue < 0.70)
-	{
-		correctedValue = 0.6 + floatRandom(-0.05, 0.05);
 	}
 
 	return correctedValue;
