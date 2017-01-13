@@ -249,7 +249,7 @@ void fwdTurn(odotype *odo, const double angle, const double speed, int (*stopCon
 	{
 		syncAndUpdateOdo(odo);
 		angleDifference = angle - odo->angle;
-		double deltaV = max(K_MOVE_TURN * (angleDifference), MIN_SPEED);
+		const double deltaV = max(K_MOVE_TURN * (angleDifference), MIN_SPEED);
 		const double motorSpeed = max(getAcceleratedSpeed(speed, deltaV / 4, time) / 2, MIN_SPEED);
 		setMotorSpeeds(motorSpeed - deltaV / 2, motorSpeed + deltaV / 2);
 		time++;
@@ -358,9 +358,8 @@ void followWall(odotype *odo, const double dist, const double speed, int (*stopC
 
 double measureDistance(odotype *odo)
 {
-	int i;
 	double sum = 0;
-	for (i = 0; i < 100; i++)
+	for (int i = 0; i < 100; i++)
 	{
 		syncAndUpdateOdo(odo);
 		sum += irDistance(ir_front_left) + irDistance(ir_front_center) + irDistance(ir_front_right);

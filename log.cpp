@@ -15,8 +15,7 @@ void logOdo(const odotype * odo)
 void writeLogs(const char* filename)
 {
 	FILE* writeFile = fopen(filename, "w");
-	int x;
-	for (x = 0; x < logCount; ++x)
+	for (int x = 0; x < logCount; ++x)
 	{
 		fprintf(writeFile, "%f %f %f\n", logs[x].xpos, logs[x].ypos, logs[x].angle);
 	}

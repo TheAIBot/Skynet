@@ -23,8 +23,7 @@ int readLineSensorCalibrationData(const char* fileLoc)
 	}
 
 	//Error the data value pair for each sensor
-	int i;
-	for (i = 0; i < LINE_SENSORS_COUNT; i++)
+	for (int i = 0; i < LINE_SENSORS_COUNT; i++)
 	{
 		double a;
 		double b;
@@ -119,10 +118,9 @@ double getLineOffsetDistance(enum LineCentering centering, enum LineColor color)
 int crossingLine(enum LineColor color, int konf)
 {
 	int count = 0;
-	int i;
 	if (color == LineColor::black)
 	{
-		for (i = 0; i < LINE_SENSORS_COUNT; i++)
+		for (int i = 0; i < LINE_SENSORS_COUNT; i++)
 		{
 			const double calibvalue = calibrateLineSensorValue(linesensor->data[i], i);
 			if (calibvalue <= MAX_VALUE_FOR_BLACK)
@@ -133,7 +131,7 @@ int crossingLine(enum LineColor color, int konf)
 	}
 	else if (color == LineColor::white)
 	{
-		for (i = 0; i < LINE_SENSORS_COUNT; i++)
+		for (int i = 0; i < LINE_SENSORS_COUNT; i++)
 		{
 			const double calibvalue = calibrateLineSensorValue(linesensor->data[i], i);
 			if (calibvalue >= MIN_VALUE_FOR_WHITE)

@@ -16,8 +16,7 @@ int loadIRCalibrationData(const char* fileLoc)
 		return 0;
 	}
 	//Error the data value pair for each sensor
-	int i;
-	for (i = 0; i < IR_SENSOR_COUNT; i++)
+	for (int i = 0; i < IR_SENSOR_COUNT; i++)
 	{
 		double Ka, Kb;
 		const int scanStatus = fscanf(file, "%lf %lf\n", &Ka, &Kb);
