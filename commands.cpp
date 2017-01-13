@@ -34,7 +34,7 @@ inline double min(const double x, const double y)
 	return ((x) < (y)) ? (x) : (y);
 }
 
-inline double max(const double x, const double y)
+double max(const double x, const double y)
 {
 	return ((x) > (y)) ? (x) : (y);
 }
