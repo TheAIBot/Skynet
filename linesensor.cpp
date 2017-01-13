@@ -100,7 +100,9 @@ double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
 	static const LineCentering lineC[8] = { right, right, right, right, left, left, left, left };
 	for (i = 0; i < LINE_SENSORS_COUNT; ++i)	{
 		double trueCalib = calibrateLineSensorValue(linesensor->data[i], i);
-		if (trueCalib > 0.5) trueCalib = 0.5;
+		if (simulateFloor && trueCalib < 0.70)	{
+			trueCalib = 0.6 + floatRandom(-0.05, 0.05);
+		}
 		double calibValue = a*trueCalib+b;
 		const double weight = (centering == lineC[i]) ? 2: 1;
 		printf("sensor %d, calibValue = %f, true calibValue = %f, correctedValue = %f. \n", i, calibValue, trueCalib, correctCalibratedValue(color, calibValue));
