@@ -21,12 +21,12 @@
 
 #define SIMULATE_FLOOR_ARG "-floor"
 
-static void loadCalibrations(bool useSumCalibrations)
+static void loadCalibrations(bool useSimCalibrations)
 {
 	//default is sim calibration
 	std::string lineSensorCalibFileName;
 	std::string irSensorCalibFileName;
-	if (!useSumCalibrations)
+	if (useSimCalibrations)
 	{
 		printf("Using simulation calibrations\n");
 		lineSensorCalibFileName = SIM_LINE_SENSOR_CALIB_FILE_NAME;
@@ -60,11 +60,11 @@ int main(int argc, char* argv[])
 	{
 		const std::string argument = argv[i];
 		//std::cout << argument << std::endl;
-		if (argument.compare(std::string(USE_REAL_CALIB_ARG)) != 0)
+		if (argument.compare(std::string(USE_REAL_CALIB_ARG)) == 0)
 		{
 			useSimCalibs = false;
 		}
-		if (argument.compare(std::string(SIMULATE_FLOOR_ARG)) != 0)
+		if (argument.compare(std::string(SIMULATE_FLOOR_ARG)) == 0)
 		{
 			std::cout << "Simulating floor" << std::endl;
 			simulateFloor = true;
@@ -90,7 +90,7 @@ int main(int argc, char* argv[])
 	odo.oldLeftWheelEncoderTicks = odo.leftWheelEncoderTicks;
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
 
-	followLine(&odo, 100, STD_SPEED, LineCentering::right, LineColor::black, &noStopCondition);
+	followLine(&odo, 100, STD_SPEED, LineCentering::left, LineColor::black, &noStopCondition);
 
 	//go to box
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);

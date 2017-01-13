@@ -74,71 +74,71 @@ double correctCalibratedValue(enum LineColor color, const double value)
 	}
 	if (simulateFloor && correctedValue < 0.70)
 	{
-	correctedValue = 0.6 + max(-0.05, 0.05);
-}
+		correctedValue = 0.6 + floatRandom(-0.05, 0.05);
+	}
 
-return correctedValue;
+	return correctedValue;
 }
 
 double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
 {
-double sum_m = 0;
-double sum_i = 0;
-int i;
-static LineCentering lineC[8] = { right, right, right, right, left, left, left, left };
+	double sum_m = 0;
+	double sum_i = 0;
+	int i;
+	static LineCentering lineC[8] = { right, right, right, right, left, left, left, left };
 
-for (i = 0; i < LINE_SENSORS_COUNT; ++i)
-{
-	const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
-	const double isColor = (correctCalibratedValue(color, calibValue) > 0.85);
-	const double weight = (centering == lineC[i]) ? 3 : 1;
-	sum_m += isColor * i * weight;
-	sum_i += isColor * weight;
-}
-const double c_m = sum_m / sum_i;
-const double offsetDistance = ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - (LINE_SENSOR_WIDTH / 2);
-printf("offset Distance = %f\n", offsetDistance);
-return offsetDistance;
+	for (i = 0; i < LINE_SENSORS_COUNT; ++i)
+	{
+		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
+		const double isColor = (correctCalibratedValue(color, calibValue) > 0.85);
+		const double weight = (centering == lineC[i]) ? 3 : 1;
+		sum_m += isColor * i * weight;
+		sum_i += isColor * weight;
+	}
+	const double c_m = sum_m / sum_i;
+	const double offsetDistance = ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT - 1)) * c_m - (LINE_SENSOR_WIDTH / 2);
+	//printf("offset Distance = %f\n", offsetDistance);
+	return offsetDistance;
 }
 
 int crossingLine(enum LineColor color, int konf)
 {
-int count = 0;
-int i;
-if (color == LineColor::black)
-{
-	for (i = 0; i < LINE_SENSORS_COUNT; i++)
+	int count = 0;
+	int i;
+	if (color == LineColor::black)
 	{
-		const double calibvalue = calibrateLineSensorValue(linesensor->data[i], i);
-		if (calibvalue <= MAX_VALUE_FOR_BLACK)
+		for (i = 0; i < LINE_SENSORS_COUNT; i++)
 		{
-			count++;
+			const double calibvalue = calibrateLineSensorValue(linesensor->data[i], i);
+			if (calibvalue <= MAX_VALUE_FOR_BLACK)
+			{
+				count++;
+			}
 		}
 	}
-}
-else if (color == LineColor::white)
-{
-	for (i = 0; i < LINE_SENSORS_COUNT; i++)
+	else if (color == LineColor::white)
 	{
-		const double calibvalue = calibrateLineSensorValue(linesensor->data[i], i);
-		if (calibvalue >= MIN_VALUE_FOR_WHITE)
+		for (i = 0; i < LINE_SENSORS_COUNT; i++)
 		{
-			count++;
+			const double calibvalue = calibrateLineSensorValue(linesensor->data[i], i);
+			if (calibvalue >= MIN_VALUE_FOR_WHITE)
+			{
+				count++;
+			}
 		}
 	}
-}
 //printf("%d\n", count);
-return count >= konf;
+	return count >= konf;
 }
 
 int parallelLine(enum LineColor color)
 {
-if (color == LineColor::black)
-{
-	return (calibrateLineSensorValue(linesensor->data[3], 3) < MAX_VALUE_FOR_BLACK && calibrateLineSensorValue(linesensor->data[4], 4) < MAX_VALUE_FOR_BLACK);
-}
-else
-{
-	return (calibrateLineSensorValue(linesensor->data[3], 3) > MIN_VALUE_FOR_WHITE && calibrateLineSensorValue(linesensor->data[4], 4) > MIN_VALUE_FOR_WHITE);
-}
+	if (color == LineColor::black)
+	{
+		return (calibrateLineSensorValue(linesensor->data[3], 3) < MAX_VALUE_FOR_BLACK && calibrateLineSensorValue(linesensor->data[4], 4) < MAX_VALUE_FOR_BLACK);
+	}
+	else
+	{
+		return (calibrateLineSensorValue(linesensor->data[3], 3) > MIN_VALUE_FOR_WHITE && calibrateLineSensorValue(linesensor->data[4], 4) > MIN_VALUE_FOR_WHITE);
+	}
 }
