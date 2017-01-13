@@ -306,7 +306,7 @@ void followLine(odotype *odo, const double dist, const double speed, enum LineCe
 
 		//tried to make it go backwards
 		const double motorSpeed = (speed >= 0) ? max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED) : min(getAcceleratedSpeed(speed, distLeft, time), -MIN_SPEED);
-		const double lineOffDist = getLineOffSetDistance(centering, color);
+		const double lineOffDist = getLineOffsetDistance(centering, color);
 
 		const double maxDiff = atan(((double) LINE_SENSOR_WIDTH / 2) / (double) WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE);
 		const double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE);

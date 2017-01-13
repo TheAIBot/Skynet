@@ -42,6 +42,12 @@ int readLineSensorCalibrationData(const char* fileLoc)
 	return 1;
 }
 
+static double floatRandom(const double min, const double max)
+{
+	const double f = (double) rand() / RAND_MAX;
+	return f * min + (max - min);
+}
+
 static double calibrateLineSensorValue(const double sensorValue, const int sensorID)
 {
 	const double a = lineSensorCalibData[sensorID].a;
@@ -52,18 +58,7 @@ static double calibrateLineSensorValue(const double sensorValue, const int senso
 	{
 		printf("Incorrect line sensor callibration. Value = %f\n", calibValue);
 	}
-
-	if (simulateFloor && calibValue < 0.70)
-	{
-		calibValue = 0.6 + floatRandom(-0.05, 0.05);
-	}
 	return calibValue;
-}
-
-double floatRandom(const double min, const double max)
-{
-	const double f = (double) rand() / RAND_MAX;
-	return f * min + (max - min);
 }
 
 double correctCalibratedValue(enum LineColor color, const double value)
@@ -77,11 +72,14 @@ double correctCalibratedValue(enum LineColor color, const double value)
 	{
 		correctedValue = value;
 	}
-
+	if (simulateFloor && correctedValue < 0.70)
+	{
+		correctedValue = 0.6 + floatRandom(-0.1, 0.1);
+	}
 	return correctedValue;
 }
 
-double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
+double getLineOffsetDistance(enum LineCentering centering, enum LineColor color)
 {
 	double sum_m = 0;
 	double sum_i = 0;
@@ -91,8 +89,9 @@ double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
 	for (int i = 0; i < LINE_SENSORS_COUNT; ++i)
 	{
 		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
-		max = (calibValue > max) ? calibValue : max;
-		min = (calibValue < min) ? calibValue : min;
+		const double correctedValue = correctCalibratedValue(color, calibValue);
+		max = (correctedValue > max) ? correctedValue : max;
+		min = (correctedValue < min) ? correctedValue : min;
 	}
 	//printf("min = %f, max = %f\n", min, max);
 	const double a = -1 / (min - max);
@@ -102,11 +101,11 @@ double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
 	for (int i = 0; i < LINE_SENSORS_COUNT; ++i)
 	{
 		const double trueCalib = calibrateLineSensorValue(linesensor->data[i], i);
-		const double calibValue = a * trueCalib + b;
-		const double correctedValue = correctCalibratedValue(color, calibValue);
+		const double correctedValue = correctCalibratedValue(color, trueCalib);
+		const double calibValue = a * correctedValue + b;
 		const double weight = (centering == lineC[i]) ? 2 : 1;
-		sum_m += correctedValue * i * weight;
-		sum_i += correctedValue * weight;
+		sum_m += calibValue * i * weight;
+		sum_i += calibValue * weight;
 		//printf("sensor %d, calibValue = %f, true calibValue = %f, correctedValue = %f. \n", i, calibValue, trueCalib, correctCalibratedValue(color, calibValue));
 	}
 	//printf("\n\n");

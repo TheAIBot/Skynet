@@ -27,7 +27,7 @@ int readLineSensorCalibrationData(const char* fileLoc);
 
 double getLineCenteringOffset(enum LineCentering centering);
 
-double getLineOffSetDistance(enum LineCentering centering, enum LineColor color);
+double getLineOffsetDistance(enum LineCentering centering, enum LineColor color);
 
 int crossingLine(enum LineColor color, int konf);
 
