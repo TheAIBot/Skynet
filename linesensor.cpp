@@ -53,6 +53,7 @@ static double calibrateLineSensorValue(const double sensorValue, const int senso
 	return calibValue;
 }
 
+
 double correctCalibratedValue(enum LineColor color, const double value){
 	double correctedValue;
 	if (color == LineColor::black){
@@ -60,7 +61,7 @@ double correctCalibratedValue(enum LineColor color, const double value){
 	} else {
 		correctedValue = value;
 	}
-	if (correctedValue < 0.70) {
+	if (correctedValue < 0.60) {
 		correctedValue = 0.0;
 	}
 	return correctedValue;
@@ -71,19 +72,18 @@ double getLineOffSetDistance(enum LineCentering centering, enum LineColor color)
 	double sum_m = 0;
 	double sum_i = 0;
 	int i;
-	static LineCentering lineC[8] = { right, right, right, right, left, left, left, left };
-	for (i = 0; i < LINE_SENSORS_COUNT; ++i){
+	static const LineCentering lineC[8] = { right, right, right, right, left, left, left, left };
+
+	for (i = 0; i < LINE_SENSORS_COUNT; ++i)
+	{
 		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
-		const double correctedValue = correctCalibratedValue(color, calibValue);
-		const double weight = (centering == lineC[i]) ? 2 : 1;
-		printf("Sensor %d, calibValue = %f, correctedValue = %f.\n", i, calibValue, correctedValue);
-		//printf("%f ", weight);
+		const double weight = (centering == lineC[i]) ? 3 : 1;
+		printf("sensor %d, calibValue = %f, correctedValue = %f. \n", i, calibValue, correctCalibratedValue(color, calibValue));
 		sum_m += correctCalibratedValue(color, calibValue) * i * weight;
 		sum_i += correctCalibratedValue(color, calibValue) * weight;
-	} printf("\n\n\n\n");
+	} printf("\n\n");
 
 	const double c_m = sum_m / sum_i;
-
 	const double offsetDistance = ((double) LINE_SENSOR_WIDTH / (LINE_SENSORS_COUNT -1)) * c_m - (LINE_SENSOR_WIDTH / 2);
 	printf("offset Distance = %f\n", offsetDistance);
 	return offsetDistance;
@@ -121,12 +121,9 @@ int crossingLine(enum LineColor color, int konf)
 
 int parallelLine(enum LineColor color)
 {
-	if (color == LineColor::black)
-	{
+	if (color == LineColor::black)	{
 		return (calibrateLineSensorValue(linesensor->data[3], 3) < MAX_VALUE_FOR_BLACK && calibrateLineSensorValue(linesensor->data[4], 4) < MAX_VALUE_FOR_BLACK);
-	}
-	else
-	{
+	} else{
 		return (calibrateLineSensorValue(linesensor->data[3], 3) > MIN_VALUE_FOR_WHITE && calibrateLineSensorValue(linesensor->data[4], 4) > MIN_VALUE_FOR_WHITE);
 	}
 }

@@ -287,8 +287,7 @@ void followLine(odotype *odo, const double dist, const double speed, enum LineCe
 	int time = 0;
 
 	double distLeft;
-	do
-	{
+	do {
 		syncAndUpdateOdo(odo);
 
 		distLeft = endPosition - odo->totalDistance;

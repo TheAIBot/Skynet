@@ -63,7 +63,7 @@ int main()
 	odo.oldLeftWheelEncoderTicks = odo.leftWheelEncoderTicks;
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
 
-	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &noStopCondition);
+	followLine(&odo, 100, STD_SPEED, LineCentering::right, LineColor::black, &noStopCondition);
 	/*
 	//go to box
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
