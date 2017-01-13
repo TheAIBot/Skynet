@@ -1,24 +1,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <math.h>
-#include <unistd.h>
-#include <string.h>
-#include <stdlib.h>
-#include <signal.h>
-#include <sys/ioctl.h>
-#include <sys/socket.h>
-#include <sys/time.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <fcntl.h>
-#include <sys/ioctl.h>
 #include "includes/robotconnector.h"
 #include "includes/odometry.h"
 #include "includes/log.h"
 #include "includes/commands.h"
 #include "includes/stopconditions.h"
-#include "includes/irsensor.h"
 
 #define WHEEL_DIAMETER   0.067	// m
 #define WHEEL_SEPARATION 0.256	// m
@@ -30,9 +17,13 @@
 #define WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE 22
 #define STD_SPEED 0.2
 
-int main()
+int main(int argc, char* argv[])
 {
 	odotype odo = { 0 };
+
+	for (int i = 0; i < argc; ++i) {
+
+	}
 
 	//need calib file for the problem to work
 	if (!readLineSensorCalibrationData("sensor_calib_scripts/linesensor_calib.txt"))
