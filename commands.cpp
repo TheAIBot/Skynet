@@ -310,7 +310,7 @@ void followLine(odotype *odo, const double dist, const double speed, enum LineCe
 
 		const double maxDiff = atan(((double) LINE_SENSOR_WIDTH / 2) / (double) WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE);
 		const double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE);
-		const double percentOff = (thetaRef / maxDiff);
+		const double percentOff = (sin(thetaRef) / sin(maxDiff));
 
 		setMotorSpeeds(motorSpeed - motorSpeed * percentOff, motorSpeed + motorSpeed * percentOff);
 
