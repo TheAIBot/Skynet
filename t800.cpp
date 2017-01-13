@@ -10,18 +10,15 @@
 #define WHEEL_DIAMETER   0.067	// m
 #define WHEEL_SEPARATION 0.256	// m
 #define DELTA_M (M_PI * WHEEL_DIAMETER / 2000)
-#define MAX_ACCELERATION 0.5
-#define MIN_SPEED 0.01
 #define TICKS_PER_SECOND 100
-#define MIN_ACCELERATION (MAX_ACCELERATION / TICKS_PER_SECOND)
-#define WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE 22
 #define STD_SPEED 0.2
 
 int main(int argc, char* argv[])
 {
 	odotype odo = { 0 };
 
-	for (int i = 0; i < argc; ++i) {
+	for (int i = 0; i < argc; ++i)
+	{
 
 	}
 
@@ -86,24 +83,22 @@ int main(int argc, char* argv[])
 	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
 	turn(&odo, ANGLE(180), STD_SPEED, &stopAtParallelLine<LineColor::black>);
 
-
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 6>);
 	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 	fwd(&odo, 0.1, STD_SPEED, &noStopCondition);
 
-	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtDetectedPillar<IRSensor::ir_right , 20>);
+	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtDetectedPillar<IRSensor::ir_right, 20>);
 	fwd(&odo, 0.5, STD_SPEED, &noStopCondition);
 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 
 	/*
-	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-	followLine(&odo, 100, 0.2, center, black, &stopAtBlockedForwardPath);
-	double distance = measureDistance(&odo);
-	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-	followWall(&odo, distance, 0.2, &stopAtFreeRightIR);
-	*/
-
+	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
+	 followLine(&odo, 100, 0.2, center, black, &stopAtBlockedForwardPath);
+	 double distance = measureDistance(&odo);
+	 turn(&odo, ANGLE(90), 0.3, &noStopCondition);
+	 followWall(&odo, distance, 0.2, &stopAtFreeRightIR);
+	 */
 
 	forceSetMotorSpeeds(0, 0);
 	rhdSync();
