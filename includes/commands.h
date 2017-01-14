@@ -21,6 +21,8 @@ void followLine(odotype *odo, const double dist, const double speed, enum LineCe
 
 void followWall(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*));
 
+double max(const double x, const double y);
+
 double measureDistance(odotype *odo);
 
 #endif
