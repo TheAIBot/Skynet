@@ -90,12 +90,10 @@ int main(int argc, char* argv[])
 	odo.oldLeftWheelEncoderTicks = odo.leftWheelEncoderTicks;
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
 
-	turn(&odo, ANGLE(-(90 + 45)), STD_SPEED, &noStopCondition);
-	fwdRegulated(&odo, 2, STD_SPEED, &noStopCondition);
-	/*
+	printf("Follow line first\n");
 	//go to box
-	followLine(&odo, 100, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 5>);
-
+	followLine(&odo, 100, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 7>);
+	printf("Turn first\n");
 	//go to line towards box to move
 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 	fwd(&odo, 100, STD_SPEED, &stopAtLine<LineColor::black, 5>);
@@ -105,11 +103,11 @@ int main(int argc, char* argv[])
 	turn(&odo, ANGLE(-180), STD_SPEED, &stopAtParallelLine<LineColor::black>);
 
 	//push box and go through gate
-	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
-	fwd(&odo, 0.185, STD_SPEED, &noStopCondition);
-	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
-	followLine(&odo, 1, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 4>);
-	followLine(&odo, 1, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
+	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 7>);
+	fwd(&odo, 0.155, STD_SPEED, &noStopCondition);
+	turn(&odo, ANGLE(90), STD_SPEED/2, &noStopCondition);
+	followLine(&odo, 1, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 7>);
+	followLine(&odo, 1, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 6>);
 	
 	
 	//Around the gates and to the wall.
@@ -122,43 +120,54 @@ int main(int argc, char* argv[])
 	fwd(&odo, 0.6, STD_SPEED, &noStopCondition);
 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 	//Back to the line
-	fwd(&odo, 100, STD_SPEED, &stopAtLine<LineColor::black, 4>);
+	fwd(&odo, 100, STD_SPEED, &stopAtLine<LineColor::black, 5>);
 	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
 	//Turn around untill the line has been found.
 	turn(&odo, ANGLE(180), STD_SPEED, &stopAtParallelLine<LineColor::black>);
 	//Go up to the wall:
-	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 5>);
+	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 7>);
 	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
 	turn(&odo, ANGLE(180), STD_SPEED, &stopAtParallelLine<LineColor::black>);
 	fwd(&odo, 0.1, STD_SPEED, &noStopCondition);
 	
+	
+	
 	//Stop at the wall.
-	followLine(&odo, 100, STD_SPEED, center, LineColor::black, &stopAtDetectedPillar<ir_right , 10>);
+	followLine(&odo, 100, STD_SPEED, center, LineColor::black, &stopAtLine<LineColor::black, 5>);
 	followLine(&odo, 0.6, STD_SPEED, center, LineColor::black, &noStopCondition);
 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
-	fwd(&odo, 0.4, STD_SPEED, &noStopCondition);
+	fwd(&odo, 0.25, STD_SPEED, &noStopCondition);
 	//Follow wall	
-	followWall(&odo, 3, STD_SPEED, &stopAtBlankSpace<ir_left,60>);	
-	fwd(&odo, 0.35, STD_SPEED, &noStopCondition);
+	followWall(&odo,0.7, 20, STD_SPEED, &stopAtBlankSpace<ir_left,60>);		
+	followWall(&odo,3, 20, STD_SPEED/2, &stopAtBlankSpace<ir_left,60>);	
+	fwd(&odo, 0.4, STD_SPEED, &noStopCondition);
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);		
-	fwd(&odo, 0.75, STD_SPEED, &noStopCondition);
+	fwd(&odo, 0.78, STD_SPEED, &noStopCondition);
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);		
 	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);	
-	followWall(&odo, 3, STD_SPEED,&stopAtBlankSpace<ir_left,60>);	
+	followWall(&odo, 0.7, 30, STD_SPEED,&stopAtBlankSpace<ir_left,60>);	
+	followWall(&odo, 3, 30, STD_SPEED / 2,&stopAtBlankSpace<ir_left,60>);	
 	fwd(&odo, 0.50, STD_SPEED, &noStopCondition);	
-	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-	//Back at black line	
-	followLine(&odo, 100, STD_SPEED, LineCentering::left, LineColor::black, &stopAtLine<LineColor::black, 4>);
-	fwd(&odo, 0.5, STD_SPEED, &noStopCondition);	
-	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
+	turn(&odo, ANGLE(180), STD_SPEED,  &stopAtParallelLine<LineColor::black>);
+	//Back at black line
+	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 6>);
+	fwd(&odo, 0.15, STD_SPEED, &noStopCondition);	
+	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 6>);
+	fwd(&odo, 0.4, STD_SPEED, &noStopCondition);	
+ 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition); //Stop at white line (*)
 
 	//Follow white line:		
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::white, &stopAtLine<LineColor::black, 8>);
 	fwd(&odo, 0.4, STD_SPEED, &noStopCondition);	
-	turn(&odo, ANGLE(-90), 0.3, &noStopCondition);
+	turn(&odo, ANGLE(-90), STD_SPEED, &noStopCondition);
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtDetectedPillar<ir_front_center , 30>);
-	*/
 
+
+	forceSetMotorSpeeds(0, 0);
+	rhdSync();
+	rhdDisconnect();
+	writeLogs("logging.txt");
+	exit(0);
 	forceSetMotorSpeeds(0, 0);
 	rhdSync();
 	rhdDisconnect();
