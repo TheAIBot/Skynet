@@ -32,8 +32,7 @@ int stopAtParallelLine(odotype *odo){
 }
 
 template<int angle, int deviation>
-int stopAtDeg(odotype *odo)
-{
+int stopAtDeg(odotype *odo){
 	return odo->angle <= ANGLE(angle + deviation) && odo->angle >= ANGLE(angle - deviation);
 }
 

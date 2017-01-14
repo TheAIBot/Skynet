@@ -90,7 +90,9 @@ int main(int argc, char* argv[])
 	odo.oldLeftWheelEncoderTicks = odo.leftWheelEncoderTicks;
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
 
-
+	turn(&odo, ANGLE(-(90 + 45)), STD_SPEED, &noStopCondition);
+	fwdRegulated(&odo, 2, STD_SPEED, &noStopCondition);
+	/*
 	//go to box
 	followLine(&odo, 100, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 5>);
 
@@ -155,7 +157,7 @@ int main(int argc, char* argv[])
 	fwd(&odo, 0.4, STD_SPEED, &noStopCondition);	
 	turn(&odo, ANGLE(-90), 0.3, &noStopCondition);
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtDetectedPillar<ir_front_center , 30>);
-
+	*/
 
 	forceSetMotorSpeeds(0, 0);
 	rhdSync();

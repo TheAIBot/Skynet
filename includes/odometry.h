@@ -27,6 +27,8 @@ typedef struct
 	// internal variables
 	int oldLeftWheelEncoderTicks;
 	int oldRightWheelEncoderTicks;
+	//For forward regulated:
+	double supposedAngle;
 } odotype;
 
 void updateOdo(odotype *p);
