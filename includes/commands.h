@@ -22,6 +22,8 @@ void followLine(odotype *odo, const double dist, const double speed, enum LineCe
 
 void followWall(odotype *odo, const double dist, const double distanceFromWall, const double speed, int (*stopCondition)(odotype*));
 
+void throughGate(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*));
+
 double measureDistance(odotype *odo);
 
 #endif

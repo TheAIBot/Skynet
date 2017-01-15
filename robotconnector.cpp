@@ -63,26 +63,95 @@ symTableElement * getoutputref(const char *sym_name, symTableElement * tab)
 	return 0;
 }
 
-int connectRobot()
+static void connectToCamera()
+{
+	camsrv.port = 24920;
+	strcpy(camsrv.host, "127.0.0.1");
+	strcpy(camsrv.name, "cameraserver");
+	camsrv.status = 1;
+	camsrv.config = 1;
+
+	if (camsrv.config)
+	{
+		int errno = 0;
+		camsrv.sockfd = socket(AF_INET, SOCK_STREAM, 0);
+		if (camsrv.sockfd < 0)
+		{
+			perror(strerror(errno));
+			fprintf(stderr, " Can not make  socket\n");
+			return;
+		}
+		serverconnect(&camsrv);
+
+		xmldata = xml_in_init(4096, 32);
+		printf(" camera server xml initialized \n");
+	}
+}
+
+void setLaserZoneCount(const int zoneCount)
+{
+	if (lmssrv.connected)
+	{
+		laserZoneCount = zoneCount;
+		char buf[256];
+		const int len = sprintf(buf, "scanpush cmd='scanget interval=%d codec=TAG'\n", (MAX_LASER_COUNT / laserZoneCount));
+		send(lmssrv.sockfd, buf, len, 0);
+	}
+	else
+	{
+		printf("Failed to set laser zone count\n");
+	}
+}
+
+static void connectToLaser()
+{
+	lmssrv.port = 24919;
+	strcpy(lmssrv.host, "127.0.0.1");
+	strcpy(lmssrv.name, "laserserver");
+	lmssrv.status = 1;
+	lmssrv.config = 1;
+
+	if (lmssrv.config)
+	{
+		int errno = 0;
+		lmssrv.sockfd = socket(AF_INET, SOCK_STREAM, 0);
+		if (lmssrv.sockfd < 0)
+		{
+			perror(strerror(errno));
+			fprintf(stderr, " Can not make  socket\n");
+			return;
+		}
+
+		serverconnect(&lmssrv);
+		if (lmssrv.connected)
+		{
+			xmllaser = xml_in_init(4096, 32);
+			printf(" laserserver xml initialized \n");
+			setLaserZoneCount(laserZoneCount);
+		}
+	}
+}
+
+bool connectRobot()
 {
 	/* Establish connection to robot sensors and actuators.
 	 */
 	if (rhdConnect('w', "localhost", ROBOTPORT) != 'w')
 	{
 		printf("Can't connect to rhd \n");
-		return 0;
+		return false;
 	}
 
 	printf("connected to robot \n");
 	if ((inputtable = getSymbolTable('r')) == NULL)
 	{
 		printf("Can't connect to rhd \n");
-		return 0;
+		return false;
 	}
 	if ((outputtable = getSymbolTable('w')) == NULL)
 	{
 		printf("Can't connect to rhd \n");
-		return 0;
+		return false;
 	}
 	// connect to robot I/O variables
 	lenc = getinputref("encl", inputtable);
@@ -94,67 +163,9 @@ int connectRobot()
 	speedr = getoutputref("speedr", outputtable);
 	resetmotorr = getoutputref("resetmotorr", outputtable);
 	resetmotorl = getoutputref("resetmotorl", outputtable);
-	// **************************************************
-	//  Camera server code initialization
-	//
 
-	/* Create endpoint */
-	lmssrv.port = 24919;
-	strcpy(lmssrv.host, "127.0.0.1");
-	strcpy(lmssrv.name, "laserserver");
-	lmssrv.status = 1;
-	camsrv.port = 24920;
-	strcpy(camsrv.host, "127.0.0.1");
-	camsrv.config = 1;
-	strcpy(camsrv.name, "cameraserver");
-	camsrv.status = 1;
+	connectToCamera();
+	connectToLaser();
 
-	if (camsrv.config)
-	{
-		int errno = 0;
-		camsrv.sockfd = socket(AF_INET, SOCK_STREAM, 0);
-		if (camsrv.sockfd < 0)
-		{
-			perror(strerror(errno));
-			fprintf(stderr, " Can not make  socket\n");
-			return 0;
-		}
-
-		serverconnect(&camsrv);
-
-		xmldata = xml_in_init(4096, 32);
-		printf(" camera server xml initialized \n");
-
-	}
-
-	// **************************************************
-	//  LMS server code initialization
-	//
-
-	/* Create endpoint */
-	lmssrv.config = 1;
-	if (lmssrv.config)
-	{
-		char buf[256];
-		int errno = 0, len;
-		lmssrv.sockfd = socket(AF_INET, SOCK_STREAM, 0);
-		if (lmssrv.sockfd < 0)
-		{
-			perror(strerror(errno));
-			fprintf(stderr, " Can not make  socket\n");
-			return 0;
-		}
-
-		serverconnect(&lmssrv);
-		if (lmssrv.connected)
-		{
-			xmllaser = xml_in_init(4096, 32);
-			printf(" laserserver xml initialized \n");
-			//len = sprintf(buf, "push  t=0.2 cmd='mrcobst width=0.4'\n");
-			//len = sprintf(buf, "scanpush cmd='zoneobst'\n");
-			len = sprintf(buf, "scanpush cmd='scanget interval=%d codec=TAG'\n", (MAX_LASER_COUNT / laserZoneCount));
-			send(lmssrv.sockfd, buf, len, 0);
-		}
-	}
 	return 1;
 }

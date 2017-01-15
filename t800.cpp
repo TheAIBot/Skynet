@@ -122,7 +122,9 @@ int main(int argc, char* argv[])
 			count = 0;
 		}
 	}
-	*/
+*/
+
+	throughGate(&odo, 10000, STD_SPEED, &noStopCondition);
 
 	//printf("Follow line first\n");
 	//go to box

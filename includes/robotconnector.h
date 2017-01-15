@@ -56,6 +56,8 @@ extern symTableElement *speedr;
 extern symTableElement *resetmotorr;
 extern symTableElement *resetmotorl;
 
-int connectRobot(void);
+void setLaserZoneCount(const int zoneCount);
+
+bool connectRobot(void);
 
 #endif /* ROBOTCONNECTOR_H_ */
