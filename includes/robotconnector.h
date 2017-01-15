@@ -15,6 +15,11 @@ extern "C" {
 }
 #endif
 
+#define MAX_LASER_COUNT 500
+#define LASER_SEARCH_ANGLE 180
+
+extern int laserZoneCount;
+
 extern struct xml_in *xmldata;
 extern struct xml_in *xmllaser;
 
@@ -35,7 +40,7 @@ extern laserData gmk;
 
 
 extern double visionpar[10];
-extern double laserpar[10];
+extern double laserpar[MAX_LASER_COUNT];
 
 extern componentservertype lmssrv;
 extern componentservertype camsrv;

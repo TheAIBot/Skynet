@@ -3,7 +3,7 @@
 #include "includes/linesensor.h"
 #include "includes/odometry.h"
 #include "includes/robotconnector.h"
-
+#include "includes/commands.h"
 #define MAX_VALUE_FOR_BLACK 0.25
 #define MIN_VALUE_FOR_WHITE 0.80
 
@@ -59,6 +59,13 @@ static double calibrateLineSensorValue(const double sensorValue, const int senso
 	}
 	return calibValue;
 }
+/*
+ inline double getLineCenteringOffset(enum LineCentering centering) {
+ //static double centers[3] = { ((double)LINE_SENSOR_WIDTH / 3) * 1, (double)LINE_SENSOR_WIDTH / 2, ((double)LINE_SENSOR_WIDTH / 3) * 2 };
+ static double centers[3] = {
+ return centers[centering];
+ }
+ */
 
 double correctCalibratedValue(enum LineColor color, const double value)
 {
@@ -96,7 +103,7 @@ double getLineOffsetDistance(enum LineCentering centering, enum LineColor color)
 	const double a = -1 / (min - max);
 	const double b = min / (min - max);
 	//printf("a = %f, b = %f\n", a, b);
-	static const LineCentering lineC[8] = { right, right, right, right, left, left, left, left };
+	static const LineCentering lineC[LINE_SENSORS_COUNT] = { right, right, right, right, left, left, left, left };
 	for (int i = 0; i < LINE_SENSORS_COUNT; ++i)
 	{
 		const double trueCalib = calibrateLineSensorValue(linesensor->data[i], i);
@@ -136,6 +143,7 @@ int crossingLine(enum LineColor color, int konf)
 			const double calibvalue = calibrateLineSensorValue(linesensor->data[i], i);
 			if (calibvalue >= MIN_VALUE_FOR_WHITE)
 			{
+
 				count++;
 			}
 		}

@@ -15,7 +15,9 @@
 #include "includes/robotconnector.h"
 #include "includes/serverif.h"
 
-#define ROBOTPORT	24902
+#define ROBOTPORT 24902
+
+int laserZoneCount = 2;
 
 struct xml_in *xmldata;
 struct xml_in *xmllaser;
@@ -23,7 +25,7 @@ struct xml_in *xmllaser;
 laserData gmk;
 
 double visionpar[10];
-double laserpar[10];
+double laserpar[MAX_LASER_COUNT];
 
 componentservertype lmssrv;
 componentservertype camsrv;
@@ -149,7 +151,8 @@ int connectRobot()
 			xmllaser = xml_in_init(4096, 32);
 			printf(" laserserver xml initialized \n");
 			//len = sprintf(buf, "push  t=0.2 cmd='mrcobst width=0.4'\n");
-			len = sprintf(buf, "scanpush cmd='zoneobst'\n");
+			//len = sprintf(buf, "scanpush cmd='zoneobst'\n");
+			len = sprintf(buf, "scanpush cmd='scanget interval=%d codec=TAG'\n", (MAX_LASER_COUNT / laserZoneCount));
 			send(lmssrv.sockfd, buf, len, 0);
 		}
 	}

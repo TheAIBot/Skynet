@@ -214,8 +214,7 @@ void waitForCompleteStopAndCorrectPosition(odotype* odo)
 	setMotorSpeeds(0, 0);
 }
 
-void fwd(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*))
-{
+void fwd(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*)){
 	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
 	int time = 0;
 
@@ -235,13 +234,13 @@ void fwd(odotype *odo, const double dist, const double speed, int (*stopConditio
 		exitOnButtonPress();
 
 	} while (distLeft > 0 && !(*stopCondition)(odo));
-
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 
 void fwdTurn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*))
 {
-#define K_MOVE_TURN 0.2
+	//Remeber forward regulated
+	const double K_MOVE_TURN = 0.2;
 	int time = 0;
 
 	double angleDifference;
@@ -255,39 +254,66 @@ void fwdTurn(odotype *odo, const double angle, const double speed, int (*stopCon
 		time++;
 		exitOnButtonPress();
 	} while (fabs(angleDifference) > ANGLE(0.1) && !(*stopCondition)(odo));
+	odo->supposedAngle += angle;
+	waitForCompleteStopAndCorrectPosition(odo);
+}
+
+void fwdRegulated(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*)){
+		//Remeber forward regulated
+	printf("fwdRegulated\n");
+	const double K_MOVE_TURN = 0.5;	
+	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
+	int time = 0;
+	//const double startAngleDifference = odo->supposedAngle - odo->angle;
+	double angleDifference, distLeftTurn, distLeftForward, distLeft;
+
+	do
+	{		
+		syncAndUpdateOdo(odo);
+		//Finds the difference in the angle wanted and the one currently had. 
+		angleDifference = odo->supposedAngle - odo->angle ; 
+		printf("angleDifference = %f, supposedAngle = %f, angle = %f\n", angleDifference,odo->supposedAngle,odo->angle);
+		// A combination of the distLeft formula for fwd and turn:
+		distLeftForward = dist - (((odo->rightWheelPos + odo->leftWheelPos) / 2) - startpos);
+		//distLeftTurn = (fabs(startAngleDifference) * odo->wheelSeparation) / 2 - (((startAngleDifference > 0) ?	odo->rightWheelPos : odo->leftWheelPos) - startpos);
+		distLeftTurn = 0;
+		distLeft = distLeftForward + distLeftTurn; //Rewrite and recalculate (*).
+		printf("distLeft = %f\n", distLeft);
+		const double deltaV = (angleDifference > 0)? max(min((K_MOVE_TURN * (angleDifference)), speed/2), MIN_SPEED) :  min(max((K_MOVE_TURN * (angleDifference)), -speed/2),MIN_SPEED);
+		printf("deltaV = %f\n",deltaV);
+		// speed - fabs(deltaV), so that the collective speed at most can reach speed:
+		const double motorSpeed = max(getAcceleratedSpeed(speed - fabs(deltaV), distLeft, time), MIN_SPEED); 
+		setMotorSpeeds(motorSpeed - deltaV / 2, motorSpeed + deltaV / 2);
+		time++;
+		exitOnButtonPress();
+		printf("\n");
+	} while (distLeft > 0 && !(*stopCondition)(odo));
+	printf("distLeft = %f, and stop = %d", distLeft,(distLeft <= 0 && !(*stopCondition)(odo)));
 
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 
-void turn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*))
-{
+void turn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*)){
+	
 	const double startpos = (angle > 0) ? odo->rightWheelPos : odo->leftWheelPos;
-
 	int time = 0;
 
 	double distLeft;
 	do
 	{
 		syncAndUpdateOdo(odo);
-
-		distLeft = (fabs(angle) * odo->wheelSeparation) / 2 - (((angle > 0) ? odo->rightWheelPos : odo->leftWheelPos) - startpos);
+		distLeft = (fabs(angle) * odo->wheelSeparation) / 2 - (((angle > 0) ?	odo->rightWheelPos : odo->leftWheelPos) - startpos);
 
 		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time) / 2, MIN_SPEED);
-		if (angle > 0)
-		{
+		if (angle > 0) 	
 			setMotorSpeeds(-motorSpeed, motorSpeed);
-		}
-		else
-		{
+		else 
 			setMotorSpeeds(motorSpeed, -motorSpeed);
-		}
-
 		time++;
-
 		exitOnButtonPress();
 
-	} while (distLeft > 0 && !(*stopCondition)(odo));
-
+	} while (distLeft > 0 && !(*stopCondition)(odo));	
+	odo->supposedAngle += angle;
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 
@@ -310,7 +336,7 @@ void followLine(odotype *odo, const double dist, const double speed, enum LineCe
 
 		const double maxDiff = atan(((double) LINE_SENSOR_WIDTH / 2) / (double) WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE);
 		const double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE);
-		const double percentOff = (thetaRef / maxDiff);
+		const double percentOff = (sin(thetaRef) / sin(maxDiff));
 
 		setMotorSpeeds(motorSpeed - motorSpeed * percentOff, motorSpeed + motorSpeed * percentOff);
 
@@ -318,11 +344,11 @@ void followLine(odotype *odo, const double dist, const double speed, enum LineCe
 		exitOnButtonPress();
 
 	} while (distLeft > 0 && !(*stopCondition)(odo));
-
+	odo->supposedAngle = odo->angle; //Reset relative angle, as it is impossible to know what angle one is supposed to be at here.
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 
-void followWall(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*))
+void followWall(odotype *odo, const double dist, const double distanceFromWall, const double speed, int (*stopCondition)(odotype*))
 {
 	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
 	int time = 0;
@@ -335,7 +361,7 @@ void followWall(odotype *odo, const double dist, const double speed, int (*stopC
 		distLeft = dist - (((odo->rightWheelPos + odo->leftWheelPos) / 2) - startpos);
 		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
 		const double K = 0.05;
-		const double medTerm = -(20 - irDistance(ir_left)); //A distance of 20 centimeters is optimal
+		const double medTerm = -(distanceFromWall - irDistance(ir_left)); //A distance of 20 centimeters is optimal
 		const double speedDiffPerMotor = (K * medTerm) / 2;
 		printf("IR distance = %f, speedDiff = %f, motorSpeed = %f\n", irDistance(ir_left), speedDiffPerMotor, motorSpeed); //
 
@@ -352,7 +378,7 @@ void followWall(odotype *odo, const double dist, const double speed, int (*stopC
 		exitOnButtonPress();
 
 	} while (distLeft > 0 && !(*stopCondition)(odo));
-
+	odo->supposedAngle = odo->angle; //Reset relative angle, as it is impossible to know what angle one is supposed to be at here.
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 

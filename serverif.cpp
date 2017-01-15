@@ -9,6 +9,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <fcntl.h>
+#include <math.h>
 #include "includes/serverif.h"
 #include "includes/robotconnector.h"
 
@@ -118,27 +119,26 @@ void xml_proca(struct xml_in *x)
 			return;
 		case XML_IN_TAG_START:
 #if (0)
-			{	int i;
-				double a;
+			{
+				int i;
 				printf("start tag: %s, %d attributes\n", x->a, x->n);
-				for(i=0;i<x->n;i++)
+				for (int i = 0; i < x->n; i++)
 				{
-					printf("  %s    %s  \n",x->attr[i].name,x->attr[i].value);
+					printf("  %s    %s  \n", x->attr[i].name, x->attr[i].value);
 				}
 			}
 #endif
-			if (strcmp("laser", x->a) == 0)
+			if (strcmp("lval", x->a) == 0)
 			{
-				int i, ix;
-				for (i = 0; i < x->n; i++)
+				const int ANGLE_INDEX = 1;
+				const int DISTANCE_INDEX = 2;
+				if (strcmp(x->attr[DISTANCE_INDEX].name, "dist") == 0)
 				{
-					ix = atoi(x->attr[i].name + 1);
-					if (ix > -1 && ix < 10)
-						laserpar[ix] = atof(x->attr[i].value);
+					const double angle = atof(x->attr[ANGLE_INDEX].value);
+					const int laserIndex = (int) round((double)(angle + ((double)LASER_SEARCH_ANGLE / 2)) / (((double)LASER_SEARCH_ANGLE / MAX_LASER_COUNT) * (MAX_LASER_COUNT / laserZoneCount)));
+					laserpar[laserIndex] = atof(x->attr[DISTANCE_INDEX].value);
 				}
-
 			}
-
 			break;
 		case XML_IN_TAG_END:
 			//printf("end tag: %s\n", x->a);
