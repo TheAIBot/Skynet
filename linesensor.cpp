@@ -11,7 +11,7 @@ bool simulateFloor = false;
 
 static lineSensorCalibratedData lineSensorCalibData[LINE_SENSORS_COUNT];
 
-int readLineSensorCalibrationData(const char* fileLoc)
+bool readLineSensorCalibrationData(const char* fileLoc)
 {
 
 	FILE* file = fopen(fileLoc, "r");
@@ -19,7 +19,7 @@ int readLineSensorCalibrationData(const char* fileLoc)
 	if (file == NULL)
 	{
 		printf("%s NOT FOUND!\n", fileLoc);
-		return 0;
+		return false;
 	}
 
 	//Error the data value pair for each sensor
@@ -31,14 +31,14 @@ int readLineSensorCalibrationData(const char* fileLoc)
 		if (scanStatus != 2) //Check if the correct number of items was read
 		{
 			printf("Error occured when reading linesensor calibration file. %d numbers expected, but %d was found.", 2, scanStatus);
-			return 0;
+			return false;
 		}
 		lineSensorCalibData[i].a = a;
 		lineSensorCalibData[i].b = b;
 	}
 
 	fclose(file);
-	return 1;
+	return true;
 }
 
 static double floatRandom(const double min, const double max)
@@ -122,7 +122,7 @@ double getLineOffsetDistance(enum LineCentering centering, enum LineColor color)
 	return offsetDistance;
 }
 
-int crossingLine(enum LineColor color, int konf)
+bool crossingLine(enum LineColor color, int konf)
 {
 	int count = 0;
 	if (color == LineColor::black)
@@ -152,7 +152,7 @@ int crossingLine(enum LineColor color, int konf)
 	return count >= konf;
 }
 
-int parallelLine(enum LineColor color)
+bool parallelLine(enum LineColor color)
 {
 	if (color == LineColor::black)
 	{

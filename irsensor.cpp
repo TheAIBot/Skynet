@@ -7,13 +7,13 @@
 /*Constants used by the different IR sensors.*/
 static irSensorCalibrationData irSensorCalibData[IR_SENSOR_COUNT];
 
-int loadIRCalibrationData(const char* fileLoc)
+bool loadIRCalibrationData(const char* fileLoc)
 {
 	FILE* file = fopen(fileLoc, "r");
 	if (file == NULL)
 	{
 		printf("%s NOT FOUND!\n", fileLoc);
-		return 0;
+		return false;
 	}
 	//Error the data value pair for each sensor
 	for (int i = 0; i < IR_SENSOR_COUNT; i++)
@@ -23,13 +23,13 @@ int loadIRCalibrationData(const char* fileLoc)
 		if (scanStatus != 2) //Check if the correct number of items was read
 		{
 			printf("Error occured when reading linesensor calibration file. %d numbers expected, but %d was found.", 2, scanStatus);
-			return 0;
+			return false;
 		}
 		irSensorCalibData[i].Ka = Ka;
 		irSensorCalibData[i].Kb = Kb;
 	}
 	fclose(file);
-	return 1;
+	return true;
 }
 
 double irDistance(enum IRSensor sensor)

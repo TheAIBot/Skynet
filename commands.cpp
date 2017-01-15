@@ -214,7 +214,7 @@ void waitForCompleteStopAndCorrectPosition(odotype* odo)
 	setMotorSpeeds(0, 0);
 }
 
-void fwd(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*))
+void fwd(odotype *odo, const double dist, const double speed, bool (*stopCondition)(odotype*))
 {
 	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
 	int time = 0;
@@ -238,7 +238,7 @@ void fwd(odotype *odo, const double dist, const double speed, int (*stopConditio
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 
-void fwdTurn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*))
+void fwdTurn(odotype *odo, const double angle, const double speed, bool (*stopCondition)(odotype*))
 {
 	//Remeber forward regulated
 	const double K_MOVE_TURN = 0.2;
@@ -259,7 +259,7 @@ void fwdTurn(odotype *odo, const double angle, const double speed, int (*stopCon
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 
-void fwdRegulated(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*))
+void fwdRegulated(odotype *odo, const double dist, const double speed, bool (*stopCondition)(odotype*))
 {
 	//Remeber forward regulated
 	printf("fwdRegulated\n");
@@ -295,7 +295,7 @@ void fwdRegulated(odotype *odo, const double dist, const double speed, int (*sto
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 
-void turn(odotype *odo, const double angle, const double speed, int (*stopCondition)(odotype*))
+void turn(odotype *odo, const double angle, const double speed, bool (*stopCondition)(odotype*))
 {
 
 	const double startpos = (angle > 0) ? odo->rightWheelPos : odo->leftWheelPos;
@@ -320,7 +320,7 @@ void turn(odotype *odo, const double angle, const double speed, int (*stopCondit
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 
-void followLine(odotype *odo, const double dist, const double speed, enum LineCentering centering, enum LineColor color, int (*stopCondition)(odotype*))
+void followLine(odotype *odo, const double dist, const double speed, enum LineCentering centering, enum LineColor color, bool (*stopCondition)(odotype*))
 {
 	const double endPosition = odo->totalDistance + dist;
 	int time = 0;
@@ -350,7 +350,7 @@ void followLine(odotype *odo, const double dist, const double speed, enum LineCe
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 
-void followWall(odotype *odo, const double dist, const double distanceFromWall, const double speed, int (*stopCondition)(odotype*))
+void followWall(odotype *odo, const double dist, const double distanceFromWall, const double speed, bool (*stopCondition)(odotype*))
 {
 	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
 	int time = 0;
@@ -384,7 +384,7 @@ void followWall(odotype *odo, const double dist, const double distanceFromWall, 
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 
-void throughGate(odotype *odo, const double dist, const double speed, int (*stopCondition)(odotype*))
+void throughGate(odotype *odo, const double dist, const double speed, bool (*stopCondition)(odotype*))
 {
 	const double endPosition = odo->totalDistance + dist;
 	int time = 0;

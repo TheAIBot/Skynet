@@ -15,55 +15,55 @@
 
 #define ANGLE(x) ((double)(x) / 180.0 * M_PI)
 
-int noStopCondition(odotype *odo)
+bool noStopCondition(odotype *odo)
 {
-	return 0;
+	return false;
 }
 
 template<enum LineColor color, int conf>
-int stopAtLine(odotype *odo)
+bool stopAtLine(odotype *odo)
 {
 	return crossingLine(color, conf);
 }
 
 template<enum LineColor color>
-int stopAtParallelLine(odotype *odo){
+bool stopAtParallelLine(odotype *odo){
 	return parallelLine(color);
 }
 
 template<int angle, int deviation>
-int stopAtDeg(odotype *odo){
+bool stopAtDeg(odotype *odo){
 	return odo->angle <= ANGLE(angle + deviation) && odo->angle >= ANGLE(angle - deviation);
 }
 
 template<enum IRSensor sensor, int distance>
-int stopAtDetectedPillar(odotype *odo)
+bool stopAtDetectedPillar(odotype *odo)
 {
 	static int countWithinDistance = 0;
 	countWithinDistance = (irDistance(sensor) < distance) ? countWithinDistance + 1 : 0;
 	if (countWithinDistance >= numberRequiredForPillarDetected)
 	{
 		countWithinDistance = 0;
-		return 1;
+		return true;
 	}
 	else
 	{
-		return 0;
+		return false;
 	}
 }
 
 template<enum IRSensor sensor, int distance>
-int stopAtBlankSpace(odotype *odo)
+bool stopAtBlankSpace(odotype *odo)
 {
 	return (irDistance(sensor) > distance);
 }
 
-int stopAtBlockedForwardPath(odotype *odo)
+bool stopAtBlockedForwardPath(odotype *odo)
 {
 	return (irDistance(ir_front_left) < 20 && irDistance(ir_front_center) < 20 && irDistance(ir_front_right) < 20);
 }
 
-int stopAtFreeRightIR(odotype *odo)
+bool stopAtFreeRightIR(odotype *odo)
 {
 	static int countWithinDistance = 0;
 	if (irDistance(ir_front_right) > 50)	{
@@ -74,9 +74,9 @@ int stopAtFreeRightIR(odotype *odo)
 	}
 	if (countWithinDistance >= numberRequiredForPillarDetected){
 		countWithinDistance = 0;
-		return 1;
+		return true;
 	}
-	return 0;
+	return false;
 }
 
 #endif /* STOPCONDITIONS_H_ */
