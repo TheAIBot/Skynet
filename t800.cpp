@@ -89,42 +89,6 @@ int main(int argc, char* argv[])
 	odo.rightWheelEncoderTicks = renc->data[0];
 	odo.oldLeftWheelEncoderTicks = odo.leftWheelEncoderTicks;
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
-/*
-	int count = 0;
-	double oldLaserValue[laserZoneCount];
-	while (true)
-	{
-		forceSetMotorSpeeds(0.1, 0.1);
-		syncAndUpdateOdo(&odo);
-
-		bool allChanged = true;
-		for (int i = 0; i < laserZoneCount; ++i)
-		{
-			if (oldLaserValue[i] == laserpar[i])
-			{
-				allChanged = false;
-				break;
-			}
-		}
-		if (!allChanged)
-		{
-			count++;
-		}
-		else
-		{
-			for (int i = 0; i < laserZoneCount; ++i)
-			{
-				oldLaserValue[i] = laserpar[i];
-				printf("%.1f ", laserpar[i]);
-			}
-			printf("\n");
-			//printf("%d\n", count);
-			count = 0;
-		}
-	}
-*/
-
-	throughGate(&odo, 10000, STD_SPEED, &noStopCondition);
 
 	//printf("Follow line first\n");
 	//go to box
@@ -149,7 +113,8 @@ int main(int argc, char* argv[])
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtDetectedPillar<IRSensor::ir_left, 50>);
 	followLine(&odo, 0.4, STD_SPEED, LineCentering::center, LineColor::black, &noStopCondition); // change this to detect the wall?
 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
-	fwd(&odo, 1, STD_SPEED, &noStopCondition);
+	throughGate(&odo, 1, STD_SPEED, &noStopCondition); //changed here
+	//fwd(&odo, 1, STD_SPEED, &noStopCondition);
 	//Is thorugh the gates
 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 	fwd(&odo, 0.6, STD_SPEED, &noStopCondition);

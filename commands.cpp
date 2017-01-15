@@ -392,35 +392,64 @@ void throughGate(odotype *odo, const double dist, const double speed, bool (*sto
 	setLaserZoneCount(MAX_LASER_COUNT);
 
 	double distLeft;
+	bool goneThroughGate = false;
 	do
 	{
 		syncAndUpdateOdo(odo);
 
 		double minLeftSide = 1000;
-		for (int i = 0; i < MAX_LASER_COUNT / 2; ++i)
-		{
-			if (laserpar[i] > 0.01)
-			{
-				minLeftSide = min(minLeftSide, laserpar[i]);
-			}
-
-		}
-
 		double minRightSide = 1000;
-		for (int i = MAX_LASER_COUNT / 2; i < MAX_LASER_COUNT; ++i)
-		{
-			if (laserpar[i] > 0.01)
-			{
-				minRightSide = min(minRightSide, max(laserpar[i], 0.01));
-			}
+		int minLeftSideIndex = -1;
+		int minRightSideIndex = -1;
 
+		if (!goneThroughGate)
+		{
+			for (int i = 0; i < MAX_LASER_COUNT; ++i)
+			{
+				if (laserpar[i] > 0.01)
+				{
+					if (laserpar[i] < minLeftSide)
+					{
+						minLeftSide = laserpar[i];
+						minLeftSideIndex = i;
+					}
+				}
+			}
+			const double LASER_SPACEING = 40;
+			for (int i = 0; i < MAX_LASER_COUNT; ++i)
+			{
+				if (laserpar[i] > 0.01 && (minLeftSideIndex - LASER_SPACEING > i || i > minLeftSideIndex + LASER_SPACEING))
+				{
+					if (laserpar[i] < minRightSide)
+					{
+						minRightSide = laserpar[i];
+						minRightSideIndex = i;
+					}
+				}
+			}
+			if (minLeftSideIndex > minRightSideIndex)
+			{
+				const double temp = minLeftSide;
+				minLeftSide = minRightSide;
+				minRightSide = temp;
+
+				const int tempIndex = minLeftSideIndex;
+				minLeftSideIndex = minRightSideIndex;
+				minRightSideIndex = tempIndex;
+			}
+			//printf("%f %f\n", minLeftSide, minRightSide);
+			//printf("%d %d\n", minLeftSideIndex, minRightSideIndex);
+		}
+		else {
+			minLeftSide = 1;
+			minRightSide = 1;
 		}
 
 		distLeft = endPosition - odo->totalDistance;
 		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
-		const double K = 0.2;
+		const double K = 1;
 		const double speedDiffPerMotor = (minLeftSide - minRightSide) * K;
-		printf("%f %f %f\n", speedDiffPerMotor, minLeftSide, minRightSide);
+		//printf("%f %f %f\n", speedDiffPerMotor, minLeftSide, minRightSide);
 
 		//setMotorSpeeds(0, 0);
 
@@ -428,6 +457,11 @@ void throughGate(odotype *odo, const double dist, const double speed, bool (*sto
 
 		time++;
 		exitOnButtonPress();
+
+		if (minLeftSideIndex < 20 && minRightSideIndex > MAX_LASER_COUNT - 20)
+		{
+			goneThroughGate = true;
+		}
 
 	} while (distLeft > 0 && !(*stopCondition)(odo));
 	setLaserZoneCount(2);
