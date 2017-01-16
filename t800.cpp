@@ -90,6 +90,8 @@ int main(int argc, char* argv[])
 	odo.oldLeftWheelEncoderTicks = odo.leftWheelEncoderTicks;
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
 
+	throughGate(&odo, 10, STD_SPEED, &noStopCondition); //changed here
+
 	//printf("Follow line first\n");
 	//go to box
 	followLine(&odo, 100, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 7>);
@@ -140,7 +142,8 @@ int main(int argc, char* argv[])
 	followWall(&odo, 3, 20, STD_SPEED / 2, &stopAtBlankSpace<IRSensor::ir_left, 60>);
 	fwd(&odo, 0.4, STD_SPEED, &noStopCondition);
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-	fwd(&odo, 0.78, STD_SPEED, &noStopCondition);
+	throughGate(&odo, 0.78, STD_SPEED, &noStopCondition); //changed here
+	//fwd(&odo, 0.78, STD_SPEED, &noStopCondition);
 	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
 	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
 	followWall(&odo, 0.7, 30, STD_SPEED, &stopAtBlankSpace<IRSensor::ir_left, 60>);
