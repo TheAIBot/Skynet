@@ -21,35 +21,50 @@
 
 #define WHEEL_DIAMETER   0.067	/* m */
 #define WHEEL_SEPARATION 0.256	/* m */
-#define DELTA_M (M_PI * WHEEL_DIAMETER / 2000)
-#define MAX_ACCELERATION 0.5
-#define MIN_SPEED 0.01
+#define DELTA_M (M_PI * WHEEL_DIAMETER / 2000) /* rad */
+#define MAX_ACCELERATION 0.5 /* m/s^2 */
+#define MIN_SPEED 0.01 /* m/s */
 #define TICKS_PER_SECOND 100
-#define MAX_ACCELERATION_PER_TICK (MAX_ACCELERATION / TICKS_PER_SECOND)
+#define MAX_ACCELERATION_PER_TICK (MAX_ACCELERATION / TICKS_PER_SECOND) /* m/s^2 */
 
+//converts an angle in deg to rad
 #define ANGLE(x) ((double)x / 180.0 * M_PI)
 
+/*
+ * Returns the minimum of x and y
+ */
 inline double min(const double x, const double y)
 {
 	return ((x) < (y)) ? (x) : (y);
 }
 
+/*
+ * Returns the maximum og x and y
+ */
 inline double max(const double x, const double y)
 {
 	return ((x) > (y)) ? (x) : (y);
 }
 
+/*
+ * Returns a speed that takes acceleration and deacceleration into account where stdSpeed is max speed,
+ * distanceLeft is the distance the robot has left to go and tickTime is the amount of ticks
+ * since the robot began accelerating
+ */
 double getAcceleratedSpeed(const double stdSpeed, const double distanceLeft, const int tickTime)
 {
 	const double speedFunc = sqrt(2 * (MAX_ACCELERATION) * fabs(distanceLeft));
 	const double accFunc = (MAX_ACCELERATION / TICKS_PER_SECOND) * tickTime;
-	const double speed = (stdSpeed >= 0) ? min(min(stdSpeed, speedFunc), accFunc) : max(max(stdSpeed, -speedFunc), -accFunc);
-	//printf("%f, %f, %f %d %f\n", stdSpeed, speedFunc, accFunc, tickTime, speed);
-	return speed;
+	//to take negative speeds into account the max has to be taken if stdSpeed is negative
+	return (stdSpeed >= 0) ? min(min(stdSpeed, speedFunc), accFunc) : max(max(stdSpeed, -speedFunc), -accFunc);
 }
 
+/*
+ * Updates odo, laser and camera values if they are available
+ */
 void syncAndUpdateOdo(odotype *odo)
 {
+	//update laser values
 	if (lmssrv.config && lmssrv.status && lmssrv.connected)
 	{
 		while ((xml_in_fd(xmllaser, lmssrv.sockfd) > 0))
@@ -58,6 +73,7 @@ void syncAndUpdateOdo(odotype *odo)
 		}
 	}
 
+	//update camera values
 	if (camsrv.config && camsrv.status && camsrv.connected)
 	{
 		while ((xml_in_fd(xmldata, camsrv.sockfd) > 0))
@@ -66,32 +82,45 @@ void syncAndUpdateOdo(odotype *odo)
 		}
 	}
 
+	//sync with robot
 	rhdSync();
+
+	//update odo
 	odo->leftWheelEncoderTicks = lenc->data[0];
 	odo->rightWheelEncoderTicks = renc->data[0];
 	updateOdo(odo);
 }
 
+/*
+ * Set right and left motor speed without taking accelerating into account
+ */
 void forceSetMotorSpeeds(const double leftSpeed, const double rightSpeed)
 {
-	//printf("%f %f\n", currentSpeedLeft, currentSpeedRight);
-
 	speedl->data[0] = 100 * leftSpeed;
 	speedl->updated = 1;
 	speedr->data[0] = 100 * rightSpeed;
 	speedr->updated = 1;
 }
 
+/*
+ * Stops program if any key other than p was pressed.
+ * If p was pressed then pause the program and resume when
+ * p is pressed again
+ */
 void exitOnButtonPress()
 {
 	int arg;
+	//wait for any character
 	ioctl(0, FIONREAD, &arg);
 	if (arg != 0)
 	{
+		//read character and check if p
 		std::string p;
 		std::cin >> p;
 		if (p.compare(std::string("p")) == 0)
 		{
+			//stop robot and wait for key press again
+			//if p again the resume program else exit
 			forceSetMotorSpeeds(0, 0);
 			std::cin >> p;
 			if (p.compare(std::string("p")) == 0)
@@ -106,8 +135,13 @@ void exitOnButtonPress()
 	}
 }
 
+/*
+ * Tries to set motor speeds to leftSpeed and rightSpeed but takes acceleration into account
+ * which makes sure that the robot can't accelerate too fast
+ */
 void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
 {
+	//these two variables contains the current speed of the robot
 	static double currentSpeedLeft = 0;
 	static double currentSpeedRight = 0;
 
@@ -144,10 +178,11 @@ void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
 	speedr->updated = 1;
 }
 
+/*
+ * Runs until the robot has come to a complete stop
+ */
 void waitForCompleteStopAndCorrectPosition(odotype* odo)
 {
-	const double startRightWheelPos = odo->rightWheelPos;
-	const double startLeftWheelPos = odo->leftWheelPos;
 	int previousRightWheelEncoderTicks;
 	int previousLeftWheelEncoderTicks;
 	do
@@ -159,61 +194,13 @@ void waitForCompleteStopAndCorrectPosition(odotype* odo)
 		setMotorSpeeds(0, 0);
 		exitOnButtonPress();
 
+		//Only stop when there is no difference in ticks for both wheels since last sync
 	} while (previousRightWheelEncoderTicks != odo->rightWheelEncoderTicks || previousLeftWheelEncoderTicks != odo->leftWheelEncoderTicks);
-	//robot has now come to a complete stop. Now need to correct the robots position
-
-	const double distanceForRightWheel = startRightWheelPos - odo->rightWheelPos;
-	const double distanceForLeftWheel = startLeftWheelPos - odo->leftWheelPos;
-	const double oldRightWheelPos = odo->rightWheelPos;
-	const double oldLeftWheelPos = odo->leftWheelPos;
-
-	int time = 0;
-
-	//this will get it close but not all the way there.
-	double distanceLeftForRightWheel;
-	double distanceLeftForLeftWheel;
-	do
-	{
-		syncAndUpdateOdo(odo);
-
-		distanceLeftForRightWheel = distanceForRightWheel - (odo->rightWheelPos - oldRightWheelPos);
-		distanceLeftForLeftWheel = distanceForLeftWheel - (odo->leftWheelPos - oldLeftWheelPos);
-
-		//printf("%f, %f\n", distanceLeftForRightWheel, distanceLeftForLeftWheel);
-
-#define ACCEPTABLE_DISTANCE_ERROR 0.005
-		double motorSpeedRight;
-		if (fabs(distanceLeftForRightWheel) < ACCEPTABLE_DISTANCE_ERROR)
-		{
-			motorSpeedRight = 0;
-		}
-		else
-		{
-			motorSpeedRight = (distanceLeftForRightWheel >= 0) ? max(getAcceleratedSpeed(0.05, distanceLeftForRightWheel, time), MIN_SPEED) : min(getAcceleratedSpeed(-0.05, distanceLeftForRightWheel, time), -MIN_SPEED);
-		}
-
-		double motorSpeedLeft;
-		if (fabs(distanceLeftForLeftWheel) < ACCEPTABLE_DISTANCE_ERROR)
-		{
-			motorSpeedLeft = 0;
-		}
-		else
-		{
-			motorSpeedLeft = (distanceLeftForLeftWheel >= 0) ? max(getAcceleratedSpeed(0.05, distanceLeftForLeftWheel, time), MIN_SPEED) : min(getAcceleratedSpeed(-0.05, distanceLeftForLeftWheel, time), -MIN_SPEED);
-		}
-		//printf("%f, %f\n", motorSpeedRight, motorSpeedLeft);
-
-		setMotorSpeeds(motorSpeedLeft, motorSpeedRight);
-
-		time++;
-
-		exitOnButtonPress();
-
-	} while (fabs(distanceLeftForRightWheel) > ACCEPTABLE_DISTANCE_ERROR || fabs(distanceLeftForLeftWheel) > ACCEPTABLE_DISTANCE_ERROR);
-
-	setMotorSpeeds(0, 0);
 }
 
+/*
+ * Makes the robot go forward
+ */
 void fwd(odotype *odo, const double dist, const double speed, bool (*stopCondition)(odotype*))
 {
 	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
@@ -238,9 +225,12 @@ void fwd(odotype *odo, const double dist, const double speed, bool (*stopConditi
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 
+/*
+ * Turns the robot up into an angle
+ */
 void fwdTurn(odotype *odo, const double angle, const double speed, bool (*stopCondition)(odotype*))
 {
-	//Remeber forward regulated
+	//remember forward regulated
 	const double K_MOVE_TURN = 0.2;
 	int time = 0;
 
@@ -252,6 +242,7 @@ void fwdTurn(odotype *odo, const double angle, const double speed, bool (*stopCo
 		const double deltaV = max(K_MOVE_TURN * (angleDifference), MIN_SPEED);
 		const double motorSpeed = max(getAcceleratedSpeed(speed, deltaV / 4, time) / 2, MIN_SPEED);
 		setMotorSpeeds(motorSpeed - deltaV / 2, motorSpeed + deltaV / 2);
+
 		time++;
 		exitOnButtonPress();
 	} while (fabs(angleDifference) > ANGLE(0.1) && !(*stopCondition)(odo));
@@ -295,6 +286,9 @@ void fwdRegulated(odotype *odo, const double dist, const double speed, bool (*st
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 
+/*
+ * Turns the robot angle rads
+ */
 void turn(odotype *odo, const double angle, const double speed, bool (*stopCondition)(odotype*))
 {
 
@@ -305,13 +299,20 @@ void turn(odotype *odo, const double angle, const double speed, bool (*stopCondi
 	do
 	{
 		syncAndUpdateOdo(odo);
+		//the distance the left and right wheel has left to move for the angle to be correct
 		distLeft = (fabs(angle) * odo->wheelSeparation) / 2 - (((angle > 0) ? odo->rightWheelPos : odo->leftWheelPos) - startpos);
 
 		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time) / 2, MIN_SPEED);
+		//allow for the robot to turn cw and ccw
 		if (angle > 0)
+		{
 			setMotorSpeeds(-motorSpeed, motorSpeed);
+		}
 		else
+		{
 			setMotorSpeeds(motorSpeed, -motorSpeed);
+		}
+
 		time++;
 		exitOnButtonPress();
 
@@ -320,6 +321,9 @@ void turn(odotype *odo, const double angle, const double speed, bool (*stopCondi
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 
+/*
+ * Makes the robot follow a line
+ */
 void followLine(odotype *odo, const double dist, const double speed, enum LineCentering centering, enum LineColor color, bool (*stopCondition)(odotype*))
 {
 	const double endPosition = odo->totalDistance + dist;
@@ -336,6 +340,7 @@ void followLine(odotype *odo, const double dist, const double speed, enum LineCe
 		const double motorSpeed = (speed >= 0) ? max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED) : min(getAcceleratedSpeed(speed, distLeft, time), -MIN_SPEED);
 		const double lineOffDist = getLineOffsetDistance(centering, color);
 
+		//calcuate how much the robot has to turn to keep the line in the middle of the robot
 		const double maxDiff = atan(((double) LINE_SENSOR_WIDTH / 2) / (double) WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE);
 		const double thetaRef = atan(lineOffDist / WHEEL_CENTER_TO_LINE_SENSOR_DISTANCE);
 		const double percentOff = (sin(thetaRef) / sin(maxDiff));
@@ -350,6 +355,9 @@ void followLine(odotype *odo, const double dist, const double speed, enum LineCe
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 
+/*
+ * Make the robot follow a wall
+ */
 void followWall(odotype *odo, const double dist, const double distanceFromWall, const double speed, bool (*stopCondition)(odotype*))
 {
 	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
@@ -362,19 +370,12 @@ void followWall(odotype *odo, const double dist, const double distanceFromWall, 
 
 		distLeft = dist - (((odo->rightWheelPos + odo->leftWheelPos) / 2) - startpos);
 		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
+		//get distance from wall and calculate speed of wheel to keep dist distance from wall
 		const double K = 0.05;
-		const double medTerm = -(distanceFromWall - irDistance(ir_left)); //A distance of 20 centimeters is optimal
+		const double medTerm = -(distanceFromWall - irDistance(ir_left));
 		const double speedDiffPerMotor = (K * medTerm) / 2;
-		//printf("IR distance = %f, speedDiff = %f, motorSpeed = %f\n", irDistance(ir_left), speedDiffPerMotor, motorSpeed); //
 
-		if (speed >= 0)
-		{
-			setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
-		}
-		else
-		{
-			setMotorSpeeds(motorSpeed + speedDiffPerMotor, motorSpeed - speedDiffPerMotor);
-		}
+		setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
 
 		time++;
 		exitOnButtonPress();
@@ -384,11 +385,16 @@ void followWall(odotype *odo, const double dist, const double distanceFromWall, 
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 
+/*
+ * Make the robot go through a gate
+ */
 void throughGate(odotype *odo, const double dist, const double speed, bool (*stopCondition)(odotype*))
 {
 	const double endPosition = odo->totalDistance + dist;
 	int time = 0;
 
+	//set the laser to return the max amount of laser points
+	//so the robot can better see the gate
 	setLaserZoneCount(MAX_LASER_COUNT);
 
 	double distLeft;
@@ -402,8 +408,13 @@ void throughGate(odotype *odo, const double dist, const double speed, bool (*sto
 		int minLeftSideIndex = -1;
 		int minRightSideIndex = -1;
 
+		//while the robot can see the gate the robot
+		//should correct itself. When it can't see the gate anymore
+		//it should go straight forward
 		if (!goneThroughGate)
 		{
+			//this assumes that the gates pillars are the two closest things to the robot
+			//Find the fist closest thing to the robot
 			for (int i = 0; i < MAX_LASER_COUNT; ++i)
 			{
 				if (laserpar[i] > 0.01)
@@ -415,6 +426,9 @@ void throughGate(odotype *odo, const double dist, const double speed, bool (*sto
 					}
 				}
 			}
+
+			//find the second closest thing the the robot that isn't close to the
+			//first closest thing
 			const double LASER_SPACEING = 40;
 			for (int i = 0; i < MAX_LASER_COUNT; ++i)
 			{
@@ -427,6 +441,8 @@ void throughGate(odotype *odo, const double dist, const double speed, bool (*sto
 					}
 				}
 			}
+
+			//make the thing that was furthest to the left be set to minLeftSide
 			if (minLeftSideIndex > minRightSideIndex)
 			{
 				const double temp = minLeftSide;
@@ -446,6 +462,7 @@ void throughGate(odotype *odo, const double dist, const double speed, bool (*sto
 		}
 
 		distLeft = endPosition - odo->totalDistance;
+		//now use the gates two pillars to calculate how the robot should turn to keep the distances equal
 		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
 		const double K = 1;
 		const double speedDiffPerMotor = (minLeftSide - minRightSide) * K;
@@ -458,17 +475,23 @@ void throughGate(odotype *odo, const double dist, const double speed, bool (*sto
 		time++;
 		exitOnButtonPress();
 
+		//if both pillars are close to the edge of the robots sight then mark the robot as if
+		//it has gone through the gate already
 		if (minLeftSideIndex < 20 && minRightSideIndex > MAX_LASER_COUNT - 20)
 		{
 			goneThroughGate = true;
 		}
 
 	} while (distLeft > 0 && !(*stopCondition)(odo));
+	//set the laser points to a low value again so time isn't wasted retrieving the points
 	setLaserZoneCount(2);
 	odo->supposedAngle = odo->angle; //Reset relative angle, as it is impossible to know what angle one is supposed to be at here.
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 
+/*
+ * Takes the average distance from the robot to an object in front of it and returns the distance
+ */
 double measureDistance(odotype *odo)
 {
 	double sum = 0;

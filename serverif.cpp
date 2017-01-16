@@ -128,16 +128,19 @@ void xml_proca(struct xml_in *x)
 				}
 			}
 #endif
+			//check if xml name is the correct one
 			if (strcmp("lval", x->a) == 0)
 			{
 				const int ANGLE_INDEX = 1;
 				const int DISTANCE_INDEX = 2;
+				//double check if the xml is correct by checking if one element has
+				//the correct name
 				if (strcmp(x->attr[DISTANCE_INDEX].name, "dist") == 0)
 				{
 					const double angle = atof(x->attr[ANGLE_INDEX].value);
+					//calculate where the index the laser value should be saved at by converting the angle to an index
 					const int laserIndex = (int) round((double)(angle + ((double)LASER_SEARCH_ANGLE / 2)) / (((double)LASER_SEARCH_ANGLE / MAX_LASER_COUNT) * (MAX_LASER_COUNT / laserZoneCount)));
 					laserpar[laserIndex] = atof(x->attr[DISTANCE_INDEX].value);
-					//printf("%d, %f\n", laserIndex, laserpar[laserIndex]);
 				}
 			}
 			break;

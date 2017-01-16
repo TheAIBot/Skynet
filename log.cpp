@@ -6,12 +6,19 @@
 static odotype logs[MAX_LOGS];
 static int logCount = 0;
 
+/*
+ * Saves a copy of odo to logs
+ */
 void logOdo(const odotype * odo)
 {
 	logs[logCount] = *odo;
+	//override old logs if length of array is reached
 	logCount = (logCount + 1) % MAX_LOGS;
 }
 
+/*
+ * Writes logs to odo
+ */
 void writeLogs(const char* filename)
 {
 	FILE* writeFile = fopen(filename, "w");

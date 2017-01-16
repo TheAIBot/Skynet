@@ -5,6 +5,9 @@
 #include <stdio.h>
 #include <math.h>
 
+/*
+ * Returns a truncated delta between -2^16 and 2^16
+ */
 static int preventOverflow(int delta)
 {
 	if (delta > 0x8000)
@@ -18,11 +21,18 @@ static int preventOverflow(int delta)
 	return delta;
 }
 
+/*
+ * Converts motor ticks to meters
+ */
 double getDistanceFromTicks(odotype *p, double ticks)
 {
 	return ticks * p->metersPerEncoderTick;
 }
 
+/*
+ * Updates the total distance the right wheel has traveled and returns
+ * the distance the wheel traveled in this tick in meters
+ */
 static double updateRightEncPos(odotype* p)
 {
 	double delta = p->rightWheelEncoderTicks - p->oldRightWheelEncoderTicks;
@@ -33,6 +43,10 @@ static double updateRightEncPos(odotype* p)
 	return traveledDistance;
 }
 
+/*
+ * Updates the total distance the left wheel has traveled and returns
+ * the distance the wheel traveled in this tick in meters
+ */
 static double updateLeftEncPos(odotype* p)
 {
 	double delta = p->leftWheelEncoderTicks - p->oldLeftWheelEncoderTicks;
@@ -43,14 +57,20 @@ static double updateLeftEncPos(odotype* p)
 	return traveledDistance;
 }
 
+/*
+ * Updates odomety with new data
+ */
 void updateOdo(odotype *p)
 {
 	const double incR = updateRightEncPos(p);
 	const double incL = updateLeftEncPos(p);
 
+	//add distance treveled to tota ldistance
 	p->totalDistance += fabs(incR + incL) / 2;
+	//add changed angle to angle
 	p->angle += (incR - incL) / p->wheelSeparation; // deltaTheta
 
+	//update robot position
 	const double deltaU = (incR + incL) / 2;
 	p->xpos += deltaU * cos(p->angle);
 	p->ypos += deltaU * sin(p->angle);

@@ -13,14 +13,16 @@
 #define TICKS_PER_SECOND 100
 #define STD_SPEED 0.2
 
+#define SIMULATE_FLOOR_ARG "-floor"
 #define USE_REAL_CALIB_ARG "-real"
 #define SIM_LINE_SENSOR_CALIB_FILE_NAME "sensor_calib_scripts/linesensor_calib_sim.txt"
 #define REAL_LINE_SENSOR_CALIB_FILE_NAME "sensor_calib_scripts/linesensor_calib_real.txt"
 #define SIM_IR_SENSOR_CALIB_FILE_NAME "sensor_calib_scripts/irSensorCalib_sim.txt"
 #define REAL_IR_SENSOR_CALIB_FILE_NAME "sensor_calib_scripts/irSensorCalib_real.txt"
 
-#define SIMULATE_FLOOR_ARG "-floor"
-
+/*
+ * Load all the robots calibrations
+ */
 static void loadCalibrations(bool useSimCalibrations)
 {
 	//default is sim calibration
@@ -39,7 +41,7 @@ static void loadCalibrations(bool useSimCalibrations)
 		irSensorCalibFileName = REAL_IR_SENSOR_CALIB_FILE_NAME;
 	}
 	//need calib file for the problem to work
-	if (!readLineSensorCalibrationData(lineSensorCalibFileName.c_str()))
+	if (!loadLineSensorCalibrationData(lineSensorCalibFileName.c_str()))
 	{
 		exit(EXIT_FAILURE);
 	}
@@ -54,12 +56,12 @@ static void loadCalibrations(bool useSimCalibrations)
 int main(int argc, char* argv[])
 {
 	odotype odo = { 0 };
+	//use sim calibs as default
 	bool useSimCalibs = true;
 
 	for (int i = 1; i < argc; ++i)
 	{
 		const std::string argument = argv[i];
-		//std::cout << argument << std::endl;
 		if (argument.compare(std::string(USE_REAL_CALIB_ARG)) == 0)
 		{
 			useSimCalibs = false;
@@ -90,7 +92,7 @@ int main(int argc, char* argv[])
 	odo.oldLeftWheelEncoderTicks = odo.leftWheelEncoderTicks;
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
 
-	throughGate(&odo, 10, STD_SPEED, &noStopCondition); //changed here
+	//throughGate(&odo, 10, STD_SPEED, &noStopCondition); //changed here
 
 	//printf("Follow line first\n");
 	//go to box

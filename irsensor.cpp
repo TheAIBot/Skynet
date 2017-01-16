@@ -4,9 +4,11 @@
 #include "includes/irsensor.h"
 #include "includes/robotconnector.h"
 
-/*Constants used by the different IR sensors.*/
 static irSensorCalibrationData irSensorCalibData[IR_SENSOR_COUNT];
 
+/*
+ * Loads calibration data for ir sensor from fileLoc
+ */
 bool loadIRCalibrationData(const char* fileLoc)
 {
 	FILE* file = fopen(fileLoc, "r");
@@ -32,8 +34,12 @@ bool loadIRCalibrationData(const char* fileLoc)
 	return true;
 }
 
+/*
+ * Returns calibrated distance from an ir sensor
+ */
 double irDistance(enum IRSensor sensor)
 {
 	const int sensorIntensity = irsensor->data[sensor];
+	//calibrate raw sensor value and return
 	return irSensorCalibData[sensor].Ka / (sensorIntensity - irSensorCalibData[sensor].Kb);
 }
