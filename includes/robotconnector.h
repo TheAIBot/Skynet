@@ -19,8 +19,6 @@ extern "C" {
 #define LASER_SEARCH_ANGLE 180
 #define MIN_LASER_DISTANCE 0.01
 
-extern int laserZoneCount;
-
 extern struct xml_in *xmldata;
 extern struct xml_in *xmllaser;
 

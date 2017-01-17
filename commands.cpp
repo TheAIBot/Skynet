@@ -18,6 +18,7 @@
 #include "includes/irsensor.h"
 #include "includes/commands.h"
 #include "includes/serverif.h"
+#include "includes/lasersensor.h"
 
 #define WHEEL_DIAMETER   0.067	/* m */
 #define WHEEL_SEPARATION 0.256	/* m */
@@ -64,7 +65,7 @@ double getAcceleratedSpeed(const double stdSpeed, const double distanceLeft, con
  */
 void syncAndUpdateOdo(odotype *odo)
 {
-	static clock_t startTime = clock();
+	//static clock_t startTime = clock();
 	//update laser values
 	if (lmssrv.config && lmssrv.status && lmssrv.connected)
 	{
@@ -91,8 +92,8 @@ void syncAndUpdateOdo(odotype *odo)
 	odo->rightWheelEncoderTicks = renc->data[0];
 	updateOdo(odo);
 
-	printf("%fms\n", ((double)(clock() - startTime) / CLOCKS_PER_SEC) * 1000);
-	startTime = clock();
+	//printf("%fms\n", ((double)(clock() - startTime) / CLOCKS_PER_SEC) * 1000);
+	//startTime = clock();
 }
 
 /*
@@ -375,16 +376,20 @@ void followWall(odotype *odo, const double dist, const double distanceFromWall, 
 		distLeft = dist - (((odo->rightWheelPos + odo->leftWheelPos) / 2) - startpos);
 		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
 		//get distance from wall and calculate speed of wheel to keep dist distance from wall
-		const double K = 0.05;
-		const double medTerm = -(distanceFromWall - irDistance(ir_left));
+		const double K = 0.5;
+		//printf("%f\n", getLaserDistance(LaserDistance::laser_left));
+		const double medTerm = -(distanceFromWall + 0.2 - getLaserDistance(LaserDistance::laser_left));
+		//printf("%f\n", medTerm);
 		const double speedDiffPerMotor = (K * medTerm) / 2;
 
 		setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
+		//forceSetMotorSpeeds(0,0);
 
 		time++;
 		exitOnButtonPress();
 
 	} while (distLeft > 0 && !(*stopCondition)(odo));
+
 	odo->supposedAngle = odo->angle; //Reset relative angle, as it is impossible to know what angle one is supposed to be at here.
 	waitForCompleteStopAndCorrectPosition(odo);
 }
@@ -396,10 +401,6 @@ void throughGate(odotype *odo, const double dist, const double speed, bool (*sto
 {
 	const double endPosition = odo->totalDistance + dist;
 	int time = 0;
-
-	//set the laser to return the max amount of laser points
-	//so the robot can better see the gate
-	setLaserZoneCount(MAX_LASER_COUNT);
 
 	double distLeft;
 	bool goneThroughGate = false;
@@ -481,14 +482,12 @@ void throughGate(odotype *odo, const double dist, const double speed, bool (*sto
 
 		//if both pillars are close to the edge of the robots sight then mark the robot as if
 		//it has gone through the gate already
-		if (minLeftSideIndex < 20 && minRightSideIndex > MAX_LASER_COUNT - 20)
+		if (minLeftSideIndex < 30 && minRightSideIndex > MAX_LASER_COUNT - 30)
 		{
 			goneThroughGate = true;
 		}
 
 	} while (distLeft > 0 && !(*stopCondition)(odo));
-	//set the laser points to a low value again so time isn't wasted retrieving the points
-	setLaserZoneCount(2);
 	odo->supposedAngle = odo->angle; //Reset relative angle, as it is impossible to know what angle one is supposed to be at here.
 	waitForCompleteStopAndCorrectPosition(odo);
 }

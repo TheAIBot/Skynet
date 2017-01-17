@@ -17,8 +17,6 @@
 
 #define ROBOTPORT 24902
 
-int laserZoneCount = 500;
-
 struct xml_in *xmldata;
 struct xml_in *xmllaser;
 
@@ -92,9 +90,8 @@ void setLaserZoneCount(const int zoneCount)
 {
 	if (lmssrv.connected)
 	{
-		laserZoneCount = zoneCount;
 		char buf[256];
-		const int len = sprintf(buf, "scanpush cmd='scanget interval=%d codec=TAG'\n", (MAX_LASER_COUNT / laserZoneCount));
+		const int len = sprintf(buf, "scanpush cmd='scanget interval=%d codec=TAG'\n", (MAX_LASER_COUNT / zoneCount));
 		send(lmssrv.sockfd, buf, len, 0);
 	}
 	else
@@ -127,7 +124,7 @@ static void connectToLaser()
 		{
 			xmllaser = xml_in_init(4096, 32);
 			printf(" laserserver xml initialized \n");
-			setLaserZoneCount(laserZoneCount);
+			setLaserZoneCount(MAX_LASER_COUNT);
 		}
 	}
 }

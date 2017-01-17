@@ -6,7 +6,6 @@
 #include "includes/log.h"
 #include "includes/commands.h"
 #include "includes/stopconditions.h"
-#include "includes/lasersensor.h"
 
 #define WHEEL_DIAMETER   0.067	// m
 #define WHEEL_SEPARATION 0.256	// m
@@ -54,8 +53,107 @@ static void loadCalibrations(bool useSimCalibrations)
 	}
 }
 
-int main(int argc, char* argv[])
-{
+
+void toTheBoxAndTakeMeasurements(odotype *odo){
+    followLine(odo, 0.3, STD_SPEED, LineCentering::right, LineColor::black, &noStopCondition); 
+    followLine(odo, 100, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 7>); 
+    //TODO(*) Take measurements.
+}
+  
+void handleObstacle(odotype *odo){
+  //go to line towards box to move
+    turn(odo, ANGLE(90), STD_SPEED, &noStopCondition);
+    fwd(odo, 100, STD_SPEED, &stopAtLine<LineColor::black, 4>);
+    fwd(odo, 0.1, STD_SPEED, &noStopCondition);
+    fwd(odo, 100, STD_SPEED, &stopAtLine<LineColor::black, 4>);
+    fwd(odo, 0.25, STD_SPEED, &noStopCondition);
+    turn(odo, ANGLE(-180), STD_SPEED, &stopAtParallelLine<LineColor::black>);
+
+    //push box and go through gate
+    followLine(odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 7>);
+    fwd(odo, 0.075, STD_SPEED, &noStopCondition);
+    turn(odo, ANGLE(90), STD_SPEED / 2, &noStopCondition);
+    followLine(odo, 1, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 6>);
+    followLine(odo, 1, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 5>);
+}
+  
+void throughTheGateAndToTheWall(odotype *odo){
+    //Around the gates and to the wall.
+    //printf();
+    //followLine(odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtDetectedPillar<IRSensor::ir_left, 50>);
+    followLine(odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLaserDetectedPillar<-90, -80, 70>); //changed to laser here
+    followLine(odo, 0.52, STD_SPEED, LineCentering::center, LineColor::black, &noStopCondition); // change this to detect the wall?
+    turn(odo, ANGLE(90), STD_SPEED, &noStopCondition);
+    throughGate(odo, 0.7, STD_SPEED, &noStopCondition); //changed here
+    fwd(odo, 2, STD_SPEED, &stopAtDetectedPillar<IRSensor::ir_front_center, 20>);
+    //Is through the gates, and facing the wall
+    turn(odo, ANGLE(-90), STD_SPEED, &noStopCondition);
+    fwd(odo, 3, STD_SPEED, &stopAtLine<LineColor::black, 4>);
+    fwd(odo, 0.25, STD_SPEED, &noStopCondition);
+    turn(odo, ANGLE(-180), STD_SPEED, &stopAtParallelLine<LineColor::black>);
+    followLine(odo, 0.3, STD_SPEED, LineCentering::center, LineColor::black, &noStopCondition);
+    turn(odo, ANGLE(180), STD_SPEED, &noStopCondition);
+    followLine(odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 5>); //Stop at the wall.
+    //Go to the start of the wall, and get ready to follow it:s
+    followLine(odo, 0.7, STD_SPEED, LineCentering::left, LineColor::black, &noStopCondition);
+    turn(odo, ANGLE(90), STD_SPEED, &noStopCondition);
+    fwd(odo, 0.45, STD_SPEED, &noStopCondition);
+}
+
+void followTheWall(odotype *odo){
+    //Follow first side of the wall	
+	//fwd(odo, 0.1, 0.2, &noStopCondition);
+    followWall(odo, 0.6, 0.40, STD_SPEED, &stopAtBlankSpace<LaserDistance::laser_left, 60>);
+    followWall(odo, 3, 0.40, STD_SPEED / 2, &stopAtBlankSpace<LaserDistance::laser_left, 60>);
+    fwd(odo, 0.48, STD_SPEED, &noStopCondition);
+    turn(odo, ANGLE(90), 0.3, &noStopCondition);
+    //Pass the wall gate
+    throughGate(odo, 1, STD_SPEED, &noStopCondition); //changed here
+    turn(odo, ANGLE(90), 0.3, &noStopCondition);
+    fwd(odo, 0.3, STD_SPEED, &noStopCondition);
+    //Follow other side of the wall
+    followWall(odo, 0.7, 0.20, STD_SPEED, &stopAtBlankSpace<LaserDistance::laser_left, 60>);
+    followWall(odo, 3, 0.20, STD_SPEED / 2, &stopAtBlankSpace<LaserDistance::laser_left, 60>);
+    fwd(odo, 1, STD_SPEED, &stopAtLine<LineColor::black, 5>);
+    fwd(odo, 0.3, STD_SPEED, &noStopCondition);
+    turn(odo, ANGLE(-180), STD_SPEED, &stopAtParallelLine<LineColor::black>);    
+    followLine(odo, 0.3, STD_SPEED, LineCentering::center, LineColor::black, &noStopCondition);
+    turn(odo, ANGLE(180), STD_SPEED, &noStopCondition);
+    //Back at black line, and to the white line
+    followLine(odo, 100, STD_SPEED, LineCentering::left, LineColor::black, &stopAtLine<LineColor::black, 6>);
+    //throughGate(odo, 100, STD_SPEED, &stopAtLine<LineColor::black, 6>); //changed here
+    fwd(odo, 0.15, STD_SPEED, &noStopCondition);
+}
+
+void followTheWhiteLine(odotype *odo){
+    followLine(odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 6>);
+    fwd(odo, 0.45, STD_SPEED, &noStopCondition);
+    turn(odo, ANGLE(90), STD_SPEED, &noStopCondition);  
+    //Follow white line:		
+    followLine(odo, 100, STD_SPEED, LineCentering::center, LineColor::white, &stopAtLine<LineColor::white, 4>);
+    fwd(odo, 0.4, STD_SPEED, &noStopCondition);
+    turn(odo, ANGLE(-90), STD_SPEED, &noStopCondition);
+}
+
+void handleEnclosure(odotype *odo){
+    followLine(odo, 100, STD_SPEED/2, LineCentering::center, LineColor::black, &stopAtDetectedPillar<IRSensor::ir_front_center, 15>);
+    turn(odo, ANGLE(90), STD_SPEED, &noStopCondition);
+    fwd(odo, 0.65, STD_SPEED, &noStopCondition);
+    turn(odo, ANGLE(-90), STD_SPEED, &noStopCondition);
+    fwd(odo, 0.25, STD_SPEED, &noStopCondition);
+    //Smack the gate.
+    turn(odo, ANGLE(-180), 0.5, &noStopCondition);
+    fwd(odo, 0.35, STD_SPEED, &noStopCondition);
+    turn(odo, ANGLE(90), STD_SPEED, &noStopCondition);
+    fwd(odo, 1, STD_SPEED, &stopAtLine<LineColor::black, 5>);
+    fwd(odo, 0.25, STD_SPEED, &noStopCondition);
+    turn(odo, ANGLE(180),  STD_SPEED, &stopAtParallelLine<LineColor::black>);
+    followLine(odo, 100, STD_SPEED/2, LineCentering::center, LineColor::black, &stopAtDetectedPillar<IRSensor::ir_front_center, 15>);
+    
+}
+  
+
+int main(int argc, char* argv[]){
 	odotype odo = { 0 };
 	//use sim calibs as default
 	bool useSimCalibs = true;
@@ -85,101 +183,21 @@ int main(int argc, char* argv[])
 	/* Read sensors and zero our position.
 	 */
 	rhdSync();
-
+	
 	odo.wheelSeparation = WHEEL_SEPARATION;
 	odo.metersPerEncoderTick = DELTA_M;
 	odo.leftWheelEncoderTicks = lenc->data[0];
 	odo.rightWheelEncoderTicks = renc->data[0];
 	odo.oldLeftWheelEncoderTicks = odo.leftWheelEncoderTicks;
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
-
-	while (true)
-	{
-		syncAndUpdateOdo(&odo);
-		forceSetMotorSpeeds(0, 0);
-
-		laserObjects* objects = getLaserObjects(-90, 90);
-		printf("%d %d\n", objects->pillars.size(), objects->walls.size());
-		for (unsigned int i = 0; i < objects->pillars.size(); ++i)
-		{
-			//printf("%f %f\n", objects->pillars[i]->nearestPos.x, objects->pillars[i]->nearestPos.y);
-		}
-		delete objects;
-	}
-
-	//throughGate(&odo, 10, STD_SPEED, &noStopCondition); //changed here
-
-	//printf("Follow line first\n");
-	//go to box
-	followLine(&odo, 100, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 7>);
-	//printf("Turn first\n");
-	//go to line towards box to move
-	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
-	fwd(&odo, 100, STD_SPEED, &stopAtLine<LineColor::black, 5>);
-	fwd(&odo, 0.1, STD_SPEED, &noStopCondition);
-	fwd(&odo, 100, STD_SPEED, &stopAtLine<LineColor::black, 5>);
-	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
-	turn(&odo, ANGLE(-180), STD_SPEED, &stopAtParallelLine<LineColor::black>);
-
-	//push box and go through gate
-	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 7>);
-	fwd(&odo, 0.155, STD_SPEED, &noStopCondition);
-	turn(&odo, ANGLE(90), STD_SPEED / 2, &noStopCondition);
-	followLine(&odo, 1, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 7>);
-	followLine(&odo, 1, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 6>);
-
-	//Around the gates and to the wall.
-	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtDetectedPillar<IRSensor::ir_left, 50>);
-	//followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLaserDetectedPillar<-90, 0, 50>); //changed to laser here
-	followLine(&odo, 0.4, STD_SPEED, LineCentering::center, LineColor::black, &noStopCondition); // change this to detect the wall?
-	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
-	throughGate(&odo, 1, STD_SPEED, &noStopCondition); //changed here
-	//fwd(&odo, 1, STD_SPEED, &noStopCondition);
-	//Is thorugh the gates
-	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
-	fwd(&odo, 0.6, STD_SPEED, &noStopCondition);
-	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
-	//Back to the line
-	fwd(&odo, 100, STD_SPEED, &stopAtLine<LineColor::black, 5>);
-	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
-	//Turn around untill the line has been found.
-	turn(&odo, ANGLE(180), STD_SPEED, &stopAtParallelLine<LineColor::black>);
-	//Go up to the wall:
-	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 7>);
-	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
-	turn(&odo, ANGLE(180), STD_SPEED, &stopAtParallelLine<LineColor::black>);
-	fwd(&odo, 0.1, STD_SPEED, &noStopCondition);
-
-	//Stop at the wall.
-	followLine(&odo, 100, STD_SPEED, center, LineColor::black, &stopAtLine<LineColor::black, 5>);
-	followLine(&odo, 0.6, STD_SPEED, center, LineColor::black, &noStopCondition);
-	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
-	fwd(&odo, 0.25, STD_SPEED, &noStopCondition);
-	//Follow wall	
-	followWall(&odo, 0.7, 20, STD_SPEED, &stopAtBlankSpace<IRSensor::ir_left, 60>);
-	followWall(&odo, 3, 20, STD_SPEED / 2, &stopAtBlankSpace<IRSensor::ir_left, 60>);
-	fwd(&odo, 0.4, STD_SPEED, &noStopCondition);
-	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-	throughGate(&odo, 0.78, STD_SPEED, &noStopCondition); //changed here
-	//fwd(&odo, 0.78, STD_SPEED, &noStopCondition);
-	turn(&odo, ANGLE(90), 0.3, &noStopCondition);
-	fwd(&odo, 0.3, STD_SPEED, &noStopCondition);
-	followWall(&odo, 0.7, 30, STD_SPEED, &stopAtBlankSpace<IRSensor::ir_left, 60>);
-	followWall(&odo, 3, 30, STD_SPEED / 2, &stopAtBlankSpace<IRSensor::ir_left, 60>);
-	fwd(&odo, 0.50, STD_SPEED, &noStopCondition);
-	turn(&odo, ANGLE(180), STD_SPEED, &stopAtParallelLine<LineColor::black>);
-	//Back at black line
-	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 6>);
-	fwd(&odo, 0.15, STD_SPEED, &noStopCondition);
-	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 6>);
-	fwd(&odo, 0.4, STD_SPEED, &noStopCondition);
-	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
-
-	//Follow white line:		
-	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::white, &stopAtLine<LineColor::black, 8>);
-	fwd(&odo, 0.4, STD_SPEED, &noStopCondition);
-	turn(&odo, ANGLE(-90), STD_SPEED, &noStopCondition);
-	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtDetectedPillar<IRSensor::ir_front_center, 30>);
+	
+	toTheBoxAndTakeMeasurements(&odo);
+	handleObstacle(&odo);
+	throughTheGateAndToTheWall(&odo);
+	followTheWall(&odo);
+	followTheWhiteLine(&odo);
+	handleEnclosure(&odo);
+	
 
 	forceSetMotorSpeeds(0, 0);
 	rhdSync();
@@ -188,3 +206,19 @@ int main(int argc, char* argv[])
 	exit(0);
 }
 
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  
+  

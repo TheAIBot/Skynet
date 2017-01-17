@@ -29,7 +29,7 @@ static double distanceBetweenPoints(point a, point b)
 
 static point getPointFromLaserIndex(const int index)
 {
-	const double laserAngle = ((double) LASER_SEARCH_ANGLE / laserZoneCount) * index;
+	const double laserAngle = ((double) LASER_SEARCH_ANGLE / MAX_LASER_COUNT) * index;
 	return getPointFromLaser(laserpar[index], ANGLE(laserAngle));
 }
 
@@ -164,4 +164,9 @@ laserObjects* getLaserObjects(const int startAngle, const int searchAngle)
 	laserObjects* categorizedObjects = getCategorizedLaserObject(*unknownObjects);
 	delete unknownObjects;
 	return categorizedObjects;
+}
+
+double getLaserDistance(enum LaserDistance l)
+{
+	return laserpar[l];
 }

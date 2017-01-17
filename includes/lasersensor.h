@@ -10,6 +10,11 @@
 
 #include <vector>
 
+enum LaserDistance
+{
+	laser_left = 500, laser_center = 250, laser_right = 0
+};
+
 typedef struct
 {
 	double x;
@@ -63,5 +68,7 @@ typedef struct deslaserObjects
 } laserObjects;
 
 laserObjects* getLaserObjects(const int startAngle, const int searchAngle);
+
+double getLaserDistance(enum LaserDistance l);
 
 #endif /* LASERSENSOR_H_ */
