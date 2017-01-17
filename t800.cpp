@@ -115,6 +115,7 @@ int main(int argc, char* argv[])
 
 	//Around the gates and to the wall.
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtDetectedPillar<IRSensor::ir_left, 50>);
+	//followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLaserDetectedPillar<-90, 0, 50>); //changed to laser here
 	followLine(&odo, 0.4, STD_SPEED, LineCentering::center, LineColor::black, &noStopCondition); // change this to detect the wall?
 	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 	throughGate(&odo, 1, STD_SPEED, &noStopCondition); //changed here
@@ -157,7 +158,7 @@ int main(int argc, char* argv[])
 	fwd(&odo, 0.15, STD_SPEED, &noStopCondition);
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 6>);
 	fwd(&odo, 0.4, STD_SPEED, &noStopCondition);
-	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition); //Stop at white line (*)
+	turn(&odo, ANGLE(90), STD_SPEED, &noStopCondition);
 
 	//Follow white line:		
 	followLine(&odo, 100, STD_SPEED, LineCentering::center, LineColor::white, &stopAtLine<LineColor::black, 8>);

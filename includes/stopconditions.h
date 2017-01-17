@@ -12,6 +12,7 @@
 #include "odometry.h"
 #include "linesensor.h"
 #include "irsensor.h"
+#include "robotconnector.h"
 
 #define ANGLE(x) ((double)(x) / 180.0 * M_PI)
 
@@ -27,12 +28,14 @@ bool stopAtLine(odotype *odo)
 }
 
 template<enum LineColor color>
-bool stopAtParallelLine(odotype *odo){
+bool stopAtParallelLine(odotype *odo)
+{
 	return parallelLine(color);
 }
 
 template<int angle, int deviation>
-bool stopAtDeg(odotype *odo){
+bool stopAtDeg(odotype *odo)
+{
 	return odo->angle <= ANGLE(angle + deviation) && odo->angle >= ANGLE(angle - deviation);
 }
 
@@ -66,15 +69,35 @@ bool stopAtBlockedForwardPath(odotype *odo)
 bool stopAtFreeRightIR(odotype *odo)
 {
 	static int countWithinDistance = 0;
-	if (irDistance(ir_front_right) > 50)	{
+	if (irDistance(ir_front_right) > 50)
+	{
 		countWithinDistance++;
 	}
-	else{
+	else
+	{
 		countWithinDistance = 0;
 	}
-	if (countWithinDistance >= numberRequiredForPillarDetected){
+	if (countWithinDistance >= numberRequiredForPillarDetected)
+	{
 		countWithinDistance = 0;
 		return true;
+	}
+	return false;
+}
+
+template<int startAngle, int endAngle, int distance>
+bool stopAtLaserDetectedPillar(odotype *odo)
+{
+	const int startIndex = (startAngle + (LASER_SEARCH_ANGLE / 2)) / ((double) LASER_SEARCH_ANGLE / MAX_LASER_COUNT);
+	const int endIndex = (endAngle + (LASER_SEARCH_ANGLE / 2)) / ((double) LASER_SEARCH_ANGLE / MAX_LASER_COUNT);
+	printf("%d %d\n", startIndex, endIndex);
+
+	for (int i = startIndex; i < endIndex; ++i)
+	{
+		if (laserpar[i] > 0.01 && laserpar[i] < (double)distance / 100)
+		{
+			return true;
+		}
 	}
 	return false;
 }
