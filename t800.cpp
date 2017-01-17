@@ -6,6 +6,7 @@
 #include "includes/log.h"
 #include "includes/commands.h"
 #include "includes/stopconditions.h"
+#include "includes/lasersensor.h"
 
 #define WHEEL_DIAMETER   0.067	// m
 #define WHEEL_SEPARATION 0.256	// m
@@ -91,6 +92,20 @@ int main(int argc, char* argv[])
 	odo.rightWheelEncoderTicks = renc->data[0];
 	odo.oldLeftWheelEncoderTicks = odo.leftWheelEncoderTicks;
 	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
+
+	while (true)
+	{
+		syncAndUpdateOdo(&odo);
+		forceSetMotorSpeeds(0, 0);
+
+		laserObjects* objects = getLaserObjects(-90, 90);
+		printf("%d %d\n", objects->pillars.size(), objects->walls.size());
+		for (unsigned int i = 0; i < objects->pillars.size(); ++i)
+		{
+			//printf("%f %f\n", objects->pillars[i]->nearestPos.x, objects->pillars[i]->nearestPos.y);
+		}
+		delete objects;
+	}
 
 	//throughGate(&odo, 10, STD_SPEED, &noStopCondition); //changed here
 

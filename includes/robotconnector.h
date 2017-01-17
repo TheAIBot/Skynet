@@ -17,6 +17,7 @@ extern "C" {
 
 #define MAX_LASER_COUNT 500
 #define LASER_SEARCH_ANGLE 180
+#define MIN_LASER_DISTANCE 0.01
 
 extern int laserZoneCount;
 

@@ -17,7 +17,7 @@
 
 #define ROBOTPORT 24902
 
-int laserZoneCount = 2;
+int laserZoneCount = 500;
 
 struct xml_in *xmldata;
 struct xml_in *xmllaser;
