@@ -12,7 +12,7 @@ LDFLAGS = -L${SMR}/lib
 #
 PROG   = t800
 HDRS   =
-OBJS   = t800.o serverif.o robotconnector.o odometry.o log.o linesensor.o irsensor.o commands.o
+OBJS   = t800.o serverif.o robotconnector.o odometry.o log.o linesensor.o irsensor.o commands.o lasersensor.o
 LIBS   = -lm librhd.a -lrobot
 
 all:	${PROG}

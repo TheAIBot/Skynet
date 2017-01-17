@@ -64,7 +64,7 @@ static double calibrateLineSensorValue(const double sensorValue, const int senso
 	const double calibValue = a * sensorValue + b;
 	//if true then the calibration of the sensor is incorrect
 	//as the calibrated value should be a value between 0 and 1
-	if (calibValue < 0 || calibValue > 1)
+	if (calibValue < -0.1 || calibValue > 1.1)
 	{
 		printf("Incorrect line sensor callibration. Value = %f\n", calibValue);
 	}
