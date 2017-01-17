@@ -64,7 +64,7 @@ double getAcceleratedSpeed(const double stdSpeed, const double distanceLeft, con
  */
 void syncAndUpdateOdo(odotype *odo)
 {
-	//static clock_t startTime = clock();
+	static clock_t startTime = clock();
 	//update laser values
 	if (lmssrv.config && lmssrv.status && lmssrv.connected)
 	{
@@ -91,8 +91,8 @@ void syncAndUpdateOdo(odotype *odo)
 	odo->rightWheelEncoderTicks = renc->data[0];
 	updateOdo(odo);
 
-	//printf("%fms\n", ((double)(clock() - startTime) / CLOCKS_PER_SEC) * 1000);
-	//startTime = clock();
+	printf("%fms\n", ((double)(clock() - startTime) / CLOCKS_PER_SEC) * 1000);
+	startTime = clock();
 }
 
 /*

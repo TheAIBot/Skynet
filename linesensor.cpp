@@ -4,6 +4,7 @@
 #include "includes/odometry.h"
 #include "includes/robotconnector.h"
 #include "includes/commands.h"
+
 #define MAX_VALUE_FOR_BLACK 0.25
 #define MIN_VALUE_FOR_WHITE 0.80
 

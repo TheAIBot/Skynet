@@ -3,8 +3,10 @@
 #include "includes/lasersensor.h"
 #include "includes/robotconnector.h"
 
-#define MAX_DISTANCE_FOR_CONNECTED_POINTS 0.07
+#define MAX_DISTANCE_FOR_CONNECTED_POINTS 0.1
 #define MAX_PILLAR_SIZE 0.1
+
+#define ANGLE(x) ((double)x / 180.0 * M_PI)
 
 static inline point getPointFromLaser(double dist, double angle)
 {
@@ -25,20 +27,14 @@ static double distanceBetweenPoints(point a, point b)
 	return sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
 }
 
-static point getPointFromLaserIndex(int index)
+static point getPointFromLaserIndex(const int index)
 {
 	const double laserAngle = ((double) LASER_SEARCH_ANGLE / laserZoneCount) * index;
-	return getPointFromLaser(laserpar[index], laserAngle);
+	return getPointFromLaser(laserpar[index], ANGLE(laserAngle));
 }
 
 static std::vector<std::vector<point>*>* getUnknownLaserObjects(const int startIndex, const int endIndex)
 {
-	const point dd250 = getPointFromLaserIndex(250);
-	const point dd260 = getPointFromLaserIndex(251);
-	printf("%f %f\n", dd250.x, dd250.y);
-	printf("%f %f\n", dd260.x, dd260.y);
-	printf("%f\n", MAX_DISTANCE_FOR_CONNECTED_POINTS * getLength(dd250));
-	printf("%f\n", distanceBetweenPoints(dd250, dd260));
 	std::vector<std::vector<point>*> *unknownObjects = new std::vector<std::vector<point>*>;
 	bool isLaserUsed[MAX_LASER_COUNT] = { 0 };
 	for (int i = startIndex; i < endIndex; ++i)
@@ -64,8 +60,9 @@ static std::vector<std::vector<point>*>* getUnknownLaserObjects(const int startI
 					}
 				}
 			}
-			if (unknownObjects->size() > 1)
+			if (objectPositions->size() > 1)
 			{
+				//printf("%d\n", objectPositions->size());
 				unknownObjects->push_back(objectPositions);
 			}
 			else
@@ -75,7 +72,7 @@ static std::vector<std::vector<point>*>* getUnknownLaserObjects(const int startI
 
 		}
 	}
-	printf("%d\n", unknownObjects->size());
+	//printf("%d\n", unknownObjects->size());
 	return unknownObjects;
 }
 
@@ -85,17 +82,11 @@ static laserObjects* getCategorizedLaserObject(std::vector<std::vector<point>*>&
 	for (unsigned int unknownObjectIndex = 0; unknownObjectIndex < unknownObjects.size(); ++unknownObjectIndex)
 	{
 		std::vector<point> unknownObject = *unknownObjects[unknownObjectIndex];
-		const point firstPoint = unknownObject.front();
+		//const point firstPoint = unknownObject.front();
 		bool isPillar = true;
 
-		for (unsigned int i = 0; i < unknownObject.size(); ++i)
-		{
-			if (distanceBetweenPoints(firstPoint, unknownObject[i]) > MAX_PILLAR_SIZE)
-			{
-				isPillar = false;
-				break;
-			}
-		}
+		//shitty solution but it works for straight walls
+		isPillar = distanceBetweenPoints(unknownObject.front(), unknownObject.back()) <= MAX_PILLAR_SIZE;
 
 		if (isPillar)
 		{
@@ -158,6 +149,7 @@ static laserObjects* getCategorizedLaserObject(std::vector<std::vector<point>*>&
 
 			objects->walls.push_back(newWall);
 		}
+		delete unknownObjects[unknownObjectIndex];
 	}
 	return objects;
 }
@@ -169,5 +161,7 @@ laserObjects* getLaserObjects(const int startAngle, const int searchAngle)
 
 	std::vector<std::vector<point>*>* unknownObjects = getUnknownLaserObjects(startIndex, endIndex);
 
-	return getCategorizedLaserObject(*unknownObjects);
+	laserObjects* categorizedObjects = getCategorizedLaserObject(*unknownObjects);
+	delete unknownObjects;
+	return categorizedObjects;
 }

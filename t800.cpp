@@ -99,7 +99,11 @@ int main(int argc, char* argv[])
 		forceSetMotorSpeeds(0, 0);
 
 		laserObjects* objects = getLaserObjects(-90, 90);
-		//printf("%d %d\n", objects->pillars.size(), objects->walls.size());
+		printf("%d %d\n", objects->pillars.size(), objects->walls.size());
+		for (unsigned int i = 0; i < objects->pillars.size(); ++i)
+		{
+			//printf("%f %f\n", objects->pillars[i]->nearestPos.x, objects->pillars[i]->nearestPos.y);
+		}
 		delete objects;
 	}
 
