@@ -58,7 +58,15 @@ static void toTheBoxAndTakeMeasurements(odotype *odo, const bool inSim)
 {
 	followLine(odo, 0.3, STD_SPEED, LineCentering::right, LineColor::black, &noStopCondition);
 	followLine(odo, 100, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 7>);
-	std::cout << "Distance: " << getLaserDistance(LaserDistance::laser_center) + 0 << std::endl;
+	if (inSim)
+	{
+		std::cout << "Distance: " << getLaserDistance(LaserDistance::laser_center) + 1.935 << std::endl;
+	}
+	else
+	{
+		std::cout << "Distance: " << getLaserDistance(LaserDistance::laser_center) + 1.935 << std::endl;
+	}
+
 }
 
 static void handleObstacle(odotype *odo, const bool inSim)
@@ -181,7 +189,14 @@ static void handleEnclosure(odotype *odo, const bool inSim)
 {
 	followLine(odo, 100, STD_SPEED / 2, LineCentering::center, LineColor::black, &stopAtDetectedPillar<IRSensor::ir_front_center, 15>);
 	turn(odo, ANGLE(90), STD_SPEED, &noStopCondition);
-	fwd(odo, 0.60, STD_SPEED, &noStopCondition);
+	if (inSim)
+	{
+		fwd(odo, 0.65, STD_SPEED, &noStopCondition);
+	}
+	else
+	{
+		fwd(odo, 0.60, STD_SPEED, &noStopCondition);
+	}
 	turn(odo, ANGLE(-90), STD_SPEED, &noStopCondition);
 	fwd(odo, 0.3, STD_SPEED, &noStopCondition);
 	//Smack the gate.
@@ -189,7 +204,7 @@ static void handleEnclosure(odotype *odo, const bool inSim)
 	if (inSim)
 	{
 		fwd(odo, 0.35, STD_SPEED, &noStopCondition);
-		turn(odo, ANGLE(-270), STD_SPEED, &noStopCondition);
+		turn(odo, ANGLE(90), STD_SPEED, &noStopCondition);
 		fwd(odo, 1, STD_SPEED, &stopAtLine<LineColor::black, 5>);
 		fwd(odo, 0.2, STD_SPEED, &noStopCondition);
 		turn(odo, ANGLE(180), STD_SPEED, &stopAtParallelLine<LineColor::black>);
