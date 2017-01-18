@@ -107,7 +107,7 @@ bool stopAtLaserDetectedPillar(odotype *odo)
 			return true;
 		}
 	}
-	printf("%f\n", lowest);
+	//printf("%f\n", lowest);
 	return false;
 }
 

@@ -491,17 +491,3 @@ void throughGate(odotype *odo, const double dist, const double speed, bool (*sto
 	odo->supposedAngle = odo->angle; //Reset relative angle, as it is impossible to know what angle one is supposed to be at here.
 	waitForCompleteStopAndCorrectPosition(odo);
 }
-
-/*
- * Takes the average distance from the robot to an object in front of it and returns the distance
- */
-double measureDistance(odotype *odo)
-{
-	double sum = 0;
-	for (int i = 0; i < 100; i++)
-	{
-		syncAndUpdateOdo(odo);
-		sum += irDistance(ir_front_left) + irDistance(ir_front_center) + irDistance(ir_front_right);
-	}
-	return sum / 100;
-}

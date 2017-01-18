@@ -1,0 +1,261 @@
+%--------------------------------------------------------------------
+% Main part
+%--------------------------------------------------------------------
+eval $batteryvoltage
+log "$odox" "$odoy"
+
+laser "scanpush cmd='zoneobst'"
+
+goto "measureBoxDist"
+label "returnMeasureBoxDist"
+
+goto "moveBoxObstacle"
+label "returnMoveBoxObstacle"
+
+goto "gateObstacle"
+label "returnGateObstacle"
+
+goto "wallObstacle"
+label "returnWallObstacle"
+
+goto "whiteLineObstacle"
+label "returnWhiteLineObstacle"
+
+goto "goalObstacle"
+label "returnGoalObstacle"
+
+% End the program
+goto "stop"
+
+
+
+%--------------------------------------------------------------------
+% Measure distance to box
+%--------------------------------------------------------------------
+label "measureBoxDist"
+
+% Follow the first right branch to the crossing black line before the box.
+followline "bm" @v 0.3 :($drivendist>0.3)
+ignoreobstacles
+followline "br" @v 0.3 :($crossingblackline == 1) 
+stop
+wait 1
+eval $l4+1.935
+
+% Initialize variables for computations
+%sumFrontSensors=0
+%sumFrontLeft = 0
+%sumFrontMiddle = 0
+%sumFrontRight = 0
+%counter = 0
+%maxObservations = 50 % Maximum number of observation to compute the mean from
+%distanceSensorToOdoCenter = 0.235 % Should be checked
+%numberOfSensors = 3
+%yDistanceToMark = 1.815
+
+
+% Begin the measurement loop
+label "measurementLoop"
+% Calculate sums
+%sumFrontLeft = sumFrontLeft + $irdistfrontleft
+%sumFrontMiddle = sumFrontMiddle + $irdistfrontmiddle
+%sumFrontRight = sumFrontRight + $irdistfrontright
+%sumFrontSensors = sumFrontLeft + sumFrontMiddle + sumFrontRight
+
+%counter = counter + 1
+% Wait 0.01 seconds because the sensor has a frequency of 100 Hz
+%wait 0.01
+
+%if( counter < maxObservations) "measurementLoop" % Check if the maximum number if iterations is reached.
+
+%averageMeasuredDistance = sumFrontSensors / ( numberOfSensors * maxObservations )
+
+%distanceToBox = -$odoy + distanceSensorToOdoCenter + averageMeasuredDistance
+
+% TODO: No correct in sim, but ought to be better with real world measurement:
+% distanceToBox = yDistanceToMark + distanceSensorToOdoCenter + averageMeasuredDistance
+
+% Print the result to the terminal
+%eval distanceToBox
+
+goto "returnMeasureBoxDist"
+
+
+
+%--------------------------------------------------------------------
+% Move box obstacle
+%--------------------------------------------------------------------
+
+label "moveBoxObstacle"
+
+% Drive the SMR to the obstacle
+turn 90
+drive :($blacklinefound == 1)
+drive :($drivendist > 0.1)
+drive :($blacklinefound == 1) %Drive up to the second black line
+drive :($drivendist > 0.1)
+turn -90
+ignoreobstacles
+followline "bm" :($drivendist > 0.1) 
+ignoreobstacles
+followline "bm" :($crossingblackline == 1)
+ignoreobstacles
+drive :($cmdtime > 0.5)
+
+
+% Back out from the obstacle
+ignoreobstacles
+fwd -0.2
+ignoreobstacles
+followline "bm" @v -0.5 :($drivendist > 0.8)
+
+% Drive to the other side of the obstacle
+turn -90 @v 0.3
+ignoreobstacles
+drive :($blacklinefound == 1)
+ignoreobstacles
+drive :($drivendist > 0.1)
+ignoreobstacles
+turn 90
+followline "bm" :($crossingblackline == 1)
+drive :($drivendist > 0.1)
+turn 90
+
+% Drive thorugh the obstacle
+followline "bm" @v 0.2 :($crossingblackline == 1)
+followline "bm" :($drivendist > 0.1)
+followline "br" :($crossingblackline == 1) 
+
+% Return to the main part
+goto "returnMoveBoxObstacle"
+
+
+
+%--------------------------------------------------------------------
+% Drive through gate
+%--------------------------------------------------------------------
+
+label "gateObstacle"
+% Follow the black line until the first gate pole is detected
+followline "bm" @v 0.1 :($l0<0.6 & $l0 > 0.01)
+
+% Drive through the gate
+followline "bm" @v 0.3 :($drivendist > 0.65)
+turn 90
+ignoreobstacles
+fwd 0.5
+ignoreobstacles
+% Drive close to the wall so there is enough space to turn the SMR
+drive @v 0.2 :($irdistfrontleft < 0.35 | $irdistfrontmiddle < 0.35 | $irdistfrontright < 0.35)
+turn -90 @v 0.3
+followwall "l" 0.3 :($irdistleft > 0.5)
+drive :($blacklinefound == 1)
+fwd 0.25
+turn -90
+followline "bm" :($drivendist > 0.2)
+turn 180
+goto "returnGateObstacle"
+
+
+%--------------------------------------------------------------------
+% Drive around wall 
+%--------------------------------------------------------------------
+
+label "wallObstacle"
+
+% Drive to the wall
+followline "bm" :($crossingblackline == 1)
+fwd 0.6
+turn 90
+fwd 0.1
+ignoreobstacles
+followwall "l" 0.25 :($irdistleft > 0.5)
+
+% Move a little, turn and drive thorugh the gate
+fwd 0.35
+turn 90
+fwd 0.8
+turn 90
+fwd 0.3
+
+% Follow the wall on the other side until nothing is detected to the left side
+followwall "l" 0.3 :($irdistleft > 0.5)
+
+% Drive to the balck line and orient the SMR correctly so that it is ready for the
+% next white line obstacle
+drive :($blacklinefound == 1)
+fwd 0.27
+turn -90
+followline "bm" :($drivendist > 0.3)
+turn 180
+followline "bm" :($drivendist > 1)
+
+
+goto "returnWallObstacle"
+
+
+%--------------------------------------------------------------------
+% Follow the white line
+%--------------------------------------------------------------------
+
+label "whiteLineObstacle"
+
+% Drive to the white line
+followline "bm" :($crossingblackline == 1)
+fwd 0.45
+turn 90
+ignoreobstacles
+followline "wm" :($drivendist > 1)
+ignoreobstacles
+followline "wm" :($crossingblackline == 1)
+fwd 0.1
+drive :($crossingblackline == 1)
+fwd 0.2
+turn -90
+
+goto "returnWhiteLineObstacle"
+
+%--------------------------------------------------------------------
+% Drive to goal obstacle
+%--------------------------------------------------------------------
+
+label "goalObstacle"
+
+%
+% TODO: Move the gate before entering the goal!!!
+%
+
+ignoreobstacles
+followline "bm" @v 0.1 :($irdistfrontmiddle < 0.15)
+ignoreobstacles
+turn 90 @v 0.3
+ignoreobstacles
+fwd 0.60
+ignoreobstacles
+turn -90
+fwd 0.25
+%Smack the gate
+ignoreobstacles
+turn -180 @v 0.5
+ignoreobstacles
+fwd 0.25 @v 0.3
+ignoreobstacles
+turn 90
+ignoreobstacles
+drive @v 0.2 :($blacklinefound == 1)
+ignoreobstacles
+fwd 0.3
+ignoreobstacles
+turn 90
+ignoreobstacles
+followline "bm" :($irdistfrontmiddle < 0.2)
+
+goto "returnGoalObstacle"
+
+
+%--------------------------------------------------------------------
+% Program end
+%--------------------------------------------------------------------
+
+label "stop"
+stop
