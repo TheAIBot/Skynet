@@ -12,7 +12,7 @@
 #define WHEEL_SEPARATION 0.2735	// m
 #define DELTA_M (M_PI * WHEEL_DIAMETER / 2000)
 #define TICKS_PER_SECOND 100
-#define STD_SPEED 0.2
+#define STD_SPEED 0.3
 
 #define SIMULATE_FLOOR_ARG "-floor"
 #define USE_REAL_CALIB_ARG "-real"
