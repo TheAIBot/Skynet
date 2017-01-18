@@ -12,7 +12,7 @@
 
 enum LaserDistance
 {
-	laser_left = 500, laser_center = 250, laser_right = 0
+	laser_left = 499, laser_center = 250, laser_right = 0
 };
 
 typedef struct

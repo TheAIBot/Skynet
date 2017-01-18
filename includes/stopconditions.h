@@ -96,12 +96,12 @@ bool stopAtLaserDetectedPillar(odotype *odo)
 	double lowest = 1000;
 	for (int i = startIndex; i < endIndex; ++i)
 	{
-		if (laserpar[i] > 0.01 && laserpar[i] < lowest)
+		if (laserpar[i] > MIN_LASER_DISTANCE && laserpar[i] < lowest)
 		{
 			lowest = laserpar[i];
 		}
 		//printf("%d %f\n", i, laserpar[i]);
-		if (laserpar[i] > 0.01 && laserpar[i] < ((double) distance) / 100)
+		if (laserpar[i] > MIN_LASER_DISTANCE && laserpar[i] < ((double) distance) / 100)
 		{
 			//printf("%d %f\n", i, laserpar[i]);
 			return true;

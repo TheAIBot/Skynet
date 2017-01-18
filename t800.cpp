@@ -60,7 +60,7 @@ static void toTheBoxAndTakeMeasurements(odotype *odo, const bool inSim)
 	followLine(odo, 100, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 7>);
 	if (inSim)
 	{
-		std::cout << "Distance: " << getLaserDistance(LaserDistance::laser_center) + 1.935 << std::endl;
+		std::cout << "Distance: " << getLaserDistance(LaserDistance::laser_center) + 1.6 << std::endl;
 	}
 	else
 	{
@@ -84,12 +84,10 @@ static void handleObstacle(odotype *odo, const bool inSim)
 	//push box and go through gate
 	followLine(odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 4>);
 
-	if (inSim)
-	{
+	if (inSim){
 		fwd(odo, 0.135, STD_SPEED, &noStopCondition);
 	}
-	else
-	{
+	else{
 		fwd(odo, 0.05, STD_SPEED / 2, &noStopCondition);
 	}
 	turn(odo, ANGLE(45), STD_SPEED / 2, &noStopCondition);
@@ -107,12 +105,10 @@ static void throughTheGateAndToTheWall(odotype *odo, const bool inSim)
 	followLine(odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLaserDetectedPillar<-90, -80, 70>); //changed to laser here
 	followLine(odo, 0.52, STD_SPEED, LineCentering::center, LineColor::black, &noStopCondition); // change this to detect the wall?
 	turn(odo, ANGLE(90), STD_SPEED, &noStopCondition);
-	if (inSim)
-	{
+	if (inSim){
 		throughGate(odo, 2, STD_SPEED, &stopAtLaserDetectedPillar<-5, 5, 20>);
 	}
-	else
-	{
+	else {
 		fwd(odo, 0.5, STD_SPEED, &noStopCondition);
 		fwd(odo, 2, STD_SPEED, &stopAtLaserDetectedPillar<-10, 10, 20>);
 	}
