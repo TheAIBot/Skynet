@@ -8,15 +8,24 @@
 /*
  * Returns a truncated delta between -2^16 and 2^16
  */
-static int preventOverflow(int delta)
+static wheels<int> preventOverflow(wheels<int> delta)
 {
-	if (delta > 0x8000)
+	if (delta.left > 0x8000)
 	{
-		delta -= 0x10000;
+		delta.left -= 0x10000;
 	}
-	else if (delta < -0x8000)
+	else if (delta.left < -0x8000)
 	{
-		delta += 0x10000;
+		delta.left += 0x10000;
+	}
+
+	if (delta.right > 0x8000)
+	{
+		delta.right -= 0x10000;
+	}
+	else if (delta.right < -0x8000)
+	{
+		delta.right += 0x10000;
 	}
 	return delta;
 }
@@ -24,36 +33,21 @@ static int preventOverflow(int delta)
 /*
  * Converts motor ticks to meters
  */
-double getDistanceFromTicks(odotype* const p, double ticks)
+wheels<double> getDistanceFromTicks(odotype* const p, wheels<int> ticks)
 {
 	return ticks * p->metersPerEncoderTick;
 }
 
 /*
- * Updates the total distance the right wheel has traveled and returns
- * the distance the wheel traveled in this tick in meters
+ * Updates the total distance the wheels have traveled and returns
+ * the distance the wheels traveled in this tick in meters
  */
-static double updateRightEncPos(odotype* const p)
+static wheels<double> updateEncodersPositions(odotype* const p)
 {
-	double delta = p->rightWheelEncoderTicks - p->oldRightWheelEncoderTicks;
-	delta = preventOverflow(delta);
-	p->oldRightWheelEncoderTicks = p->rightWheelEncoderTicks;
-	const double traveledDistance = getDistanceFromTicks(p, delta);
-	p->rightWheelPos += traveledDistance;
-	return traveledDistance;
-}
-
-/*
- * Updates the total distance the left wheel has traveled and returns
- * the distance the wheel traveled in this tick in meters
- */
-static double updateLeftEncPos(odotype* const p)
-{
-	double delta = p->leftWheelEncoderTicks - p->oldLeftWheelEncoderTicks;
-	delta = preventOverflow(delta);
-	p->oldLeftWheelEncoderTicks = p->leftWheelEncoderTicks;
-	const double traveledDistance = getDistanceFromTicks(p, delta);
-	p->leftWheelPos += traveledDistance;
+	const wheels<int> delta = preventOverflow(p->wheelsEncoderTicks - p->oldWheelsEncoderTicks);
+	p->oldWheelsEncoderTicks = p->wheelsEncoderTicks;
+	const wheels<double> traveledDistance = getDistanceFromTicks(p, delta);
+	p->wheelsDrivenDistance += traveledDistance;
 	return traveledDistance;
 }
 
@@ -62,18 +56,17 @@ static double updateLeftEncPos(odotype* const p)
  */
 void updateOdo(odotype* const p)
 {
-	const double incR = updateRightEncPos(p);
-	const double incL = updateLeftEncPos(p);
+	const wheels<double> movedDist = updateEncodersPositions(p);
 
-	//add distance treveled to tota ldistance
-	p->totalDistance += fabs(incR + incL) / 2;
+	//add distance traveled to total distance
+	p->totalDistance += fabs(movedDist.left + movedDist.right) / 2;
 	//add changed angle to angle
-	p->angle += (incR - incL) / p->wheelSeparation; // deltaTheta
+	p->angle += (movedDist.left - movedDist.right) / p->wheelSeparation; // deltaTheta
 
 	//update robot position
-	const double deltaU = (incR + incL) / 2;
-	p->xpos += deltaU * cos(p->angle);
-	p->ypos += deltaU * sin(p->angle);
+	const double deltaU = (movedDist.left + movedDist.right) / 2;
+	p->robotPosition.x += deltaU * cos(p->angle);
+	p->robotPosition.y += deltaU * sin(p->angle);
 	//printf("%f %f %f\n", p->xpos, p->ypos, p->angle);
 	logOdo(p);
 }

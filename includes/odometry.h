@@ -8,27 +8,79 @@
 #ifndef ODOMETRY_H_
 #define ODOMETRY_H_
 
+#include "point.h"
+
+template<typename T>
+class wheels
+{
+public:
+	T left;
+	T right;
+
+	wheels<T> operator+(const wheels<T>& p)
+	{
+		wheels<T> temp;
+		temp.left = left + p.left;
+		temp.right = right + p.right;
+		return temp;
+	}
+	wheels<T> operator-(const wheels<T>& p)
+	{
+		wheels<T> temp;
+		temp.left = left - p.left;
+		temp.right = right - p.right;
+		return temp;
+	}
+	wheels<T> operator*(const wheels<T>& p)
+	{
+		wheels<T> temp;
+		temp.left = left * p.left;
+		temp.right = right * p.right;
+		return temp;
+	}
+	wheels<double> operator*(const double& s)
+	{
+		wheels<double> temp;
+		temp.left = s * left;
+		temp.right = s * right;
+		return temp;
+	}
+	wheels<T> operator/(const wheels<T>& p)
+	{
+		wheels<T> temp;
+		temp.left = left / p.left;
+		temp.right = right / p.right;
+		return temp;
+	}
+	void operator+=(const wheels<T>& p)
+	{
+		left += p.left;
+		right += p.right;
+	}
+	bool operator!=(const wheels<T>& p)
+	{
+		return left != p.left || right != p.right;
+	}
+};
+
 typedef struct
 {
 	// parameters
 	double wheelSeparation;
 	double metersPerEncoderTick;
 	//output signals
-	double rightWheelPos;
-	double leftWheelPos;
+	wheels<double> wheelsDrivenDistance;
 
-	double xpos;
-	double ypos;
+	point<double> robotPosition;
+
 	double angle;
 	double totalDistance;
 	//For forward regulated:
 	double supposedAngle;
 	//input signals
-	int leftWheelEncoderTicks;
-	int rightWheelEncoderTicks;
+	wheels<int> wheelsEncoderTicks;
 	// internal variables
-	int oldLeftWheelEncoderTicks;
-	int oldRightWheelEncoderTicks;
+	wheels<int> oldWheelsEncoderTicks;
 
 } odotype;
 

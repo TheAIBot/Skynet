@@ -88,8 +88,8 @@ void syncAndUpdateOdo(odotype* const odo)
 	rhdSync();
 
 	//update odo
-	odo->leftWheelEncoderTicks = lenc->data[0];
-	odo->rightWheelEncoderTicks = renc->data[0];
+	odo->wheelsEncoderTicks.left = lenc->data[0];
+	odo->wheelsEncoderTicks.right = renc->data[0];
 	updateOdo(odo);
 
 	//printf("%fms\n", ((double)(clock() - startTime) / CLOCKS_PER_SEC) * 1000);
@@ -188,19 +188,17 @@ static void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
  */
 static void waitForCompleteStop(odotype* const odo)
 {
-	int previousRightWheelEncoderTicks;
-	int previousLeftWheelEncoderTicks;
+	wheels<int> previousWheelsEncoderTicks;
 	do
 	{
-		previousRightWheelEncoderTicks = odo->rightWheelEncoderTicks;
-		previousLeftWheelEncoderTicks = odo->leftWheelEncoderTicks;
+		previousWheelsEncoderTicks = odo->wheelsEncoderTicks;
 
 		syncAndUpdateOdo(odo);
 		setMotorSpeeds(0, 0);
 		exitOnButtonPress();
 
 		//Only stop when there is no difference in ticks for both wheels since last sync
-	} while (previousRightWheelEncoderTicks != odo->rightWheelEncoderTicks || previousLeftWheelEncoderTicks != odo->leftWheelEncoderTicks);
+	} while (previousWheelsEncoderTicks != odo->wheelsEncoderTicks);
 }
 
 /*
@@ -208,7 +206,7 @@ static void waitForCompleteStop(odotype* const odo)
  */
 void fwd(odotype* const odo, const double dist, const double speed, bool (*stopCondition)(odotype*))
 {
-	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
+	const double startpos = odo->totalDistance;
 	int time = 0;
 
 	double distLeft;
@@ -216,7 +214,7 @@ void fwd(odotype* const odo, const double dist, const double speed, bool (*stopC
 	{
 		syncAndUpdateOdo(odo);
 
-		distLeft = dist - (((odo->rightWheelPos + odo->leftWheelPos) / 2) - startpos);
+		distLeft = dist - (odo->totalDistance - startpos);
 
 		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
 
@@ -260,7 +258,7 @@ void fwdRegulated(odotype* const odo, const double dist, const double speed, boo
 	//Remeber forward regulated
 	printf("fwdRegulated\n");
 	const double K_MOVE_TURN = 0.5;
-	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
+	const double startpos = odo->totalDistance;
 	int time = 0;
 	//const double startAngleDifference = odo->supposedAngle - odo->angle;
 	double angleDifference, distLeftTurn, distLeftForward, distLeft;
@@ -272,7 +270,7 @@ void fwdRegulated(odotype* const odo, const double dist, const double speed, boo
 		angleDifference = odo->supposedAngle - odo->angle;
 		printf("angleDifference = %f, supposedAngle = %f, angle = %f\n", angleDifference, odo->supposedAngle, odo->angle);
 		// A combination of the distLeft formula for fwd and turn:
-		distLeftForward = dist - (((odo->rightWheelPos + odo->leftWheelPos) / 2) - startpos);
+		distLeftForward = dist - (odo->totalDistance - startpos);
 		//distLeftTurn = (fabs(startAngleDifference) * odo->wheelSeparation) / 2 - (((startAngleDifference > 0) ?	odo->rightWheelPos : odo->leftWheelPos) - startpos);
 		distLeftTurn = 0;
 		distLeft = distLeftForward + distLeftTurn; //Rewrite and recalculate (*).
@@ -297,7 +295,8 @@ void fwdRegulated(odotype* const odo, const double dist, const double speed, boo
 void turn(odotype* const odo, const double angle, const double speed, bool (*stopCondition)(odotype*))
 {
 
-	const double startpos = (angle > 0) ? odo->rightWheelPos : odo->leftWheelPos;
+	//doesn't matter which wheel is used to measure the distance turned as they should turn the same amount
+	const double startpos = odo->wheelsDrivenDistance.right;
 	int time = 0;
 
 	double distLeft;
@@ -305,8 +304,8 @@ void turn(odotype* const odo, const double angle, const double speed, bool (*sto
 	{
 		syncAndUpdateOdo(odo);
 		//the distance the left and right wheel has left to move for the angle to be correct
-		distLeft = (fabs(angle) * odo->wheelSeparation) / 2 - (((angle > 0) ? odo->rightWheelPos : odo->leftWheelPos) - startpos);
-
+		distLeft = ((fabs(angle) * odo->wheelSeparation) / 2) - fabs(odo->wheelsDrivenDistance.right - startpos);
+		//printf("%f\n", odo->wheelsDrivenDistance.right);
 		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time) / 2, MIN_SPEED);
 		//allow for the robot to turn cw and ccw
 		if (angle > 0)
@@ -365,7 +364,7 @@ void followLine(odotype* const odo, const double dist, const double speed, enum 
  */
 void followWall(odotype* const odo, const double dist, const double distanceFromWall, const double speed, bool (*stopCondition)(odotype*))
 {
-	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
+	const double startpos = odo->totalDistance;
 	int time = 0;
 
 	double distLeft;
@@ -373,7 +372,7 @@ void followWall(odotype* const odo, const double dist, const double distanceFrom
 	{
 		syncAndUpdateOdo(odo);
 
-		distLeft = dist - (((odo->rightWheelPos + odo->leftWheelPos) / 2) - startpos);
+		distLeft = dist - (odo->totalDistance - startpos);
 		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
 		//get distance from wall and calculate speed of wheel to keep dist distance from wall
 		const double K = 0.5;

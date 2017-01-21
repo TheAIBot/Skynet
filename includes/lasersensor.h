@@ -9,46 +9,18 @@
 #define LASERSENSOR_H_
 
 #include <vector>
+#include "point.h"
 
 enum LaserDistance
 {
 	laser_left = 499, laser_center = 250, laser_right = 0
 };
 
-typedef struct spoint
-{
-	double x;
-	double y;
-
-	spoint operator+(const spoint& p)
-	{
-		spoint sum;
-		sum.x = x + p.x;
-		sum.y = y + p.y;
-		return sum;
-	}
-
-	spoint operator/(const spoint& p)
-	{
-		spoint sum;
-		sum.x = x / p.x;
-		sum.y = y / p.y;
-		return sum;
-	}
-	spoint operator/(const int& s)
-		{
-			spoint sum;
-			sum.x = x / s;
-			sum.y = y / s;
-			return sum;
-		}
-} point;
-
 typedef struct despillar
 {
-	point pos;
-	point nearestPos;
-	point *points;
+	point<double> pos;
+	point<double> nearestPos;
+	point<double> *points;
 	int pointsCount;
 
 	~despillar()
@@ -60,10 +32,10 @@ typedef struct despillar
 
 typedef struct deswall
 {
-	point startPos;
-	point endPos;
-	point nearestPos;
-	point *points;
+	point<double> startPos;
+	point<double> endPos;
+	point<double> nearestPos;
+	point<double> *points;
 	int pointsCount;
 
 	~deswall()

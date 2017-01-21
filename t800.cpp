@@ -58,8 +58,10 @@ static void toTheBoxAndTakeMeasurements(odotype* const odo, const bool inSim)
 {
 	followLine(odo, 0.3, STD_SPEED*2, LineCentering::right, LineColor::black, &noStopCondition);
 	followLine(odo, 100, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 7>);
+	//these are not the correct numbers
 	if (inSim)
 	{
+
 		std::cout << "Distance: " << getLaserDistance(LaserDistance::laser_center) + 1.6 << std::endl;
 	}
 	else
@@ -273,10 +275,9 @@ int main(int argc, char* argv[])
 	
 	odo.wheelSeparation = WHEEL_SEPARATION;
 	odo.metersPerEncoderTick = DELTA_M;
-	odo.leftWheelEncoderTicks = lenc->data[0];
-	odo.rightWheelEncoderTicks = renc->data[0];
-	odo.oldLeftWheelEncoderTicks = odo.leftWheelEncoderTicks;
-	odo.oldRightWheelEncoderTicks = odo.rightWheelEncoderTicks;
+	odo.wheelsEncoderTicks.left = lenc->data[0];
+	odo.wheelsEncoderTicks.right = renc->data[0];
+	odo.oldWheelsEncoderTicks = odo.wheelsEncoderTicks;
 	
 
 	toTheBoxAndTakeMeasurements(&odo, useSimCalibs);
