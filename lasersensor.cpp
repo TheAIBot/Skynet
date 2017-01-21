@@ -8,7 +8,7 @@
 
 #define ANGLE(x) ((double)x / 180.0 * M_PI)
 
-static inline point getPointFromLaser(double dist, double angle)
+static inline point getPointFromLaser(const double dist, const double angle)
 {
 	point newPoint;
 	newPoint.x = dist * cos(angle);
@@ -21,10 +21,9 @@ static double getLength(const point p)
 	return sqrt(pow(p.x, 2) + pow(p.y, 2));
 }
 
-
-static double distanceBetweenPoints(point a, point b)
+static double distanceBetweenPoints(const point a, const point b)
 {
-	return sqrt((a.x - b.x) * (a.x - b.x) + (a.y - b.y) * (a.y - b.y));
+	return sqrt(pow(a.x - b.x, 2) + pow(a.y - b.y, 2));
 }
 
 static point getPointFromLaserIndex(const int index)
@@ -35,7 +34,7 @@ static point getPointFromLaserIndex(const int index)
 
 static std::vector<std::vector<point>*>* getUnknownLaserObjects(const int startIndex, const int endIndex)
 {
-	std::vector<std::vector<point>*> *unknownObjects = new std::vector<std::vector<point>*>;
+	std::vector<std::vector<point>*>* unknownObjects = new std::vector<std::vector<point>*>;
 	bool isLaserUsed[MAX_LASER_COUNT] = { 0 };
 	for (int i = startIndex; i < endIndex; ++i)
 	{
@@ -51,10 +50,8 @@ static std::vector<std::vector<point>*>* getUnknownLaserObjects(const int startI
 				if (laserpar[z] > MIN_LASER_DISTANCE)
 				{
 					const point obstaclePos = getPointFromLaserIndex(z);
-					//printf("%f\n", distanceBetweenPoints(objectPositions->back(), obstaclePos));
 					if (distanceBetweenPoints(objectPositions->back(), obstaclePos) <= MAX_DISTANCE_FOR_CONNECTED_POINTS * getLength(objectPositions->back()))
 					{
-						//printf("true\n");
 						objectPositions->push_back(obstaclePos);
 						isLaserUsed[z] = true;
 					}
@@ -62,7 +59,6 @@ static std::vector<std::vector<point>*>* getUnknownLaserObjects(const int startI
 			}
 			if (objectPositions->size() > 1)
 			{
-				//printf("%d\n", objectPositions->size());
 				unknownObjects->push_back(objectPositions);
 			}
 			else
@@ -72,21 +68,18 @@ static std::vector<std::vector<point>*>* getUnknownLaserObjects(const int startI
 
 		}
 	}
-	//printf("%d\n", unknownObjects->size());
 	return unknownObjects;
 }
 
-static laserObjects* getCategorizedLaserObject(std::vector<std::vector<point>*>& unknownObjects)
+static laserObjects* getCategorizedLaserObject(const std::vector<std::vector<point>*>& unknownObjects)
 {
 	laserObjects* objects = new laserObjects;
 	for (unsigned int unknownObjectIndex = 0; unknownObjectIndex < unknownObjects.size(); ++unknownObjectIndex)
 	{
-		std::vector<point> unknownObject = *unknownObjects[unknownObjectIndex];
-		//const point firstPoint = unknownObject.front();
-		bool isPillar = true;
+		const std::vector<point> unknownObject = *unknownObjects[unknownObjectIndex];
 
 		//shitty solution but it works for straight walls
-		isPillar = distanceBetweenPoints(unknownObject.front(), unknownObject.back()) <= MAX_PILLAR_SIZE;
+		const bool isPillar = distanceBetweenPoints(unknownObject.front(), unknownObject.back()) <= MAX_PILLAR_SIZE;
 
 		if (isPillar)
 		{
@@ -95,15 +88,13 @@ static laserObjects* getCategorizedLaserObject(std::vector<std::vector<point>*>&
 			point pointsSum = { 0 };
 			for (unsigned int i = 0; i < unknownObject.size(); ++i)
 			{
-				pointsSum.x += unknownObject[i].x;
-				pointsSum.y += unknownObject[i].y;
+				pointsSum = pointsSum + unknownObject[i];
 			}
-			pointsSum.x /= unknownObject.size();
-			pointsSum.y /= unknownObject.size();
+			pointsSum = pointsSum / unknownObject.size();
 			newPillar->pos = pointsSum;
 
 			point nearestPos = unknownObject[0];
-			for (unsigned int i = 0; i < unknownObject.size(); ++i)
+			for (unsigned int i = 1; i < unknownObject.size(); ++i)
 			{
 				if (getLength(nearestPos) > getLength(unknownObject[i]))
 				{
@@ -113,11 +104,7 @@ static laserObjects* getCategorizedLaserObject(std::vector<std::vector<point>*>&
 			newPillar->nearestPos = nearestPos;
 
 			newPillar->points = new point[unknownObject.size()];
-			for (unsigned int i = 0; i < unknownObject.size(); ++i)
-			{
-				newPillar->points[i] = unknownObject[i];
-			}
-
+			std::copy(unknownObject.begin(), unknownObject.end(), newPillar->points);
 			newPillar->pointsCount = unknownObject.size();
 
 			objects->pillars.push_back(newPillar);
@@ -140,11 +127,7 @@ static laserObjects* getCategorizedLaserObject(std::vector<std::vector<point>*>&
 			newWall->nearestPos = nearestPos;
 
 			newWall->points = new point[unknownObject.size()];
-			for (unsigned int i = 0; i < unknownObject.size(); ++i)
-			{
-				newWall->points[i] = unknownObject[i];
-			}
-
+			std::copy(unknownObject.begin(), unknownObject.end(), newWall->points);
 			newWall->pointsCount = unknownObject.size();
 
 			objects->walls.push_back(newWall);
@@ -159,7 +142,7 @@ laserObjects* getLaserObjects(const int startAngle, const int searchAngle)
 	const int startIndex = 0;
 	const int endIndex = MAX_LASER_COUNT;
 
-	std::vector<std::vector<point>*>* unknownObjects = getUnknownLaserObjects(startIndex, endIndex);
+	const std::vector<std::vector<point>*>* unknownObjects = getUnknownLaserObjects(startIndex, endIndex);
 
 	laserObjects* categorizedObjects = getCategorizedLaserObject(*unknownObjects);
 	delete unknownObjects;

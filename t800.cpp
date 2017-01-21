@@ -71,7 +71,6 @@ static void toTheBoxAndTakeMeasurements(odotype *odo, const bool inSim)
 
 static void handleObstacle(odotype *odo, const bool inSim)
 {
-
 	//go to line towards box to move
 	turn(odo, ANGLE(90), STD_SPEED, &noStopCondition);
 	fwd(odo, 100, STD_SPEED, &stopAtLine<LineColor::black, 4>);
@@ -271,14 +270,6 @@ int main(int argc, char* argv[])
 	/* Read sensors and zero our position.
 	 */
 	rhdSync();
-	
-	while(false)
-	{
-	  syncAndUpdateOdo(&odo);
-	  printf("%d\n", stopAtLaserDetectedPillar<-90, -80, 50>(&odo));
-	  //printf("%f\n", getLaserDistance(LaserDistance::laser_left));
-	 
-	}
 	
 	odo.wheelSeparation = WHEEL_SEPARATION;
 	odo.metersPerEncoderTick = DELTA_M;

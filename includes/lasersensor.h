@@ -15,10 +15,33 @@ enum LaserDistance
 	laser_left = 499, laser_center = 250, laser_right = 0
 };
 
-typedef struct
+typedef struct spoint
 {
 	double x;
 	double y;
+
+	spoint operator+(const spoint& p)
+	{
+		spoint sum;
+		sum.x = x + p.x;
+		sum.y = y + p.y;
+		return sum;
+	}
+
+	spoint operator/(const spoint& p)
+	{
+		spoint sum;
+		sum.x = x / p.x;
+		sum.y = y / p.y;
+		return sum;
+	}
+	spoint operator/(const int& s)
+		{
+			spoint sum;
+			sum.x = x / s;
+			sum.y = y / s;
+			return sum;
+		}
 } point;
 
 typedef struct despillar
