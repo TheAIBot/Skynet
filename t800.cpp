@@ -54,7 +54,7 @@ static void loadCalibrations(bool useSimCalibrations)
 	}
 }
 
-static void toTheBoxAndTakeMeasurements(odotype *odo, const bool inSim)
+static void toTheBoxAndTakeMeasurements(odotype* const odo, const bool inSim)
 {
 	followLine(odo, 0.3, STD_SPEED*2, LineCentering::right, LineColor::black, &noStopCondition);
 	followLine(odo, 100, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 7>);
@@ -69,7 +69,7 @@ static void toTheBoxAndTakeMeasurements(odotype *odo, const bool inSim)
 
 }
 
-static void handleObstacle(odotype *odo, const bool inSim)
+static void handleObstacle(odotype* const odo, const bool inSim)
 {
 	//go to line towards box to move
 	turn(odo, ANGLE(90), STD_SPEED, &noStopCondition);
@@ -98,7 +98,7 @@ static void handleObstacle(odotype *odo, const bool inSim)
 	followLine(odo, 1, STD_SPEED, LineCentering::right, LineColor::black, &stopAtLine<LineColor::black, 5>);
 }
 
-static void throughTheGateAndToTheWall(odotype *odo, const bool inSim)
+static void throughTheGateAndToTheWall(odotype* const odo, const bool inSim)
 {
 	//Around the gates and to the wall.
 	//printf();
@@ -131,7 +131,7 @@ static void throughTheGateAndToTheWall(odotype *odo, const bool inSim)
 	fwd(odo, 0.3, STD_SPEED, &noStopCondition);
 }
 
-static void followTheWall(odotype *odo, const bool inSim)
+static void followTheWall(odotype* const odo, const bool inSim)
 {
 	//Follow first side of the wall
 	//fwd(odo, 0.1, 0.2, &noStopCondition);
@@ -172,7 +172,7 @@ static void followTheWall(odotype *odo, const bool inSim)
 	followLine(odo, 0.3, STD_SPEED, LineCentering::center, LineColor::black, &noStopCondition);
 }
 
-static void followTheWhiteLine(odotype *odo, const bool inSim)
+static void followTheWhiteLine(odotype* const odo, const bool inSim)
 {
 	followLine(odo, 100, STD_SPEED, LineCentering::center, LineColor::black, &stopAtLine<LineColor::black, 5>);
 	fwd(odo, 0.45, STD_SPEED, &noStopCondition);
@@ -201,7 +201,7 @@ static void followTheWhiteLine(odotype *odo, const bool inSim)
 	turn(odo, ANGLE(-180), STD_SPEED, &stopAtParallelLine<LineColor::black>);
 }
 
-static void handleEnclosure(odotype *odo, const bool inSim)
+static void handleEnclosure(odotype* const odo, const bool inSim)
 {
 	followLine(odo, 100, STD_SPEED / 2, LineCentering::center, LineColor::black, &stopAtDetectedPillar<IRSensor::ir_front_center, 15>);
 	turn(odo, ANGLE(90), STD_SPEED, &noStopCondition);

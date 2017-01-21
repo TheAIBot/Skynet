@@ -24,7 +24,7 @@ static int preventOverflow(int delta)
 /*
  * Converts motor ticks to meters
  */
-double getDistanceFromTicks(odotype *p, double ticks)
+double getDistanceFromTicks(odotype* const p, double ticks)
 {
 	return ticks * p->metersPerEncoderTick;
 }
@@ -33,7 +33,7 @@ double getDistanceFromTicks(odotype *p, double ticks)
  * Updates the total distance the right wheel has traveled and returns
  * the distance the wheel traveled in this tick in meters
  */
-static double updateRightEncPos(odotype* p)
+static double updateRightEncPos(odotype* const p)
 {
 	double delta = p->rightWheelEncoderTicks - p->oldRightWheelEncoderTicks;
 	delta = preventOverflow(delta);
@@ -47,7 +47,7 @@ static double updateRightEncPos(odotype* p)
  * Updates the total distance the left wheel has traveled and returns
  * the distance the wheel traveled in this tick in meters
  */
-static double updateLeftEncPos(odotype* p)
+static double updateLeftEncPos(odotype* const p)
 {
 	double delta = p->leftWheelEncoderTicks - p->oldLeftWheelEncoderTicks;
 	delta = preventOverflow(delta);
@@ -60,7 +60,7 @@ static double updateLeftEncPos(odotype* p)
 /*
  * Updates odomety with new data
  */
-void updateOdo(odotype *p)
+void updateOdo(odotype* const p)
 {
 	const double incR = updateRightEncPos(p);
 	const double incL = updateLeftEncPos(p);

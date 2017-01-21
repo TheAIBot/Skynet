@@ -10,8 +10,8 @@
 
 #include "odometry.h"
 
-void logOdo(const odotype * odo);
+void logOdo(const odotype* const odo);
 
-void writeLogs(const char* fileName);
+void writeLogs(const char* const fileName);
 
 #endif /* LOG_H_ */

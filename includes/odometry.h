@@ -31,8 +31,8 @@ typedef struct
 	double supposedAngle;
 } odotype;
 
-void updateOdo(odotype *p);
+void updateOdo(odotype* const p);
 
-double getDistanceFromTicks(odotype *p, double ticks);
+double getDistanceFromTicks(odotype* const p, double ticks);
 
 #endif /* ODOMETRY_H_ */

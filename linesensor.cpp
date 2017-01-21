@@ -15,7 +15,7 @@ static lineSensorCalibratedData lineSensorCalibData[LINE_SENSORS_COUNT];
 /*
  * Loads calibration data for live sensor from fileLoc
  */
-bool loadLineSensorCalibrationData(const char* fileLoc)
+bool loadLineSensorCalibrationData(const char* const fileLoc)
 {
 	FILE* file = fopen(fileLoc, "r");
 

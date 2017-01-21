@@ -23,7 +23,7 @@ typedef struct
 } lineSensorCalibratedData;
 
 //Read calibration values from the calibation file and inserts the data in the given array
-bool loadLineSensorCalibrationData(const char* fileLoc);
+bool loadLineSensorCalibrationData(const char* const fileLoc);
 
 double getLineCenteringOffset(enum LineCentering centering);
 

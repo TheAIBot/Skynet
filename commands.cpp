@@ -63,7 +63,7 @@ double getAcceleratedSpeed(const double stdSpeed, const double distanceLeft, con
 /*
  * Updates odo, laser and camera values if they are available
  */
-void syncAndUpdateOdo(odotype *odo)
+void syncAndUpdateOdo(odotype* const odo)
 {
 	//static clock_t startTime = clock();
 	//update laser values
@@ -186,7 +186,7 @@ void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
 /*
  * Runs until the robot has come to a complete stop
  */
-void waitForCompleteStopAndCorrectPosition(odotype* odo)
+void waitForCompleteStopAndCorrectPosition(odotype* const odo)
 {
 	int previousRightWheelEncoderTicks;
 	int previousLeftWheelEncoderTicks;
@@ -206,7 +206,7 @@ void waitForCompleteStopAndCorrectPosition(odotype* odo)
 /*
  * Makes the robot go forward
  */
-void fwd(odotype *odo, const double dist, const double speed, bool (*stopCondition)(odotype*))
+void fwd(odotype* const odo, const double dist, const double speed, bool (*stopCondition)(odotype*))
 {
 	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
 	int time = 0;
@@ -233,7 +233,7 @@ void fwd(odotype *odo, const double dist, const double speed, bool (*stopConditi
 /*
  * Turns the robot up into an angle
  */
-void fwdTurn(odotype *odo, const double angle, const double speed, bool (*stopCondition)(odotype*))
+void fwdTurn(odotype* const odo, const double angle, const double speed, bool (*stopCondition)(odotype*))
 {
 	//remember forward regulated
 	const double K_MOVE_TURN = 0.2;
@@ -255,7 +255,7 @@ void fwdTurn(odotype *odo, const double angle, const double speed, bool (*stopCo
 	waitForCompleteStopAndCorrectPosition(odo);
 }
 
-void fwdRegulated(odotype *odo, const double dist, const double speed, bool (*stopCondition)(odotype*))
+void fwdRegulated(odotype* const odo, const double dist, const double speed, bool (*stopCondition)(odotype*))
 {
 	//Remeber forward regulated
 	printf("fwdRegulated\n");
@@ -294,7 +294,7 @@ void fwdRegulated(odotype *odo, const double dist, const double speed, bool (*st
 /*
  * Turns the robot angle rads
  */
-void turn(odotype *odo, const double angle, const double speed, bool (*stopCondition)(odotype*))
+void turn(odotype* const odo, const double angle, const double speed, bool (*stopCondition)(odotype*))
 {
 
 	const double startpos = (angle > 0) ? odo->rightWheelPos : odo->leftWheelPos;
@@ -329,7 +329,7 @@ void turn(odotype *odo, const double angle, const double speed, bool (*stopCondi
 /*
  * Makes the robot follow a line
  */
-void followLine(odotype *odo, const double dist, const double speed, enum LineCentering centering, enum LineColor color, bool (*stopCondition)(odotype*))
+void followLine(odotype* const odo, const double dist, const double speed, enum LineCentering centering, enum LineColor color, bool (*stopCondition)(odotype*))
 {
 	const double endPosition = odo->totalDistance + dist;
 	int time = 0;
@@ -363,7 +363,7 @@ void followLine(odotype *odo, const double dist, const double speed, enum LineCe
 /*
  * Make the robot follow a wall
  */
-void followWall(odotype *odo, const double dist, const double distanceFromWall, const double speed, bool (*stopCondition)(odotype*))
+void followWall(odotype* const odo, const double dist, const double distanceFromWall, const double speed, bool (*stopCondition)(odotype*))
 {
 	const double startpos = (odo->rightWheelPos + odo->leftWheelPos) / 2;
 	int time = 0;
@@ -397,7 +397,7 @@ void followWall(odotype *odo, const double dist, const double distanceFromWall, 
 /*
  * Make the robot go through a gate
  */
-void throughGate(odotype *odo, const double dist, const double speed, bool (*stopCondition)(odotype*))
+void throughGate(odotype* const odo, const double dist, const double speed, bool (*stopCondition)(odotype*))
 {
 	const double endPosition = odo->totalDistance + dist;
 	int time = 0;

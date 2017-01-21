@@ -9,7 +9,7 @@ static irSensorCalibrationData irSensorCalibData[IR_SENSOR_COUNT];
 /*
  * Loads calibration data for ir sensor from fileLoc
  */
-bool loadIRCalibrationData(const char* fileLoc)
+bool loadIRCalibrationData(const char* const fileLoc)
 {
 	FILE* file = fopen(fileLoc, "r");
 	if (file == NULL)

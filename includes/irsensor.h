@@ -14,7 +14,7 @@ typedef struct
 	double Kb;
 } irSensorCalibrationData;
 
-bool loadIRCalibrationData(const char* fileLoc);
+bool loadIRCalibrationData(const char* const fileLoc);
 double irDistance(enum IRSensor sensor);
 
 #endif

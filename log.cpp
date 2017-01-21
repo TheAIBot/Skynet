@@ -9,7 +9,7 @@ static int logCount = 0;
 /*
  * Saves a copy of odo to logs
  */
-void logOdo(const odotype * odo)
+void logOdo(const odotype* const odo)
 {
 	logs[logCount] = *odo;
 	//override old logs if length of array is reached
@@ -19,7 +19,7 @@ void logOdo(const odotype * odo)
 /*
  * Writes logs to odo
  */
-void writeLogs(const char* filename)
+void writeLogs(const char* const filename)
 {
 	FILE* writeFile = fopen(filename, "w");
 	for (int x = 0; x < logCount; ++x)

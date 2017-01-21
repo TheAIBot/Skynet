@@ -17,31 +17,31 @@
 
 #define ANGLE(x) ((double)(x) / 180.0 * M_PI)
 
-bool noStopCondition(odotype *odo)
+bool noStopCondition(odotype*const odo)
 {
 	return false;
 }
 
 template<enum LineColor color, int conf>
-bool stopAtLine(odotype *odo)
+bool stopAtLine(odotype* const odo)
 {
 	return crossingLine(color, conf);
 }
 
 template<enum LineColor color>
-bool stopAtParallelLine(odotype *odo)
+bool stopAtParallelLine(odotype* const odo)
 {
 	return parallelLine(color);
 }
 
 template<int angle, int deviation>
-bool stopAtDeg(odotype *odo)
+bool stopAtDeg(odotype* const odo)
 {
 	return odo->angle <= ANGLE(angle + deviation) && odo->angle >= ANGLE(angle - deviation);
 }
 
 template<enum IRSensor sensor, int distance>
-bool stopAtDetectedPillar(odotype *odo)
+bool stopAtDetectedPillar(odotype* const odo)
 {
 	static int countWithinDistance = 0;
 	countWithinDistance = (irDistance(sensor) < distance) ? countWithinDistance + 1 : 0;
@@ -57,17 +57,17 @@ bool stopAtDetectedPillar(odotype *odo)
 }
 
 template<enum LaserDistance laser, int distance>
-bool stopAtBlankSpace(odotype *odo)
+bool stopAtBlankSpace(odotype* const odo)
 {
 	return (getLaserDistance(laser) > ((double)distance / 100) + 0.2 || getLaserDistance(laser) < 0.005);
 }
 
-bool stopAtBlockedForwardPath(odotype *odo)
+bool stopAtBlockedForwardPath(odotype* const odo)
 {
 	return (irDistance(ir_front_left) < 20 && irDistance(ir_front_center) < 20 && irDistance(ir_front_right) < 20);
 }
 
-bool stopAtFreeRightIR(odotype *odo)
+bool stopAtFreeRightIR(odotype* const odo)
 {
 	static int countWithinDistance = 0;
 	if ((ir_front_right) > 50)
@@ -87,7 +87,7 @@ bool stopAtFreeRightIR(odotype *odo)
 }
 
 template<int startAngle, int endAngle, int distance>
-bool stopAtLaserDetectedPillar(odotype *odo)
+bool stopAtLaserDetectedPillar(odotype* const odo)
 {
 	const int startIndex = (-endAngle + (LASER_SEARCH_ANGLE / 2)) / ((double) LASER_SEARCH_ANGLE / MAX_LASER_COUNT);
 	const int endIndex = (-startAngle + (LASER_SEARCH_ANGLE / 2)) / ((double) LASER_SEARCH_ANGLE / MAX_LASER_COUNT);
