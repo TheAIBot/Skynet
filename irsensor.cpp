@@ -11,7 +11,7 @@ static irSensorCalibrationData irSensorCalibData[IR_SENSOR_COUNT];
  */
 bool loadIRCalibrationData(const char* const fileLoc)
 {
-	FILE* file = fopen(fileLoc, "r");
+	FILE* const file = fopen(fileLoc, "r");
 	if (file == NULL)
 	{
 		printf("%s NOT FOUND!\n", fileLoc);
@@ -25,12 +25,12 @@ bool loadIRCalibrationData(const char* const fileLoc)
 		if (scanStatus != 2) //Check if the correct number of items was read
 		{
 			printf("Error occured when reading linesensor calibration file. %d numbers expected, but %d was found.", 2, scanStatus);
+			fclose(file);
 			return false;
 		}
 		irSensorCalibData[i].Ka = Ka;
 		irSensorCalibData[i].Kb = Kb;
 	}
-	fclose(file);
 	return true;
 }
 

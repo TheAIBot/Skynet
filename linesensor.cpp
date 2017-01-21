@@ -17,7 +17,7 @@ static lineSensorCalibratedData lineSensorCalibData[LINE_SENSORS_COUNT];
  */
 bool loadLineSensorCalibrationData(const char* const fileLoc)
 {
-	FILE* file = fopen(fileLoc, "r");
+	FILE* const file = fopen(fileLoc, "r");
 
 	if (file == NULL)
 	{
@@ -34,6 +34,7 @@ bool loadLineSensorCalibrationData(const char* const fileLoc)
 		if (scanStatus != 2) //Check if the correct number of items was read
 		{
 			printf("Error occured when reading linesensor calibration file. %d numbers expected, but %d was found.", 2, scanStatus);
+			fclose(file);
 			return false;
 		}
 		lineSensorCalibData[i].a = a;
