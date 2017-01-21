@@ -144,7 +144,7 @@ void exitOnButtonPress()
  * Tries to set motor speeds to leftSpeed and rightSpeed but takes acceleration into account
  * which makes sure that the robot can't accelerate too fast
  */
-void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
+static void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
 {
 	//these two variables contains the current speed of the robot
 	static double currentSpeedLeft = 0;
@@ -186,7 +186,7 @@ void setMotorSpeeds(const double leftSpeed, const double rightSpeed)
 /*
  * Runs until the robot has come to a complete stop
  */
-void waitForCompleteStopAndCorrectPosition(odotype* const odo)
+static void waitForCompleteStop(odotype* const odo)
 {
 	int previousRightWheelEncoderTicks;
 	int previousLeftWheelEncoderTicks;
@@ -227,7 +227,7 @@ void fwd(odotype* const odo, const double dist, const double speed, bool (*stopC
 		exitOnButtonPress();
 
 	} while (distLeft > 0 && !(*stopCondition)(odo));
-	waitForCompleteStopAndCorrectPosition(odo);
+	waitForCompleteStop(odo);
 }
 
 /*
@@ -252,7 +252,7 @@ void fwdTurn(odotype* const odo, const double angle, const double speed, bool (*
 		exitOnButtonPress();
 	} while (fabs(angleDifference) > ANGLE(0.1) && !(*stopCondition)(odo));
 	odo->supposedAngle += angle;
-	waitForCompleteStopAndCorrectPosition(odo);
+	waitForCompleteStop(odo);
 }
 
 void fwdRegulated(odotype* const odo, const double dist, const double speed, bool (*stopCondition)(odotype*))
@@ -288,7 +288,7 @@ void fwdRegulated(odotype* const odo, const double dist, const double speed, boo
 	} while (distLeft > 0 && !(*stopCondition)(odo));
 	printf("distLeft = %f, and stop = %d", distLeft, (distLeft <= 0 && !(*stopCondition)(odo)));
 
-	waitForCompleteStopAndCorrectPosition(odo);
+	waitForCompleteStop(odo);
 }
 
 /*
@@ -323,7 +323,7 @@ void turn(odotype* const odo, const double angle, const double speed, bool (*sto
 
 	} while (distLeft > 0 && !(*stopCondition)(odo));
 	odo->supposedAngle += angle;
-	waitForCompleteStopAndCorrectPosition(odo);
+	waitForCompleteStop(odo);
 }
 
 /*
@@ -357,7 +357,7 @@ void followLine(odotype* const odo, const double dist, const double speed, enum 
 
 	} while (distLeft > 0 && !(*stopCondition)(odo));
 	odo->supposedAngle = odo->angle; //Reset relative angle, as it is impossible to know what angle one is supposed to be at here.
-	waitForCompleteStopAndCorrectPosition(odo);
+	waitForCompleteStop(odo);
 }
 
 /*
@@ -391,7 +391,7 @@ void followWall(odotype* const odo, const double dist, const double distanceFrom
 	} while (distLeft > 0 && !(*stopCondition)(odo));
 
 	odo->supposedAngle = odo->angle; //Reset relative angle, as it is impossible to know what angle one is supposed to be at here.
-	waitForCompleteStopAndCorrectPosition(odo);
+	waitForCompleteStop(odo);
 }
 
 /*
@@ -489,5 +489,5 @@ void throughGate(odotype* const odo, const double dist, const double speed, bool
 
 	} while (distLeft > 0 && !(*stopCondition)(odo));
 	odo->supposedAngle = odo->angle; //Reset relative angle, as it is impossible to know what angle one is supposed to be at here.
-	waitForCompleteStopAndCorrectPosition(odo);
+	waitForCompleteStop(odo);
 }

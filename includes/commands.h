@@ -8,8 +8,6 @@ void syncAndUpdateOdo(odotype* const odo);
 
 void forceSetMotorSpeeds(const double leftSpeed, const double rightSpeed);
 
-void setMotorSpeeds(const double leftSpeed, const double rightSpeed);
-
 void fwd(odotype* const odo, const double dist, const double speed, bool (*stopCondition)(odotype*));
 
 void fwdTurn(odotype* const odo, const double angle, const double speed, bool (*stopCondition)(odotype*));

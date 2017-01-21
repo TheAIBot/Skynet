@@ -21,14 +21,15 @@ typedef struct
 	double ypos;
 	double angle;
 	double totalDistance;
+	//For forward regulated:
+	double supposedAngle;
 	//input signals
 	int leftWheelEncoderTicks;
-	int rightWheelEncoderTicks; // encoderticks
+	int rightWheelEncoderTicks;
 	// internal variables
 	int oldLeftWheelEncoderTicks;
 	int oldRightWheelEncoderTicks;
-	//For forward regulated:
-	double supposedAngle;
+
 } odotype;
 
 void updateOdo(odotype* const p);

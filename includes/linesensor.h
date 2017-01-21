@@ -8,11 +8,13 @@
 
 extern bool simulateFloor;
 
-enum LineCentering{
+enum LineCentering
+{
 	left = 0, center, right
 };
 
-enum LineColor{
+enum LineColor
+{
 	white, black
 };
 
