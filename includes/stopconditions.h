@@ -89,8 +89,8 @@ bool stopAtFreeRightIR(odotype* const odo)
 template<int startAngle, int endAngle, int distance>
 bool stopAtLaserDetectedPillar(odotype* const odo)
 {
-	const int startIndex = (-endAngle + (LASER_SEARCH_ANGLE / 2)) / ((double) LASER_SEARCH_ANGLE / MAX_LASER_COUNT);
-	const int endIndex = (-startAngle + (LASER_SEARCH_ANGLE / 2)) / ((double) LASER_SEARCH_ANGLE / MAX_LASER_COUNT);
+	const int startIndex = ANGLE_TO_INDEX(-endAngle);
+	const int endIndex = ANGLE_TO_INDEX(-startAngle);
 	//printf("%d %d\n", startIndex, endIndex);
 
 	double lowest = 1000;

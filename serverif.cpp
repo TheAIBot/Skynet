@@ -12,6 +12,7 @@
 #include <math.h>
 #include "includes/serverif.h"
 #include "includes/robotconnector.h"
+#include "includes/lasersensor.h"
 
 void serverconnect(componentservertype *s)
 {
@@ -118,7 +119,7 @@ void xml_proca(struct xml_in *x)
 		case XML_IN_NONE:
 			return;
 		case XML_IN_TAG_START:
-#if (1)
+#if (0)
 			{
 				printf("start tag: %s, %d attributes\n", x->a, x->n);
 				for (int i = 0; i < x->n; i++)
@@ -138,10 +139,10 @@ void xml_proca(struct xml_in *x)
 				{
 					const double angle = atof(x->attr[ANGLE_INDEX].value);
 					//calculate where the index the laser value should be saved at by converting the angle to an index
-					const int laserIndex = (int) round((double)(angle + ((double)LASER_SEARCH_ANGLE / 2)) / (((double)LASER_SEARCH_ANGLE / MAX_LASER_COUNT)));
+					const int laserIndex = (int) round(ANGLE_TO_INDEX(angle));
 					//printf("%d\n", laserIndex);
 					laserpar[laserIndex] = atof(x->attr[DISTANCE_INDEX].value);
-					printf("%f\n", laserpar[laserIndex]);
+					//printf("%f\n", laserpar[laserIndex]);
 				}
 			}
 			break;

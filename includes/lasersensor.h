@@ -11,6 +11,9 @@
 #include <vector>
 #include "point.h"
 
+#define ANGLE_TO_INDEX(x) ((x + (LASER_SEARCH_ANGLE / 2)) / ((double) LASER_SEARCH_ANGLE / MAX_LASER_COUNT))
+//#define INDEX_TO_ANGLE(x)
+
 enum LaserDistance
 {
 	laser_left = 499, laser_center = 250, laser_right = 0

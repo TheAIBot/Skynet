@@ -105,20 +105,6 @@ void exitOnButtonPress()
 	ioctl(0, FIONREAD, &arg);
 	if (arg != 0)
 	{
-		//read character and check if p
-		std::string p;
-		std::cin >> p;
-		if (p.compare(std::string("p")) == 0)
-		{
-			//stop robot and wait for key press again
-			//if p again the resume program else exit
-			forceSetMotorSpeeds(0, 0);
-			std::cin >> p;
-			if (p.compare(std::string("p")) == 0)
-			{
-				return;
-			}
-		}
 		forceSetMotorSpeeds(0, 0);
 		rhdSync();
 		rhdDisconnect();
@@ -199,15 +185,10 @@ void fwd(odotype* const odo, const double dist, const double speed, bool (*stopC
 	do
 	{
 		syncAndUpdateOdo(odo);
-
 		distLeft = dist - (odo->totalDistance - startpos);
-
 		const double motorSpeed = max(getAcceleratedSpeed(speed, distLeft, time), MIN_SPEED);
-
 		setMotorSpeeds(motorSpeed, motorSpeed);
-
 		time++;
-
 		exitOnButtonPress();
 
 	} while (distLeft > 0 && !(*stopCondition)(odo));
@@ -241,8 +222,6 @@ void fwdTurn(odotype* const odo, const double angle, const double speed, bool (*
 
 void fwdRegulated(odotype* const odo, const double dist, const double speed, bool (*stopCondition)(odotype*))
 {
-	//Remeber forward regulated
-	printf("fwdRegulated\n");
 	const double K_MOVE_TURN = 0.5;
 	const double startpos = odo->totalDistance;
 	int time = 0;
