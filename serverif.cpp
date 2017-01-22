@@ -41,7 +41,6 @@ void serverconnect(componentservertype *s)
 
 void xml_proc(struct xml_in *x)
 {
-	double a;
 	while (1)
 	{
 		switch (xml_in_nibble(x)) {
@@ -61,6 +60,7 @@ void xml_proc(struct xml_in *x)
 			if (strcmp("gmk", x->a) == 0)
 			{
 				printf("  %s    %s  \n", x->attr[0].name, x->attr[0].value);
+				double a;
 				if (getdouble(&a, "id", x))
 				{
 					gmk.id = a;
@@ -72,28 +72,28 @@ void xml_proc(struct xml_in *x)
 					printf("crc= %f\n", gmk.crc);
 				}
 			}
-			if (strcmp("pos3d", x->a) == 0)
+			else if (strcmp("pos3d", x->a) == 0)
 			{
 				getdouble(&gmk.x, "x", x);
 				getdouble(&gmk.y, "y", x);
 				getdouble(&gmk.z, "z", x);
 			}
-			if (strcmp("rot3d", x->a) == 0)
+			else if (strcmp("rot3d", x->a) == 0)
 			{
 				getdouble(&gmk.omega, "Omega", x);
 				getdouble(&gmk.phi, "Phi", x);
 				getdouble(&gmk.kappa, "Kappa", x);
 			}
-			if (strcmp("vision", x->a) == 0)
+			else if (strcmp("vision", x->a) == 0)
 			{
-				int i, ix;
-				for (i = 0; i < x->n; i++)
+				for (int i = 0; i < x->n; i++)
 				{
-					ix = atoi(x->attr[i].name + 3);
+					const int ix = atoi(x->attr[i].name + 3);
 					if (ix > -1 && ix < 10)
+					{
 						visionpar[ix] = atof(x->attr[i].value);
+					}
 				}
-
 			}
 
 			break;
@@ -118,9 +118,8 @@ void xml_proca(struct xml_in *x)
 		case XML_IN_NONE:
 			return;
 		case XML_IN_TAG_START:
-#if (0)
+#if (1)
 			{
-				int i;
 				printf("start tag: %s, %d attributes\n", x->a, x->n);
 				for (int i = 0; i < x->n; i++)
 				{
@@ -142,7 +141,7 @@ void xml_proca(struct xml_in *x)
 					const int laserIndex = (int) round((double)(angle + ((double)LASER_SEARCH_ANGLE / 2)) / (((double)LASER_SEARCH_ANGLE / MAX_LASER_COUNT)));
 					//printf("%d\n", laserIndex);
 					laserpar[laserIndex] = atof(x->attr[DISTANCE_INDEX].value);
-					//printf("%f\n", laserpar[laserIndex]);
+					printf("%f\n", laserpar[laserIndex]);
 				}
 			}
 			break;

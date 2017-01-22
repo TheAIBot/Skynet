@@ -66,26 +66,12 @@ double getAcceleratedSpeed(const double stdSpeed, const double distanceLeft, con
 void syncAndUpdateOdo(odotype* const odo)
 {
 	//static clock_t startTime = clock();
-	//update laser values
-	if (lmssrv.config && lmssrv.status && lmssrv.connected)
-	{
-		while ((xml_in_fd(xmllaser, lmssrv.sockfd) > 0))
-		{
-			xml_proca(xmllaser);
-		}
-	}
-
-	//update camera values
-	if (camsrv.config && camsrv.status && camsrv.connected)
-	{
-		while ((xml_in_fd(xmldata, camsrv.sockfd) > 0))
-		{
-			xml_proc(xmldata);
-		}
-	}
 
 	//sync with robot
 	rhdSync();
+
+	updateCameraData();
+	updateLaserData();
 
 	//update odo
 	odo->wheelsEncoderTicks.left = lenc->data[0];

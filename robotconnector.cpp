@@ -17,16 +17,16 @@
 
 #define ROBOTPORT 24902
 
-struct xml_in *xmldata;
-struct xml_in *xmllaser;
+static struct xml_in *xmldata;
+static struct xml_in *xmllaser;
 
 laserData gmk;
 
 double visionpar[10];
 double laserpar[MAX_LASER_COUNT];
 
-componentservertype lmssrv;
-componentservertype camsrv;
+static componentservertype lmssrv;
+static componentservertype camsrv;
 
 symTableElement *inputtable;
 symTableElement *outputtable;
@@ -39,19 +39,21 @@ symTableElement *speedr;
 symTableElement *resetmotorr;
 symTableElement *resetmotorl;
 
-symTableElement * getinputref(const char *sym_name, symTableElement * tab)
+symTableElement* getinputref(const char *sym_name, symTableElement* tab)
 {
-	int i;
-	for (i = 0; i < getSymbolTableSize('r'); i++)
+	for (int i = 0; i < getSymbolTableSize('r'); i++)
+	{
 		if (strcmp(tab[i].name, sym_name) == 0)
+		{
 			return &tab[i];
+		}
+	}
 	return 0;
 }
 
-symTableElement * getoutputref(const char *sym_name, symTableElement * tab)
+symTableElement* getoutputref(const char *sym_name, symTableElement* tab)
 {
-	int i;
-	for (i = 0; i < getSymbolTableSize('w'); i++)
+	for (int i = 0; i < getSymbolTableSize('w'); i++)
 	{
 		if (strcmp(tab[i].name, sym_name) == 0)
 		{
@@ -165,4 +167,26 @@ bool connectRobot()
 	connectToLaser();
 
 	return 1;
+}
+
+void updateCameraData()
+{
+	if (camsrv.config && camsrv.status && camsrv.connected)
+	{
+		while ((xml_in_fd(xmldata, camsrv.sockfd) > 0))
+		{
+			xml_proc(xmldata);
+		}
+	}
+}
+
+void updateLaserData()
+{
+	if (lmssrv.config && lmssrv.status && lmssrv.connected)
+	{
+		while ((xml_in_fd(xmllaser, lmssrv.sockfd) > 0))
+		{
+			xml_proca(xmllaser);
+		}
+	}
 }

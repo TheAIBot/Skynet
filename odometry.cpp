@@ -33,7 +33,7 @@ static wheels<int> preventOverflow(wheels<int> delta)
 /*
  * Converts motor ticks to meters
  */
-wheels<double> getDistanceFromTicks(odotype* const p, wheels<int> ticks)
+inline wheels<double> getDistanceFromTicks(odotype* const p, wheels<int> ticks)
 {
 	return ticks * p->metersPerEncoderTick;
 }

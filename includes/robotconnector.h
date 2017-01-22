@@ -19,9 +19,6 @@ extern "C" {
 #define LASER_SEARCH_ANGLE 180
 #define MIN_LASER_DISTANCE 0.02
 
-extern struct xml_in *xmldata;
-extern struct xml_in *xmllaser;
-
 typedef struct
 {
 	double x;
@@ -41,9 +38,6 @@ extern laserData gmk;
 extern double visionpar[10];
 extern double laserpar[MAX_LASER_COUNT];
 
-extern componentservertype lmssrv;
-extern componentservertype camsrv;
-
 extern symTableElement *inputtable;
 extern symTableElement *outputtable;
 extern symTableElement *lenc;
@@ -56,7 +50,8 @@ extern symTableElement *resetmotorr;
 extern symTableElement *resetmotorl;
 
 void setLaserZoneCount(const int zoneCount);
-
 bool connectRobot(void);
+void updateCameraData();
+void updateLaserData();
 
 #endif /* ROBOTCONNECTOR_H_ */

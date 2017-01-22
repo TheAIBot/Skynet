@@ -278,7 +278,15 @@ int main(int argc, char* argv[])
 	odo.wheelsEncoderTicks.left = lenc->data[0];
 	odo.wheelsEncoderTicks.right = renc->data[0];
 	odo.oldWheelsEncoderTicks = odo.wheelsEncoderTicks;
-	
+
+	while(true)
+	{
+		syncAndUpdateOdo(&odo);
+		printf("%f\n", laserpar[249]);
+		laserObjects* dd = getLaserObjects(-90, 90);
+		//printf("%d %d\n", dd->pillars.size(), dd->walls.size());
+		delete dd;
+	}
 
 	toTheBoxAndTakeMeasurements(&odo, useSimCalibs);
 	handleObstacle(&odo, useSimCalibs);

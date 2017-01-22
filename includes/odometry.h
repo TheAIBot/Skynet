@@ -86,6 +86,4 @@ typedef struct
 
 void updateOdo(odotype* const p);
 
-double getDistanceFromTicks(odotype* const p, double ticks);
-
 #endif /* ODOMETRY_H_ */

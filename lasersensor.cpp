@@ -71,7 +71,7 @@ static std::vector<std::vector<point<double>>*>* getUnknownLaserObjects(const in
 	return unknownObjects;
 }
 
-static laserObjects* getCategorizedLaserObject(const std::vector<std::vector<point<double>>*>& unknownObjects)
+static laserObjects* categorizeUnknownLaserObjects(const std::vector<std::vector<point<double>>*>& unknownObjects)
 {
 	laserObjects* objects = new laserObjects;
 	for (unsigned int unknownObjectIndex = 0; unknownObjectIndex < unknownObjects.size(); ++unknownObjectIndex)
@@ -144,7 +144,7 @@ laserObjects* getLaserObjects(const int startAngle, const int searchAngle)
 
 	const std::vector<std::vector<point<double>>*>* unknownObjects = getUnknownLaserObjects(startIndex, endIndex);
 
-	laserObjects* categorizedObjects = getCategorizedLaserObject(*unknownObjects);
+	laserObjects* categorizedObjects = categorizeUnknownLaserObjects(*unknownObjects);
 	delete unknownObjects;
 	return categorizedObjects;
 }

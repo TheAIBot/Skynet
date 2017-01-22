@@ -4,7 +4,7 @@
 CC      = g++
 LD      = ${CC}
 SMR     = /usr/local/smr
-CFLAGS  = -Wall -O2 -I${SMR}/include -Wno-write-strings
+CFLAGS  = -Wall -O2 -I${SMR}/include -Wno-write-strings -ffast-math
 LDFLAGS = -L${SMR}/lib 
 
 #
@@ -18,10 +18,10 @@ LIBS   = -lm librhd.a -lrobot
 all:	${PROG}
 	
 %.o: %.cpp
-	g++ -std=c++11 ${CFLAGS} -c $<
+	g++ -std=c++11 -flto ${CFLAGS} -c $<
 
 ${PROG}: ${OBJS}
-	${LD} -std=c++11 -o ${@} ${LDFLAGS} ${OBJS} ${LIBS}
+	${LD} -std=c++11 -o ${@} ${LDFLAGS} ${OBJS} ${LIBS} -flto -ffunction-sections -Wl,--gc-sections -fno-asynchronous-unwind-tables -Wl,--strip-all
 
 clean:
 	rm -f ${OBJS}

@@ -5,8 +5,7 @@
 #include "includes/robotconnector.h"
 #include "includes/commands.h"
 
-#define MAX_VALUE_FOR_BLACK 0.25
-#define MIN_VALUE_FOR_WHITE 0.80
+#define THRESHOLD_FOR_DETECTED_COLOR 0.80
 
 bool simulateFloor = false;
 
@@ -58,7 +57,7 @@ static double floatRandom(const double min, const double max)
  * Returns a calibrated value of sensorValue that is calibrated with sensorID calibration
  * data
  */
-static double calibrateLineSensorValue(const double sensorValue, const int sensorID)
+static double calibrateLineSensorValue(const int sensorValue, const int sensorID)
 {
 	const double a = lineSensorCalibData[sensorID].a;
 	const double b = lineSensorCalibData[sensorID].b;
@@ -79,17 +78,10 @@ static double calibrateLineSensorValue(const double sensorValue, const int senso
  */
 double correctCalibratedValue(enum LineColor color, const double value)
 {
-	double correctedValue;
 	//black is a 0 and white is 1 so when color is black
 	//switch it around so black is 1 and white is 0
-	if (color == LineColor::black)
-	{
-		correctedValue = (1 - value);
-	}
-	else
-	{
-		correctedValue = value;
-	}
+	double correctedValue = (color == LineColor::black) ? (1 - value) : value;
+
 	//if simulate floor then take all values below 0.7 and give it a
 	//random value around 0.6 as that should simulate a wooden floor
 	if (simulateFloor && correctedValue < 0.70)
@@ -133,7 +125,7 @@ double getLineOffsetDistance(enum LineCentering centering, enum LineColor color)
 		//add a weight to the sensor values if either right or left lineCentering is chosen
 		//which makes the robot favor a certain direction if the line splits up into two lines
 		const double weight = (centering == lineC[i]) ? 2 : 1;
-		sum_m += calibValue * i * weight;
+		sum_m += calibValue * weight * i;
 		sum_i += calibValue * weight;
 	}
 	//calucate center of mass where the center is 3.5
@@ -149,27 +141,13 @@ double getLineOffsetDistance(enum LineCentering centering, enum LineColor color)
 bool crossingLine(enum LineColor color, int konf)
 {
 	int count = 0;
-	if (color == LineColor::black)
+	for (int i = 0; i < LINE_SENSORS_COUNT; i++)
 	{
-		for (int i = 0; i < LINE_SENSORS_COUNT; i++)
+		const double calibValue = calibrateLineSensorValue(linesensor->data[i], i);
+		const double correctedValue = correctCalibratedValue(color, calibValue);
+		if (correctedValue >= THRESHOLD_FOR_DETECTED_COLOR)
 		{
-			const double calibvalue = calibrateLineSensorValue(linesensor->data[i], i);
-			if (calibvalue <= MAX_VALUE_FOR_BLACK)
-			{
-				count++;
-			}
-		}
-	}
-	else if (color == LineColor::white)
-	{
-		for (int i = 0; i < LINE_SENSORS_COUNT; i++)
-		{
-			const double calibvalue = calibrateLineSensorValue(linesensor->data[i], i);
-			if (calibvalue >= MIN_VALUE_FOR_WHITE)
-			{
-
-				count++;
-			}
+			count++;
 		}
 	}
 	return count >= konf;
@@ -181,12 +159,9 @@ bool crossingLine(enum LineColor color, int konf)
  */
 bool parallelLine(enum LineColor color)
 {
-	if (color == LineColor::black)
-	{
-		return (calibrateLineSensorValue(linesensor->data[3], 3) < MAX_VALUE_FOR_BLACK || calibrateLineSensorValue(linesensor->data[4], 4) < MAX_VALUE_FOR_BLACK);
-	}
-	else
-	{
-		return (calibrateLineSensorValue(linesensor->data[3], 3) > MIN_VALUE_FOR_WHITE || calibrateLineSensorValue(linesensor->data[4], 4) > MIN_VALUE_FOR_WHITE);
-	}
+	const double calibValue3 = calibrateLineSensorValue(linesensor->data[3], 3);
+	const double correctedValue3 = correctCalibratedValue(color, calibValue3);
+	const double calibValue4 = calibrateLineSensorValue(linesensor->data[4], 4);
+	const double correctedValue4 = correctCalibratedValue(color, calibValue4);
+	return correctedValue3 >= THRESHOLD_FOR_DETECTED_COLOR || correctedValue4 >= THRESHOLD_FOR_DETECTED_COLOR;
 }
