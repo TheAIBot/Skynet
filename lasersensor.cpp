@@ -55,6 +55,10 @@ static std::vector<std::vector<point<double>>*>* getUnknownLaserObjects(const in
 						objectPositions->push_back(obstaclePos);
 						isLaserUsed[z] = true;
 					}
+					else
+					{
+						break;
+					}
 				}
 			}
 			if (objectPositions->size() > 1)
@@ -88,10 +92,9 @@ static laserObjects* categorizeUnknownLaserObjects(const std::vector<std::vector
 			point<double> pointsSum = { 0 };
 			for (unsigned int i = 0; i < unknownObject.size(); ++i)
 			{
-				pointsSum = pointsSum + unknownObject[i];
+				pointsSum += unknownObject[i];
 			}
-			pointsSum = pointsSum / unknownObject.size();
-			newPillar->pos = pointsSum;
+			newPillar->pos = pointsSum / unknownObject.size();
 
 			point<double> nearestPos = unknownObject[0];
 			for (unsigned int i = 1; i < unknownObject.size(); ++i)
@@ -103,7 +106,7 @@ static laserObjects* categorizeUnknownLaserObjects(const std::vector<std::vector
 			}
 			newPillar->nearestPos = nearestPos;
 
-			newPillar->points = new point<double>[unknownObject.size()];
+			newPillar->points = new point<double> [unknownObject.size()];
 			std::copy(unknownObject.begin(), unknownObject.end(), newPillar->points);
 			newPillar->pointsCount = unknownObject.size();
 
@@ -119,14 +122,14 @@ static laserObjects* categorizeUnknownLaserObjects(const std::vector<std::vector
 			point<double> nearestPos = unknownObject[0];
 			for (unsigned int i = 1; i < unknownObject.size(); ++i)
 			{
-				if (getLength(nearestPos) > getLength(unknownObject[i]))
+				if (nearestPos.length() > unknownObject[i].length())
 				{
 					nearestPos = unknownObject[i];
 				}
 			}
 			newWall->nearestPos = nearestPos;
 
-			newWall->points = new point<double>[unknownObject.size()];
+			newWall->points = new point<double> [unknownObject.size()];
 			std::copy(unknownObject.begin(), unknownObject.end(), newWall->points);
 			newWall->pointsCount = unknownObject.size();
 

@@ -13,6 +13,7 @@
 #include <fcntl.h>
 #include <sys/ioctl.h>
 #include <iostream>
+#include <algorithm>
 #include "includes/robotconnector.h"
 #include "includes/log.h"
 #include "includes/irsensor.h"
@@ -30,6 +31,7 @@
 
 //converts an angle in deg to rad
 #define ANGLE(x) ((double)x / 180.0 * M_PI)
+#define RAD_TO_DEG(x) (x * (180.0 / M_PI))
 
 /*
  * Returns the minimum of x and y
@@ -372,62 +374,42 @@ void throughGate(odotype* const odo, const double dist, const double speed, bool
 	{
 		syncAndUpdateOdo(odo);
 
-		double minLeftSide = 1000;
-		double minRightSide = 1000;
-		int minLeftSideIndex = -1;
-		int minRightSideIndex = -1;
+		double minLeftSide = 1;
+		double minRightSide = 1;
 
 		//while the robot can see the gate the robot
 		//should correct itself. When it can't see the gate anymore
 		//it should go straight forward
 		if (!goneThroughGate)
 		{
-			//this assumes that the gates pillars are the two closest things to the robot
-			//Find the fist closest thing to the robot
-			for (int i = 0; i < MAX_LASER_COUNT; ++i)
+			laserObjects* objects = getLaserObjects(-90, 90);
+
+			if (objects->pillars.size() >= 2)
 			{
-				if (laserpar[i] > 0.01)
+				std::sort(objects->pillars.begin(), objects->pillars.end(), pillar::sortByLength);
+
+				const pillar* firstPillar = objects->pillars[0];
+				const pillar* secondPillar = objects->pillars[1];
+
+				const bool isFirstPillarLeftPillar = firstPillar->nearestPos.angle() < secondPillar->nearestPos.angle();
+				const pillar* leftPillar = (isFirstPillarLeftPillar) ? firstPillar : secondPillar;
+				const pillar* rightPillar = (isFirstPillarLeftPillar) ? secondPillar : firstPillar;
+
+				minLeftSide = leftPillar->nearestPos.length();
+				minRightSide = rightPillar->nearestPos.length();
+				const double minLeftSideAngle = leftPillar->nearestPos.angle();
+				const double minRightSideAngle = rightPillar->nearestPos.angle();
+
+				//printf("%f %f\n", RAD_TO_DEG(minLeftSideAngle), RAD_TO_DEG(minRightSideAngle));
+				//if both pillars are close to the edge of the robots sight then mark the robot as if
+				//it has gone through the gate already
+				if (minLeftSideAngle < ANGLE(15) && minRightSideAngle > ANGLE(165))
 				{
-					if (laserpar[i] < minLeftSide)
-					{
-						minLeftSide = laserpar[i];
-						minLeftSideIndex = i;
-					}
+					goneThroughGate = true;
 				}
 			}
-
-			//find the second closest thing the the robot that isn't close to the
-			//first closest thing
-			const double LASER_SPACEING = 40;
-			for (int i = 0; i < MAX_LASER_COUNT; ++i)
-			{
-				if (laserpar[i] > 0.01 && (minLeftSideIndex - LASER_SPACEING > i || i > minLeftSideIndex + LASER_SPACEING))
-				{
-					if (laserpar[i] < minRightSide)
-					{
-						minRightSide = laserpar[i];
-						minRightSideIndex = i;
-					}
-				}
-			}
-
-			//make the thing that was furthest to the left be set to minLeftSide
-			if (minLeftSideIndex > minRightSideIndex)
-			{
-				const double temp = minLeftSide;
-				minLeftSide = minRightSide;
-				minRightSide = temp;
-
-				const int tempIndex = minLeftSideIndex;
-				minLeftSideIndex = minRightSideIndex;
-				minRightSideIndex = tempIndex;
-			}
+			delete objects;
 			//printf("%f %f\n", minLeftSide, minRightSide);
-			//printf("%d %d\n", minLeftSideIndex, minRightSideIndex);
-		}
-		else {
-			minLeftSide = 1;
-			minRightSide = 1;
 		}
 
 		distLeft = endPosition - odo->totalDistance;
@@ -439,17 +421,10 @@ void throughGate(odotype* const odo, const double dist, const double speed, bool
 
 		//setMotorSpeeds(0, 0);
 
-		setMotorSpeeds(motorSpeed + speedDiffPerMotor, motorSpeed - speedDiffPerMotor);
+		setMotorSpeeds(motorSpeed - speedDiffPerMotor, motorSpeed + speedDiffPerMotor);
 
 		time++;
 		exitOnButtonPress();
-
-		//if both pillars are close to the edge of the robots sight then mark the robot as if
-		//it has gone through the gate already
-		if (minLeftSideIndex < 30 && minRightSideIndex > MAX_LASER_COUNT - 30)
-		{
-			goneThroughGate = true;
-		}
 
 	} while (distLeft > 0 && !(*stopCondition)(odo));
 	odo->supposedAngle = odo->angle; //Reset relative angle, as it is impossible to know what angle one is supposed to be at here.

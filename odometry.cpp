@@ -7,24 +7,33 @@
 
 /*
  * Returns a truncated delta between -2^16 and 2^16
+ * But i don't understand why this is nessesary
  */
 static wheels<int> preventOverflow(wheels<int> delta)
 {
 	if (delta.left > 0x8000)
 	{
+		printf("hitl+\n");
+		printf("%d %d\n", delta.left, delta.right);
 		delta.left -= 0x10000;
 	}
 	else if (delta.left < -0x8000)
 	{
+		printf("hitl-\n");
+		printf("%d %d\n", delta.left, delta.right);
 		delta.left += 0x10000;
 	}
 
 	if (delta.right > 0x8000)
 	{
+		printf("hitr+\n");
+		printf("%d %d\n", delta.left, delta.right);
 		delta.right -= 0x10000;
 	}
 	else if (delta.right < -0x8000)
 	{
+		printf("hitr-\n");
+		printf("%d %d\n", delta.left, delta.right);
 		delta.right += 0x10000;
 	}
 	return delta;
@@ -48,6 +57,7 @@ static wheels<double> updateEncodersPositions(odotype* const p)
 	p->oldWheelsEncoderTicks = p->wheelsEncoderTicks;
 	const wheels<double> traveledDistance = getDistanceFromTicks(p, delta);
 	p->wheelsDrivenDistance += traveledDistance;
+	//printf("%d %d\n", p->wheelsEncoderTicks.left, p->wheelsEncoderTicks.right);
 	return traveledDistance;
 }
 

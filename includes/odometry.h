@@ -17,35 +17,35 @@ public:
 	T left;
 	T right;
 
-	wheels<T> operator+(const wheels<T>& p)
+	wheels<T> operator+(const wheels<T>& p) const
 	{
 		wheels<T> temp;
 		temp.left = left + p.left;
 		temp.right = right + p.right;
 		return temp;
 	}
-	wheels<T> operator-(const wheels<T>& p)
+	wheels<T> operator-(const wheels<T>& p) const
 	{
 		wheels<T> temp;
 		temp.left = left - p.left;
 		temp.right = right - p.right;
 		return temp;
 	}
-	wheels<T> operator*(const wheels<T>& p)
+	wheels<T> operator*(const wheels<T>& p) const
 	{
 		wheels<T> temp;
 		temp.left = left * p.left;
 		temp.right = right * p.right;
 		return temp;
 	}
-	wheels<double> operator*(const double& s)
+	wheels<double> operator*(const double& s) const
 	{
 		wheels<double> temp;
 		temp.left = s * left;
 		temp.right = s * right;
 		return temp;
 	}
-	wheels<T> operator/(const wheels<T>& p)
+	wheels<T> operator/(const wheels<T>& p) const
 	{
 		wheels<T> temp;
 		temp.left = left / p.left;
@@ -57,7 +57,7 @@ public:
 		left += p.left;
 		right += p.right;
 	}
-	bool operator!=(const wheels<T>& p)
+	bool operator!=(const wheels<T>& p) const
 	{
 		return left != p.left || right != p.right;
 	}

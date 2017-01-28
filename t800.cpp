@@ -1,6 +1,7 @@
 #include <iostream>
 #include <stdlib.h>
 #include <string>
+#include <algorithm>
 #include "includes/robotconnector.h"
 #include "includes/odometry.h"
 #include "includes/log.h"
@@ -20,6 +21,8 @@
 #define REAL_LINE_SENSOR_CALIB_FILE_NAME "sensor_calib_scripts/linesensor_calib_real.txt"
 #define SIM_IR_SENSOR_CALIB_FILE_NAME "sensor_calib_scripts/irSensorCalib_sim.txt"
 #define REAL_IR_SENSOR_CALIB_FILE_NAME "sensor_calib_scripts/irSensorCalib_real.txt"
+
+#define RAD_TO_ANGLE(x) (x * (180.0 / M_PI))
 
 /*
  * Load all the robots calibrations
@@ -249,10 +252,10 @@ static void handleEnclosure(odotype* const odo, const bool inSim)
 
 int main(int argc, char* argv[])
 {
-	odotype odo = { 0 };
 	//use sim calibs as default
 	bool useSimCalibs = true;
 
+	//first argument is the name of the executable file
 	for (int i = 1; i < argc; ++i)
 	{
 		const std::string argument = argv[i];
@@ -278,18 +281,28 @@ int main(int argc, char* argv[])
 	/* Read sensors and zero our position.
 	 */
 	rhdSync();
-
+	odotype odo = { 0 };
 	odo.wheelSeparation = WHEEL_SEPARATION;
 	odo.metersPerEncoderTick = DELTA_M;
 	odo.wheelsEncoderTicks.left = lenc->data[0];
 	odo.wheelsEncoderTicks.right = renc->data[0];
 	odo.oldWheelsEncoderTicks = odo.wheelsEncoderTicks;
 
-	while (true)
+	//throughGate(&odo, 100, STD_SPEED, &noStopCondition);
+
+	while (false)
 	{
 		syncAndUpdateOdo(&odo);
+
 		laserObjects* dd = getLaserObjects(-90, 90);
+		std::sort(dd->pillars.begin(), dd->pillars.end(), pillar::sortByLength);
 		printf("%d %d\n", dd->pillars.size(), dd->walls.size());
+		for (unsigned int i = 0; i < dd->pillars.size(); ++i)
+		{
+			//printf("%f %f\n", dd->pillars[i]->nearestPos.x, dd->pillars[i]->nearestPos.y);
+			//printf("%f\n", RAD_TO_ANGLE(dd->pillars[i]->nearestPos.angle()));
+			//printf("%f\n", dd->pillars[i]->nearestPos.length());
+		}
 		delete dd;
 	}
 

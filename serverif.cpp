@@ -112,7 +112,6 @@ void xml_proc(struct xml_in *x)
 
 void xml_proca(struct xml_in *x)
 {
-
 	while (1)
 	{
 		switch (xml_in_nibble(x)) {

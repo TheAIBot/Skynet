@@ -1,10 +1,3 @@
-/*
- * lasersensor.h
- *
- *  Created on: Jan 17, 2017
- *      Author: smr
- */
-
 #ifndef LASERSENSOR_H_
 #define LASERSENSOR_H_
 
@@ -25,6 +18,11 @@ typedef struct despillar
 	point<double> nearestPos;
 	point<double> *points;
 	int pointsCount;
+
+	static bool sortByLength(const despillar* a, const despillar* b)
+	{
+		return a->nearestPos.length() < b->nearestPos.length();
+	}
 
 	~despillar()
 	{
