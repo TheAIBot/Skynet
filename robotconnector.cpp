@@ -175,7 +175,7 @@ void updateCameraData()
 	{
 		while ((xml_in_fd(xmldata, camsrv.sockfd) > 0))
 		{
-			xml_proc(xmldata);
+			decodeCameraXML(xmldata);
 		}
 	}
 }
@@ -186,7 +186,7 @@ void updateLaserData()
 	{
 		while ((xml_in_fd(xmllaser, lmssrv.sockfd) > 0))
 		{
-			xml_proca(xmllaser);
+			decodeLaserXML(xmllaser);
 		}
 	}
 }

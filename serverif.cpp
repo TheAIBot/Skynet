@@ -40,7 +40,7 @@ void serverconnect(componentservertype *s)
 	}
 }
 
-void xml_proc(struct xml_in *x)
+void decodeCameraXML(struct xml_in *x)
 {
 	while (1)
 	{
@@ -110,7 +110,7 @@ void xml_proc(struct xml_in *x)
 	}
 }
 
-void xml_proca(struct xml_in *x)
+void decodeLaserXML(struct xml_in *x)
 {
 	while (1)
 	{
