@@ -10,7 +10,7 @@
 
 static point<double> getPointFromLaserIndex(const int index)
 {
-	const double laserAngle = ((double) LASER_SEARCH_ANGLE / MAX_LASER_COUNT) * index;
+	const double laserAngle = INDEX_TO_ANGLE(index);
 	return point<double>::createPoint(laserpar[index], ANGLE(laserAngle));
 }
 

@@ -5,7 +5,7 @@
 #include "point.h"
 
 #define ANGLE_TO_INDEX(x) ((x + (LASER_SEARCH_ANGLE / 2)) / ((double) LASER_SEARCH_ANGLE / MAX_LASER_COUNT))
-//#define INDEX_TO_ANGLE(x)
+#define INDEX_TO_ANGLE(x) (((double)LASER_SEARCH_ANGLE / MAX_LASER_COUNT) * x)
 
 enum LaserDistance
 {
