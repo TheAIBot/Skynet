@@ -13,27 +13,27 @@ static wheels<int> preventOverflow(wheels<int> delta)
 {
 	if (delta.left > 0x8000)
 	{
-		printf("hitl+\n");
-		printf("%d %d\n", delta.left, delta.right);
+		//printf("hitl+\n");
+		//printf("%d %d\n", delta.left, delta.right);
 		delta.left -= 0x10000;
 	}
 	else if (delta.left < -0x8000)
 	{
-		printf("hitl-\n");
-		printf("%d %d\n", delta.left, delta.right);
+		//printf("hitl-\n");
+		//printf("%d %d\n", delta.left, delta.right);
 		delta.left += 0x10000;
 	}
 
 	if (delta.right > 0x8000)
 	{
-		printf("hitr+\n");
-		printf("%d %d\n", delta.left, delta.right);
+		//printf("hitr+\n");
+		//printf("%d %d\n", delta.left, delta.right);
 		delta.right -= 0x10000;
 	}
 	else if (delta.right < -0x8000)
 	{
-		printf("hitr-\n");
-		printf("%d %d\n", delta.left, delta.right);
+		//printf("hitr-\n");
+		//printf("%d %d\n", delta.left, delta.right);
 		delta.right += 0x10000;
 	}
 	return delta;

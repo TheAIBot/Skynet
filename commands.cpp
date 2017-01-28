@@ -67,7 +67,11 @@ double getAcceleratedSpeed(const double stdSpeed, const double distanceLeft, con
  */
 void syncAndUpdateOdo(odotype* const odo)
 {
-	//static clock_t startTime = clock();
+	constexpr int TIMES_COUNT = 30;
+	static double times[TIMES_COUNT] = { 0 };
+	static int i = 0;
+	static double sum = 0;
+	static clock_t startTime = clock();
 
 	//sync with robot
 	rhdSync();
@@ -80,8 +84,13 @@ void syncAndUpdateOdo(odotype* const odo)
 	odo->wheelsEncoderTicks.right = renc->data[0];
 	updateOdo(odo);
 
-	//printf("%fms\n", ((double)(clock() - startTime) / CLOCKS_PER_SEC) * 1000);
-	//startTime = clock();
+	i = (i + 1) % TIMES_COUNT;
+	const double newTime = ((double) (clock() - startTime) / CLOCKS_PER_SEC) * 1000;
+	sum += newTime - times[i];
+	times[i] = newTime;
+
+	printf("%fms\n", sum / TIMES_COUNT);
+	startTime = clock();
 }
 
 /*

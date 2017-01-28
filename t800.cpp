@@ -288,7 +288,7 @@ int main(int argc, char* argv[])
 	odo.wheelsEncoderTicks.right = renc->data[0];
 	odo.oldWheelsEncoderTicks = odo.wheelsEncoderTicks;
 
-	//throughGate(&odo, 100, STD_SPEED, &noStopCondition);
+	throughGate(&odo, 100, STD_SPEED, &noStopCondition);
 
 	while (false)
 	{
